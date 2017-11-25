@@ -1,44 +1,16 @@
-
-	DELIMITER $$
-	DROP procedure IF EXISTS `CreateRoleType`$$
-	CREATE PROCEDURE `CreateRoleType` (IN _description varchar(255))
-	BEGIN
-
-		INSERT INTO roleType(description) VALUES(_description);
-
-		SELECT LAST_INSERT_ID() as id;
-		
-	END$$
-
-	DELIMITER $$
-	DROP procedure IF EXISTS `GetRoleType`$$
-	CREATE PROCEDURE `GetRoleType` (IN _id varchar(255))
-	BEGIN
-
-		SELECT id,description
-		FROM roleType
-		WHERE id = coalesce(_id,id);
-		
-	END$$
-
-	DELIMITER $$
-	DROP procedure IF EXISTS `EditRoleType`$$
-	CREATE PROCEDURE `EditRoleType` (IN _id int, IN _description varchar(255))
-	BEGIN
-
-		UPDATE roleType
-		SET description = _description
-		WHERE id = _id;
-		
-	END$$
+    DROP TABLE IF EXISTS roleType;
+	CREATE TABLE roleType(
+		id int PRIMARY KEY AUTO_INCREMENT,
+		description varchar(255)
+	); 
     #--------------------------------------
-    UPDATE ctrl_tareas_Detalle
+    UPDATE ctrl_tareas_detalle
 	SET txt_comentario = REplace(txt_comentario,'>','&gt;')
-	where txt_comentario like '%>%'
+	where txt_comentario like '%>%';
     
     UPDATE ctrl_tareas_detalle
     SET txt_comentario = Replace(txt_comentario,'"','&quot;')
-    WHERE txt_comentario like '%"%'
+    WHERE txt_comentario like '%"%';
     #--------------------------------------
 	CALL CreateRoleType('Creador');
 	CALL CreateRoleType('Responsable');
@@ -121,7 +93,39 @@
     ALTER TABLE cat_usuario
     ADD apellidos varchar(100) NULL;
     #------------------------------------
-    
+	DELIMITER $$
+	DROP procedure IF EXISTS `CreateRoleType`$$
+	CREATE PROCEDURE `CreateRoleType` (IN _description varchar(255))
+	BEGIN
+
+		INSERT INTO roleType(description) VALUES(_description);
+
+		SELECT LAST_INSERT_ID() as id;
+		
+	END$$
+
+	DELIMITER $$
+	DROP procedure IF EXISTS `GetRoleType`$$
+	CREATE PROCEDURE `GetRoleType` (IN _id varchar(255))
+	BEGIN
+
+		SELECT id,description
+		FROM roleType
+		WHERE id = coalesce(_id,id);
+		
+	END$$
+
+	DELIMITER $$
+	DROP procedure IF EXISTS `EditRoleType`$$
+	CREATE PROCEDURE `EditRoleType` (IN _id int, IN _description varchar(255))
+	BEGIN
+
+		UPDATE roleType
+		SET description = _description
+		WHERE id = _id;
+		
+	END$$
+	#-------------------------------------------------------------------
     
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTarea$$
@@ -251,10 +255,7 @@ SELECT getJsonTopComments(55)
     #    -Participantes de la tarea **
     #    -Responsable de la tarea ó el proyecto **
         
-	CREATE TABLE roleType(
-		id int PRIMARY KEY AUTO_INCREMENT,
-		description varchar(255)
-	);        
+       
     
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS GetUsuario$$
@@ -338,7 +339,7 @@ BEGIN
 END$$
 
 
-CALL getContenido('12',NULL,1,1)
+#CALL getContenido('12',NULL,1,1)
 
 
 DELIMITER $$
@@ -377,9 +378,9 @@ BEGIN
 	RETURN _key;
     
 END$$
-
-select id_usuario from cat_usuario
 /*
+select id_usuario from cat_usuario
+
     UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 50;
     UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 12;
     UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 13;
@@ -405,5 +406,5 @@ select id_usuario from cat_usuario
     UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 297;
     UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 298;
     UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 299;
-    UPDATE cat_usuario SET color = '#FF6D00' WHERE id_usuario = 300;*/
-select * from ctrl_Tareas_detalle where id_tarea = 905
+    UPDATE cat_usuario SET color = '#FF6D00' WHERE id_usuario = 300;
+select * from ctrl_Tareas_detalle where id_tarea = 905*/
