@@ -1,13 +1,15 @@
 import React, {Component} from 'react';
-import { Link, withRouter } from 'react-router-dom';
 import { Config } from '../configuracion';
+import { push } from 'react-router-redux'
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
 
 const { menu } = Config;
 
 class MenuBar extends Component{
 
     onClick(e, location){
-        window.location = location;
+        this.props.changePage(location);
     }
 
     renderMenu(menu){
@@ -55,4 +57,14 @@ class MenuBar extends Component{
     }
 }
 
-export {MenuBar};
+const mapStateToProps = state => {
+    return { 
+        proyectos: state.proyectos.proyectos
+    }
+};
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+    changePage: (location) => push(location),
+}, dispatch)
+
+export default connect(mapStateToProps, mapDispatchToProps)(MenuBar);

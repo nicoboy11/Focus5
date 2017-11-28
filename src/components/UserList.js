@@ -11,7 +11,7 @@ class UserList extends Component{
 
         return participantes.map(participante => {
             i++;
-            let cssColor = "";
+
             const srcImg = '../src/img/avatar/' + participante.id_usuario;
             let overlayVal = i*12;
 

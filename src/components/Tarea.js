@@ -4,10 +4,6 @@ import { Helper } from '../configuracion';
 
 class Tarea extends Component{
 
-    constructor(props){
-        super(props);
-    }
-
     componentWillMount(){
         console.log('entró');
     }
@@ -28,7 +24,7 @@ class Tarea extends Component{
 
     render(){
 
-        const { participantes, txt_tarea, fec_limite, notificaciones } = this.props;
+        const { participantes, txt_tarea, fec_limite } = this.props;
 
         return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} className="tareaCard divideBottom">
                     <div className="c100 p50 tiny blue">

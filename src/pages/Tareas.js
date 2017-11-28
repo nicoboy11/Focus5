@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
-import { Config, Database, Helper } from '../configuracion';
+import { Database, Helper } from '../configuracion';
 import { Tarea, ChatItem, Input } from '../components'
+import { withRouter } from 'react-router-dom';
+
+import { connect } from 'react-redux';
+import { cargarTareas, cargarProyectos, selectProyecto } from '../actions';
 
 class Tareas extends Component{
     constructor(props){
@@ -12,29 +16,52 @@ class Tareas extends Component{
         }
     }
 
+    /**
+     * Al inicio trato de cargar las tareas del proyecto seleccionado.
+     * Pero si se llegó a la pantalla directamente con el link entonces tiene que buscar en la url y
+     * cargar todos los proyectos y posteriormente seleccionarlos en ComponentWillReceiveProps
+     */
     componentWillMount(){
-        const currentRoute = window.location.pathname;
-        Database.request('GET', `contenido/${12}?id_proyecto=${currentRoute.split("/")[2]}`, {}, 2, (error, response) => {
-            if(error){
-              console.log(error);
-            } else{
-                const datos = Helper.clrHtml(response[0].tareas);
-                const tareas = response[0].tareas ? JSON.parse(datos) : []; 
-                this.setState({ tareas });
-            }
-        });      
+        
+        if(this.props.id_proyecto) {
+            this.props.cargarTareas(this.props.proyectos, this.props.id_proyecto);
+        } else {
+            this.props.cargarProyectos(12);
+        }
     }
 
+    /**
+     * Aqui primero checo si existe ya un proyecto seleccionado, en caso de que no, obtengo el IdProyecto de la url
+     * y lo selecciono.
+     * En caso de que sí cargo las tareas
+     * @param {*} nextProps 
+     */
     componentWillReceiveProps(nextProps){
-        console.log(nextProps);
+
+        if (!nextProps.id_proyecto){
+            const currentRoute = window.location.pathname;
+            this.props.selectProyecto(parseInt(currentRoute.split("/")[2]));
+        } else if ( nextProps.id_proyecto && nextProps.tareas.length == 0 && nextProps.tareas === this.props.tareas){
+            this.props.cargarTareas(nextProps.proyectos, nextProps.id_proyecto);
+        }
+
     }
 
+    /**
+     * Cuando seleccionan la tarea mando llamar el scroll
+     * @param {*} prevProps 
+     * @param {*} prevState 
+     */
     componentDidUpdate(prevProps, prevState){
         this.scrollToBottom();
     }
 
+    /**
+     * Cargo el chat una vez que seleccionan la tarea
+     * @param {*} id_tarea 
+     */
     tareaClick(id_tarea){
-        const currentTarea = this.state.tareas.filter(tarea => tarea.id_tarea === id_tarea);
+        const currentTarea = this.props.tareas.filter(tarea => tarea.id_tarea === id_tarea);
         const chat = currentTarea[0].topComments;
         const currentComments = chat.map(comment => {
             return (
@@ -55,21 +82,28 @@ class Tareas extends Component{
         });
     }
 
+    /**
+     * Escrolleo al final de la lista del chat
+     */
     scrollToBottom() {
         const {chatScroll} = this.refs;
         chatScroll.scrollTop = chatScroll.scrollHeight - chatScroll.clientHeight;
     }
 
+    /**
+     * Renderizar los comentarios
+     */
     renderMessages(){
         //obtener tarea actual
-        
-
         return this.state.currentComments;
     }
 
+    /**
+     * Renderizo las tareas si ya existen en el state
+     */
     renderTareas(){
-        if(this.state.tareas !== null) {
-            return this.state.tareas.map(tarea => {
+        if(this.props.tareas !== null) {
+            return this.props.tareas.map(tarea => {
                     return (
                         <Tarea 
                             key={tarea.id_tarea}
@@ -84,9 +118,12 @@ class Tareas extends Component{
             });
         }
 
-        return <div>loading</div>;
+        return <div>loading...</div>;
     }
 
+    /**
+     * Renderizo la pagina completa
+     */
     render(){
         return(
             <div className="detallesContainer divideTop">
@@ -117,4 +154,13 @@ class Tareas extends Component{
 
 }
 
-export { Tareas };
+const mapStateToProps = state => {
+    return { 
+        proyectos: state.proyectos.proyectos,
+        tareas: state.proyectos.tareas, 
+        ...state.proyectos.current_id_proyecto 
+    }
+};
+
+//export { Proyectos };
+export default withRouter(connect(mapStateToProps, { cargarTareas, cargarProyectos, selectProyecto })(Tareas))

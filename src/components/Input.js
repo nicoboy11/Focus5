@@ -42,14 +42,14 @@ class Input extends Component{
             value
         } = this.props;
 
-        if(this.props.multiline){
+        if(multiline){
             return (
                 <textarea id={id} placeholder={placeholder} className="chatTextArea">{value}</textarea>
             );
         }
 
         return (
-            <input id={id} value={value} placeholder={placeholder} style={styles.inputStyle} type={(type==='PASSWORD') ? 'password' : 'text'} />
+            <input onChange={(e) => this.props.onChangeText(e.value)} id={id} value={value} placeholder={placeholder} style={styles.inputStyle} type={(type==='PASSWORD') ? 'password' : 'text'} />
         );
     }
 

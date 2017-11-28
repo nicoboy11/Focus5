@@ -11,7 +11,7 @@ class ChatItem extends Component {
             fec_comentario
         } = this.props;
 
-        if(id_tipo_comentario == 2 ) {
+        if(id_tipo_comentario === 2 ) {
             return (
                 <div className="bitacora">{txt_comentario}</div>
             );

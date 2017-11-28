@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
-import {UserList, Modal, Input, Radio, FormRow} from './';
-import {Config, Helper} from '../configuracion';
+import { Modal, Input, Radio, FormRow} from './';
+import { Helper} from '../configuracion';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import 'moment/locale/es'
@@ -37,7 +37,7 @@ class Proyecto extends Component{
     }
 
     onClick(e){
-        window.location = 'proyectos/' + this.props.id_proyecto;
+        this.props.onProyectoSelect();
     }
 
     obtenerTotales(){
@@ -76,8 +76,8 @@ class Proyecto extends Component{
             fec_inicio,
             fec_fin,
             id_status,
-            participantes,
-            tareas
+            //participantes,
+            //tareas
         } = this.props;
 
         const promedio = (this.state.terminadas/this.state.totalTareas)*100;

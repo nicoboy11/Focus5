@@ -1,6 +1,6 @@
-import { Config, Database } from './'
+import { Config } from './'
 
-const { regex, texts, colors } = Config;
+const { texts, colors } = Config;
 
 class Helper {
 

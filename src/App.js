@@ -2,10 +2,12 @@ import React, { Component } from 'react';
 import './css/circle.css';
 import './css/general.css';
 import './css/w3.css';
-import { List, MenuBar, MenuTop } from './components';
-import { Config, Database } from './configuracion';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { Proyectos, Chats, Personal, Ajustes, Tareas } from './pages';
+import { MenuTop } from './components';
+import MenuBar from './components/MenuBar';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { Chats, Personal, Ajustes } from './pages';
+import Proyectos from './pages/Proyectos';
+import Tareas from './pages/Tareas';
 
 class App extends Component {
 
@@ -19,33 +21,25 @@ class App extends Component {
   }
 
   componentDidMount(){
-      Database.request('GET', `contenido/${12}`, {}, 2, (error, response) => {
-          if(error){
-            console.log(error);
-          } else{
-            console.log(response);
-            this.setState({ datos: response });
-          }
-      });        
+    
   }
 
   render() {
+
     return (
-      <Router>
-        <div className="App">
-          <div id="main">
-              <Route exact path="/proyectos" render={(props) =>(
-                <Proyectos datos={this.state.datos} />
-              )} />
-              <Route path="/proyectos/:id" component={Tareas} />              
-              <Route path="/chats" component={Chats} />
-              <Route path="/personal" component={Personal} />
-              <Route path="/ajustes" component={Ajustes} />
+          <div className="App">
+            <div id="main">
+                <Route exact path="/proyectos" render={(props) =>(
+                  <Proyectos datos={this.state.datos} />
+                )} />
+                <Route path="/proyectos/:id" component={Tareas} />              
+                <Route path="/chats" component={Chats} />
+                <Route path="/personal" component={Personal} />
+                <Route path="/ajustes" component={Ajustes} />
+            </div>
+            <MenuTop />
+            <MenuBar />          
           </div>
-          <MenuTop />
-          <MenuBar />          
-        </div>
-      </Router>
     );
   }
 }
