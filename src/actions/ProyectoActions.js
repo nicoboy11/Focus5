@@ -4,6 +4,7 @@ import {
     PROYECTOS_SUCESS,
     PROYECTOS_FAILED,
     PROYECTO_SELECT,
+    PROYECTOS_UPDATE,
     TAREA_SELECT,
     TAREAS,
     COMENTARIOS
@@ -40,6 +41,17 @@ export const cargarTareas = (proyectos, id_proyecto) => {
     return {
         type: TAREAS,
         payload: tareas
+    }
+}
+
+export const updateProyectos = (proyectos, proyecto) => {
+
+    const foundIndex = proyectos.findIndex(x=>x.id_proyecto == proyecto.id_proyecto);
+    proyectos[foundIndex] = proyecto;
+
+    return {
+        type: PROYECTOS_UPDATE,
+        payload: proyectos
     }
 }
 

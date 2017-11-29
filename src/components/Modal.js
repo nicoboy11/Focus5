@@ -7,30 +7,19 @@ class Modal extends Component {
         isVisible: false,
         titulo: '',
         onGuardar: () => {},
-        onCancelar: () => {}
+        onCancelar: () => {},
+        loading: false
 
-    }
-
-    constructor(props){
-        super(props);
-        this.state = {
-            ...props,
-            loading: false
-        }
-    }    
-
-    componentWillReceiveProps(nextProps){
-        this.setState({ ...nextProps });
     }
 
     onCerrar(e){
         this.stopPropagation(e);
-        this.setState({ isVisible: false });        
+        this.props.onCerrar();
     }
 
     onGuardar(e){
         this.stopPropagation(e);
-        this.setState({ loading: true });
+        this.props.onGuardar();
     }
 
     stopPropagation(e){
@@ -50,8 +39,8 @@ class Modal extends Component {
                 <div className="w3-animate-top" onClick={(e) => { this.stopPropagation(e); } } style={{...content, ...form}}>
                     <div style={{ display: 'flex', flexDirection: 'row', flex: 1 }}>
                         <i style={styles.button} onClick={this.onCerrar.bind(this)} className="material-icons clickableColor">arrow_back</i>
-                        <div style={styles.title}>{this.state.titulo}</div>
-                        {   this.state.loading ? 
+                        <div style={styles.title}>{this.props.titulo}</div>
+                        {   this.props.loading ? 
                             <i style={styles.button} onClick={this.onGuardar.bind(this)} className="material-icons clickableColor w3-spin">cached</i> :
                             <i style={styles.button} onClick={this.onGuardar.bind(this)} className="material-icons clickableColor">check</i>
                         }
@@ -70,7 +59,7 @@ class Modal extends Component {
     }
 
     render(){
-        if(this.state.isVisible){
+        if(this.props.isVisible){
             return (
                 <div style={{ display:'flex', justifyContent: 'center', position: 'fixed', width: '100%', height: '100%', zIndex: 999, top: 0, left: 0 }}>
                     {this.renderContent()}

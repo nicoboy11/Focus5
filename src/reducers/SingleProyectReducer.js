@@ -9,14 +9,24 @@ import {
     PROYECT_GUARDAR_SUCESS,
     PROYECT_STATUS,
     PROYECT_TEXT
-} from './types';
+} from '../actions/types';
 
-const INITIAL_STATE = { txt_proyecto: '' };
+const INITIAL_STATE = { 
+    txt_proyecto_text: '', 
+    fec_inicio_text: null, 
+    fec_fin_text: null, 
+    fec_fin_disabled: false, 
+    fec_abierta: true, 
+    id_status_text: null,
+    guardando: false
+};
 
 export default (state = INITIAL_STATE, action) => {
     switch(action.type){
         case PROYECT_UPDATE:
             return { ...state, [action.payload.prop]: action.payload.value}
+        case PROYECT_GUARDAR_SUCESS:
+            return action.payload
         default:
             return state;
     }

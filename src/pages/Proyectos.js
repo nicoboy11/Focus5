@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
-import { Proyecto } from '../components';
-import { withRouter } from 'react-router-dom';
+import Proyecto from '../components/Proyecto';
 
 import { push } from 'react-router-redux';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { cargarProyectos, selectProyecto } from '../actions';
+import { cargarProyectos, selectProyecto, updateProyectos } from '../actions';
 
 class Proyectos extends Component{
     constructor(props){
@@ -34,6 +33,10 @@ class Proyectos extends Component{
         this.props.changePage(id_proyecto);
     }
 
+    onEdited(proyecto) {
+        updateProyectos(this.props.proyectos, proyecto);
+    }
+
     /**
      * Si ya hay proyectos en el state los renderiza, si no carga un "cargando..."
      */
@@ -51,10 +54,12 @@ class Proyectos extends Component{
                     id_proyecto={item.id_proyecto}
                     txt_proyecto={item.txt_proyecto}
                     fec_inicio={item.fec_inicio}
-                    fec_fin={item.fec_fin}
+                    fec_limite={item.fec_limite}
                     id_status={item.id_status}
                     participantes={item.participantes}
                     tareas={item.tareas}
+                    modificable={(item.id_proyecto===0?false:true)}
+                    onEdited={this.onEdited.bind(this)}
                     onProyectoSelect={() => this.onProyectoSelect(item.id_proyecto)}
                 />
             );
@@ -100,6 +105,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => bindActionCreators({
     cargarProyectos,
     selectProyecto,
+    updateProyectos,
     changePage: (id_proyecto) => push(`proyectos/${id_proyecto}`)
 }, dispatch)
 

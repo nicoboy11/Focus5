@@ -1,4 +1,6 @@
-import { Config } from './'
+import { Config } from './';
+import moment from 'moment';
+import 'moment/locale/es';
 
 const { texts, colors } = Config;
 
@@ -15,6 +17,14 @@ class Helper {
                 ('00' + (date.getMonth() + 1).toString()).slice(-2) + '-' + 
                 ('00' + (date.getDate()).toString()).slice(-2);
     }   
+
+    static toDateM(date) {
+        if(!moment(date).isValid()){
+            return null;
+        }
+
+        return moment(date);        
+    }
 
     static toDate(dateString) {
         if (dateString) {

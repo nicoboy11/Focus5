@@ -49,7 +49,7 @@ class Input extends Component{
         }
 
         return (
-            <input onChange={(e) => this.props.onChangeText(e.value)} id={id} value={value} placeholder={placeholder} style={styles.inputStyle} type={(type==='PASSWORD') ? 'password' : 'text'} />
+            <input onChange={(e) => this.props.onChangeText(e.target.value)} id={id} value={value} placeholder={placeholder} style={styles.inputStyle} type={(type==='PASSWORD') ? 'password' : 'text'} />
         );
     }
 

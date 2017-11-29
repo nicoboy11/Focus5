@@ -50,6 +50,13 @@
 		description varchar(255)
 	);    
     #------------------------------------
+	CREATE TABLE esnLog(
+		id int PRIMARY KEY AUTO_INCREMENT,
+		errorDescription text,
+		dateOfError datetime,
+		id_usuario int
+	);    
+    #------------------------------------
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreatePriority`$$
 	CREATE PROCEDURE `CreatePriority` (IN _description varchar(255))
@@ -125,6 +132,76 @@
 		WHERE id = _id;
 		
 	END$$
+    
+	DELIMITER $$
+	DROP procedure IF EXISTS `CreateProyecto`$$
+	CREATE PROCEDURE `CreateProyecto` (IN _txt_proyecto int, IN _id_usuario int, IN _fec_actualiza date, IN _id_status int, IN _fec_inicio date, IN _fec_limite date)
+	BEGIN
+    
+		DECLARE _id_proyecto INT;
+		DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+		
+			GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
+			ROLLBACK;
+			
+			INSERT INTO esnLog ( errorDescription, dateOfError, personId )
+			VALUES (@full_error, NOW(), _id_usuario );
+			
+			SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
+				
+		END;
+
+		START TRANSACTION;    
+
+			INSERT INTO cat_proyecto(txt_proyecto, id_usuario, fec_actualiza, id_status, fec_inicio, fec_limite) 
+			VALUES(_txt_proyecto, _id_usuario, NOW(), _id_status, _fec_inicio, _fec_limite);
+			
+			SET _id_proyecto = LAST_INSERT_ID();
+            
+		COMMIT;                   
+
+			CALL getContenido(_id_usuario,_id_proyecto, null, null);
+		
+	END$$    
+    
+	DELIMITER $$
+	DROP procedure IF EXISTS `EditProyecto`$$
+	CREATE PROCEDURE `EditProyecto` (IN _id_proyecto int, IN _txt_proyecto int, IN _id_usuario int, IN _fec_actualiza date, IN _id_status int, IN _fec_inicio date, IN _fec_limite date)
+	BEGIN
+
+		DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+		
+			GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
+			ROLLBACK;
+			
+			INSERT INTO esnLog ( errorDescription, dateOfError, personId )
+			VALUES (@full_error, NOW(), _id_usuario );
+			
+			SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
+				
+		END;
+
+		START TRANSACTION;
+
+			UPDATE cat_proyecto
+			SET txt_proyecto = _txt_proyecto, 
+				id_usuario = _id_usuario, 
+				fec_actualiza = _fec_actualiza, 
+				id_status = _id_status, 
+				fec_inicio = _fec_inicio, 
+				fec_limite = _fec_limite
+			WHERE id_proyecto = _id_proyecto;
+            
+		COMMIT;       
+		
+		CALL getContenido(_id_usuario,_id_proyecto, null, null);
+
+END$$            
+
 	#-------------------------------------------------------------------
     
 	DELIMITER $$
@@ -195,7 +272,6 @@
 
 	END$$
 
-SELECT getJsonTopComments(55)
 
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTopComments$$
@@ -324,7 +400,7 @@ BEGIN
 				cp.txt_proyecto,
 				cp.id_status,
 				formatDate(cp.fec_inicio) as fec_inicio,
-				formatDate(cp.fec_limite) as fec_inico
+				formatDate(cp.fec_limite) as fec_limite
 		FROM cat_proyecto as cp
 		LEFT JOIN ctrl_tareas as ct on ct.id_proyecto = cp.id_proyecto
 		LEFT JOIN bit_view_tarea as bvt on bvt.id_tarea = ct.id_tarea

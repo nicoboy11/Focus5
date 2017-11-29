@@ -21,7 +21,7 @@ class Database {
                             Accept: 'application/json',
                             'Content-Type': 'application/json',
                             Authorization: `Bearer ${token}`
-                        };              
+                        };    
             default:
                 return {
                             Accept: 'application/json',

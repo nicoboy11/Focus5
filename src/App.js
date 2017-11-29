@@ -4,7 +4,7 @@ import './css/general.css';
 import './css/w3.css';
 import { MenuTop } from './components';
 import MenuBar from './components/MenuBar';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { Chats, Personal, Ajustes } from './pages';
 import Proyectos from './pages/Proyectos';
 import Tareas from './pages/Tareas';

@@ -1,6 +1,7 @@
 export const PROYECTOS = 'proyectos';
 export const PROYECTOS_SUCESS = 'proyectos_success';
 export const PROYECTOS_FAILED = 'proyectos_failed';
+export const PROYECTOS_UPDATE = 'proyectos_update';
 
 export const PROYECTO_SELECT = 'proyecto_select';
 export const TAREA_SELECT = 'tarea_select';
