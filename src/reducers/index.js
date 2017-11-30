@@ -1,10 +1,10 @@
 import { combineReducers } from 'redux';
 import ProyectosReducer from './ProyectosReducer';
-import SingleProyectReducer from './SingleProyectReducer';
+import ProyectoActualReducer from './ProyectoActualReducer';
 import { routerReducer } from 'react-router-redux'
 
 export default combineReducers({
-    proyectos: ProyectosReducer,
-    proyecto: SingleProyectReducer,
+    listaProyectos: ProyectosReducer,
+    proyectoActual: ProyectoActualReducer,
     routing: routerReducer
 });

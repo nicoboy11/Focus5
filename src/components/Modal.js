@@ -8,7 +8,8 @@ class Modal extends Component {
         titulo: '',
         onGuardar: () => {},
         onCancelar: () => {},
-        loading: false
+        loading: false,
+        componenteInicial: null
 
     }
 
@@ -41,7 +42,7 @@ class Modal extends Component {
                         <i style={styles.button} onClick={this.onCerrar.bind(this)} className="material-icons clickableColor">arrow_back</i>
                         <div style={styles.title}>{this.props.titulo}</div>
                         {   this.props.loading ? 
-                            <i style={styles.button} onClick={this.onGuardar.bind(this)} className="material-icons clickableColor w3-spin">cached</i> :
+                            <i style={styles.button} onClick={this.onGuardar.bind(this)} className="material-icons clickableColor w3-spin">autorenew</i> :
                             <i style={styles.button} onClick={this.onGuardar.bind(this)} className="material-icons clickableColor">check</i>
                         }
                         
@@ -54,7 +55,7 @@ class Modal extends Component {
         }
 
         return (
-            <div style={{...content, ...mensaje}}>holsdfsda</div>
+            <div style={{...content, ...mensaje}}>....</div>
         )
     }
 

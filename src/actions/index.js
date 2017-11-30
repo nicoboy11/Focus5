@@ -1,2 +1,3 @@
 export * from './ProyectoActions';
-export * from './SingleProyectoActions';
+export * from './ProyectoActualActions';
+export * from './TareasActions';

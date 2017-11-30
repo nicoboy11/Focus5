@@ -59,7 +59,7 @@ class MenuBar extends Component{
 
 const mapStateToProps = state => {
     return { 
-        proyectos: state.proyectos.proyectos
+        proyectos: state.listaProyectos.proyectos
     }
 };
 

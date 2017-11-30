@@ -11,8 +11,8 @@ import { proyect_update, proyect_save, updateProyectos } from '../actions';
 
 class Proyecto extends Component{
     static defaultProps = {
-        id_proyecto: 0,
-        txt_proyecto: 'Nuevo Proyecto',
+        id_proyecto: null,
+        txt_proyecto: '',
         fec_inicio: '',
         fec_limite: '',
         participantes: [],
@@ -24,78 +24,44 @@ class Proyecto extends Component{
         super(props);
         this.state = {
             ...props,
-            modalVisible: false,
-            startDate: moment(),
-            endDate: moment(new Date()).add(1,'days')
+            modalVisible: false
         }
     }
 
+    /**
+     * Al cargar sacar los totales de las tareas
+     */
     componentWillMount(){
         this.obtenerTotales();
     }
 
-    componentWillReceiveProps(nextProps) {
-        if(nextProps.guardando && nextProps.proyectoEdit !== undefined && nextProps.id_proyecto === nextProps.proyectoEdit.id_proyecto) {
-            this.setState({ modalVisible: false });
-            this.props.proyect_update({ prop: 'guardando', value: false });
-            this.props.onEdited(nextProps.proyectoEdit);
-        }
-    }
-
+    /**
+     * Cuando se aplana el boton de menu se regresa el evento al padre
+     * @param {*} e 
+     */
     onMenuClick(e) {
         e.stopPropagation();
         e.nativeEvent.stopImmediatePropagation();
-        this.props.proyect_update({ prop: 'txt_proyecto_text', value: this.props.txt_proyecto });
-        this.props.proyect_update({ prop: 'fec_inicio_text', value: this.props.fec_inicio });
-        this.props.proyect_update({ prop: 'fec_fin_text', value: this.props.fec_limite });
-        this.props.proyect_update({ prop: 'id_status_text', value: this.props.id_status });
-        
-        if(Helper.toDateM(this.props.fec_fin) !== null){
-            this.props.proyect_update({ prop: 'fec_abierta', value: false });
-        } else {
-            this.props.proyect_update({ prop: 'fec_abierta', value: true });
-        }
-
-        this.setState({ modalVisible: true });
+        this.props.onMenuOpen();
     }
 
+    /**
+     * Cuando se da click en el proyecto se regresa el evento al padre
+     * @param {*} e 
+     */
     onClick(e){
         this.props.onProyectoSelect();
     }
 
-    onGuardar(){
-        const { id_proyecto, txt_proyecto_text, fec_inicio_text, fec_fin_text, id_status_text } = this.props;
-        this.props.proyect_update({ prop: 'guardando', value: true });
-        this.props.proyect_save({ 
-            id_proyecto, 
-            txt_proyecto: txt_proyecto_text, 
-            fec_inicio: fec_inicio_text, 
-            fec_limite: fec_fin_text, 
-            id_status:id_status_text,
-            id_usuario: 12
-        });
-        
-    }
-
-    onChangeFecAbierta(value){
-        this.props.proyect_update({ prop: 'fec_abierta', value }); 
-        
-        if(value) {
-            this.props.proyect_update({ prop: 'fec_fin_text', value: null });
-            this.props.proyect_update({ prop: 'fec_fin_disabled', value: true });
-        } else {
-            this.props.proyect_update({ prop: 'fec_fin_disabled', value: false });
-        }
-    }
-
+    /**
+     * Se obtienen los totales de la prop tarea
+     */
     obtenerTotales(){
-        const datos = Helper.clrHtml(this.props.tareas);
-        const tareas = this.props.tareas ? JSON.parse(datos) : [];
-        const totalTareas = tareas.length;
+        const totalTareas = this.props.tareas.length;
         let terminadas = 0;
         let notificaciones = 0;
 
-        for(let tarea of tareas){
+        for(let tarea of this.props.tareas){
             if(tarea.id_status === 2 || tarea.id_status === 3){
                 terminadas ++;
             }
@@ -106,6 +72,9 @@ class Proyecto extends Component{
         this.setState({ terminadas, totalTareas, notificaciones })
     }    
 
+    /**
+     * Mostrar las notificaciones
+     */
     renderNotificaciones(){
         if(this.state.notificaciones > 0){
             return(
@@ -116,6 +85,9 @@ class Proyecto extends Component{
         return null;
     }    
 
+    /**
+     * Para mostrar ó no el boton de menú
+     */
     renderMenu(){
         if(this.props.modificable){
             return <i onClick={(e) => this.onMenuClick(e)} className="material-icons fadeColor">more_vert</i> 
@@ -124,8 +96,10 @@ class Proyecto extends Component{
         return null;
     }
 
+    /**
+     * Renderizar el proyecto
+     */
     render(){
-
         const { 
             id_proyecto,
             txt_proyecto,
@@ -159,69 +133,6 @@ class Proyecto extends Component{
                         <div className="projectBottom divideTop">
                             {/* <UserList participantes={participantes} limit={3} /> */}
                         </div>       
-                        <Modal 
-                            type='FORM' 
-                            isVisible={this.state.modalVisible} 
-                            titulo={txt_proyecto_text}
-                            onGuardar={() => { this.onGuardar(); }}
-                            onCerrar={() => { this.setState({ modalVisible: false }) }}
-                        >
-                            <FormRow titulo='NOMBRE'>
-                                <Input 
-                                    placeholder='Nombre del proyecto' 
-                                    value={this.props.txt_proyecto_text}
-                                    onChangeText={value => this.props.proyect_update({ prop: 'txt_proyecto_text', value })}
-                                />  
-                            </FormRow>
-                            <FormRow titulo='DURACIÓN'>
-                                <div style={{display:'flex', flexDirection: 'row', alignItems:'center'}}>
-                                    <span className="txtSpan">De </span>
-                                    <DatePicker 
-                                        selected={Helper.toDateM(this.props.fec_inicio_text)}
-                                        startDate={Helper.toDateM(this.props.fec_inicio_text)}
-                                        endDate={Helper.toDateM(this.props.fec_fin_text)}
-                                        selectsStart
-                                        onChange={(date) => {this.props.proyect_update({ prop: 'fec_inicio_text', value:date.format('YYYY-MM-DD') })}}
-                                        locale="es"
-                                        className="dateStyle"
-                                        showMonthDropdown
-                                        showYearDropdown
-                                        dropdownMode="select"
-                                        todayButton="Hoy"
-                                    />    
-                                    <span className="txtSpan">a</span>    
-                                    <DatePicker 
-                                        selected={Helper.toDateM(this.props.fec_fin_text)}
-                                        selectsEnd
-                                        startDate={Helper.toDateM(this.props.fec_inicio_text)}
-                                        endDate={Helper.toDateM(this.props.fec_fin_text)}
-                                        disabled={this.props.fec_fin_disabled}
-                                        onChange={(date) => {this.props.proyect_update({ prop: 'fec_fin_text', value:date.format('YYYY-MM-DD') })}}
-                                        locale="es"
-                                        className="dateStyle"
-                                        showMonthDropdown
-                                        showYearDropdown
-                                        dropdownMode="select"
-                                        todayButton="Hoy"
-                                    />
-                                </div>
-                                <div style={{marginTop: '15px'}}>
-                                    <Radio 
-                                        label="Abierta" 
-                                        id="rdbAbierta" 
-                                        onChange={this.onChangeFecAbierta.bind(this)}
-                                    /> 
-                                </div>                                 
-                            </FormRow>
-                            <FormRow titulo='ESTADO'>
-                                <Radio 
-                                    label="Activo" 
-                                    id="rdbActivo" 
-                                    checked={(this.props.id_status_text !== 2)?true:false}
-                                    onChange={(value) => { this.props.proyect_update({ prop: 'id_status_text', value: (value)?1:2 }); }}
-                                /> 
-                            </FormRow>
-                        </ Modal>                          
                     </div>);
         }
 
@@ -231,28 +142,4 @@ class Proyecto extends Component{
 
 }
 
-const mapStateToProps = (state) => {
-    const { 
-        txt_proyecto_text, 
-        fec_inicio_text, 
-        fec_fin_text, 
-        fec_abierta, 
-        fec_fin_disabled, 
-        id_status_text,
-        guardando,
-        proyectoEdit
-    } = state.proyecto;
-
-    return { 
-        txt_proyecto_text, 
-        fec_inicio_text, 
-        fec_fin_text, 
-        fec_abierta, 
-        fec_fin_disabled, 
-        id_status_text,
-        guardando,
-        proyectoEdit
-    };
-};
-
-export default connect(mapStateToProps, { proyect_update, proyect_save, updateProyectos })(Proyecto);
+export default (Proyecto);

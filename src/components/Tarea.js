@@ -8,6 +8,16 @@ class Tarea extends Component{
         console.log('entró');
     }
 
+    /**
+     * Cuando se aplana el boton de menu se regresa el evento al padre
+     * @param {*} e 
+     */
+    onMenuClick(e) {
+        e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
+        this.props.onMenuOpen();
+    }    
+
     onClick() {
         this.props.onClick(this.props.id_tarea);
     }
@@ -38,7 +48,7 @@ class Tarea extends Component{
                         <div className="chatContentTop">
                             <div className="chatContentTitle" title={txt_tarea}>{txt_tarea}</div>
                             {this.renderNotificaciones()}
-                            <i className="material-icons fadeColor">more_vert</i>
+                            <i onClick={(e) => this.onMenuClick(e)} className="material-icons fadeColor">more_vert</i>
                         </div>
                         <div className="chatContentBottom">
                             <div className="chatContentStatus fadeColor">

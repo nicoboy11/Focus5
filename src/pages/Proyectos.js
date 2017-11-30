@@ -1,10 +1,23 @@
 import React, { Component } from 'react';
 import Proyecto from '../components/Proyecto';
+import { Modal, Input, Radio, FormRow} from '../components';
+import { Helper} from '../configuracion';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
+import 'moment/locale/es'
 
 import { push } from 'react-router-redux';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { cargarProyectos, selectProyecto, updateProyectos } from '../actions';
+import { 
+    listaProyectos, 
+    seleccionarProyecto, 
+    actualizarProyecto, 
+    guardarProyecto, 
+    guardarProyectoNuevo,
+    actualizaListaProyectos,
+    limpiarProyectoActual
+} from '../actions';
 
 class Proyectos extends Component{
     constructor(props){
@@ -12,7 +25,8 @@ class Proyectos extends Component{
     
         this.state = {
           datos: [],
-          currentView: 'proyectos'
+          currentView: 'proyectos',
+          mostrarModal: false
         };
     }
 
@@ -20,7 +34,7 @@ class Proyectos extends Component{
      * Al abrir esta pantalla por primera vez se cargan todos los proyectos y las tareas
      */
     componentWillMount(){
-       this.props.cargarProyectos(12);
+       this.props.listaProyectos(12);
     }
 
     /**
@@ -29,25 +43,77 @@ class Proyectos extends Component{
      * @param {*} id_proyecto 
      */
     onProyectoSelect(id_proyecto){
-        this.props.selectProyecto(id_proyecto);
-        this.props.changePage(id_proyecto);
+        //Seleccionar proyecto y obtener objeto
+        const proyectoActual = this.props.proyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto);
+        
+        //Guardar proyecto en el estate (Accion seleccionar)
+        this.props.seleccionarProyecto(proyectoActual[0], JSON.parse(JSON.stringify(proyectoActual[0])));
+
+        //Cambiar de página
+        this.props.changePage(proyectoActual[0].id_proyecto);
     }
 
-    onEdited(proyecto) {
-        updateProyectos(this.props.proyectos, proyecto);
+    /**
+     * Guardar un proyecto nuevo o editar uno
+     */
+    onGuardar(){
+        //Cuando el proyecto es nuevo el id_status es null
+        if(this.props.proyectoActual.tmp_proyecto.id_status !== null) {
+            this.props.guardarProyecto(this.props.proyectoActual.tmp_proyecto);
+        } else {
+            this.props.guardarProyectoNuevo(this.props.proyectoActual.tmp_proyecto);
+        }
+        
+    }   
+    
+    /**
+     * Cuando se da click en nuevo proyecto
+     */
+    onNuevoProyecto(){
+        //Inicializar un proyecto actual
+        const proyectoActual = { 
+            txt_proyecto: '',
+            fec_inicio: moment().format('YYYY-MM-DD'),
+            fec_limite: null,
+            fec_limite_disabled: true,
+            id_status: null
+        };
+
+        //Guardar proyecto en el estate (Accion seleccionar)
+        this.props.seleccionarProyecto(proyectoActual, JSON.parse(JSON.stringify(proyectoActual)));
+
+        //Mostrar menu
+        this.setState({ mostrarModal: true });        
     }
+
+    /**
+     * Cuando se abre el menú, se manda el id_proyecto seleccionado.
+     * Tres pasos 
+     * @param {*} id_proyecto 
+     */
+    onMenuOpen(id_proyecto){
+
+        //Seleccionar proyecto y obtener objeto
+        const proyectoActual = this.props.proyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto);
+
+        //Guardar proyecto en el estate (Accion seleccionar)
+        this.props.seleccionarProyecto(proyectoActual[0], JSON.parse(JSON.stringify(proyectoActual[0])));
+
+        //Mostrar menu
+        this.setState({ mostrarModal: true });
+
+    }    
 
     /**
      * Si ya hay proyectos en el state los renderiza, si no carga un "cargando..."
      */
     renderList(){
-        const items = this.props.proyectos;
-
-        if(items.length === 0){
+        
+        if(this.props.proyectos.length === 0){
             return <div>Cargando...</div>
         }
 
-        return items.map(item => {
+        return this.props.proyectos.map(item => {
             return (
                 <Proyecto 
                     key={item.id_proyecto} 
@@ -59,27 +125,173 @@ class Proyectos extends Component{
                     participantes={item.participantes}
                     tareas={item.tareas}
                     modificable={(item.id_proyecto===0?false:true)}
-                    onEdited={this.onEdited.bind(this)}
                     onProyectoSelect={() => this.onProyectoSelect(item.id_proyecto)}
+                    onMenuOpen={() => this.onMenuOpen(item.id_proyecto)}
                 />
             );
         });
     }
 
     /**
+     * Mostrar el Modal
+     */
+    renderModal() {
+
+        const {
+            txt_proyecto,
+            fec_inicio,
+            fec_limite,
+            fec_limite_disabled,
+            id_status
+        } = this.props.proyectoActual.tmp_proyecto;
+
+        const tmp_proyecto = this.props.proyectoActual.tmp_proyecto
+
+        return (
+            <Modal 
+            type='FORM' 
+            isVisible={this.state.mostrarModal} 
+            titulo={txt_proyecto}
+            loading={this.props.loading}
+            componenteInicial="txt_proyecto"
+            onGuardar={() => { this.onGuardar(); }}
+            onCerrar={() => { this.setState({ mostrarModal: false }) }}
+            >
+                <FormRow titulo='NOMBRE'>
+                    <Input 
+                        type="EXTENDEDTEXT"
+                        autoFocus={true}
+                        placeholder='Nombre del proyecto' 
+                        value={txt_proyecto}
+                        onChangeText={
+                            value => this.props.actualizarProyecto({ 
+                                        prop: 'txt_proyecto', 
+                                        value, 
+                                        tmp_proyecto
+                                    })
+                        }
+                    />  
+                </FormRow>
+                <FormRow titulo='DURACIÓN'>
+                    <div style={{display:'flex', flexDirection: 'row', alignItems:'center'}}>
+                        <span className="txtSpan">De </span>
+                        <DatePicker 
+                            selected={Helper.toDateM(fec_inicio)}
+                            startDate={Helper.toDateM(fec_inicio)}
+                            endDate={Helper.toDateM(fec_limite)}
+                            selectsStart
+                            onChange={
+                                (date) => {
+                                    this.props.actualizarProyecto({ 
+                                        prop: 'fec_inicio', 
+                                        value:date.format('YYYY-MM-DD'),
+                                        tmp_proyecto
+                                    })
+                                }
+                            }
+                            locale="es"
+                            className="dateStyle"
+                            showMonthDropdown
+                            showYearDropdown
+                            dropdownMode="select"
+                            todayButton="Hoy"
+                            placeholderText="Inicio del proyecto"
+                            minDate={moment()}
+                        />    
+                        <span className="txtSpan">a</span>    
+                        <DatePicker 
+                            selected={Helper.toDateM(fec_limite)}
+                            selectsEnd
+                            startDate={Helper.toDateM(fec_inicio)}
+                            endDate={Helper.toDateM(fec_limite)}
+                            disabled={(fec_limite_disabled !== undefined)?fec_limite_disabled:!fec_limite}
+                            onChange={
+                                (date) => {
+                                    this.props.actualizarProyecto({ 
+                                        prop: 'fec_limite', 
+                                        value:date.format('YYYY-MM-DD'),
+                                        tmp_proyecto
+                                    })
+                                }
+                            }
+                            locale="es"
+                            className="dateStyle"
+                            showMonthDropdown
+                            showYearDropdown
+                            dropdownMode="select"
+                            todayButton="Hoy"
+                            placeholderText="Fin del proyecto"
+                            minDate={Helper.toDateM(fec_inicio)}
+                        />
+                    </div>
+                    <div style={{marginTop: '15px'}}>
+                        <Radio 
+                            label="Abierta" 
+                            id="rdbAbierta" 
+                            checked={(fec_limite_disabled !== undefined )?fec_limite_disabled:!fec_limite}
+                            onChange={
+                                (value) => {
+                                    this.props.actualizarProyecto({ prop: 'fec_limite_disabled', value,tmp_proyecto });
+                                    this.props.actualizarProyecto({ prop: 'fec_limite', value: null,tmp_proyecto });
+                                }
+                            }
+                        /> 
+                    </div>                                 
+                </FormRow>
+                {(id_status !== null) ?
+                    <FormRow titulo='ESTADO'>
+                        <Radio 
+                            label="Activo" 
+                            id="rdbActivo" 
+                            checked={(id_status !== 2)?true:false}
+                            onChange={
+                                (value) => {
+                                    this.props.actualizarProyecto({ 
+                                        prop: 'id_status', 
+                                        value: (value)?1:2,
+                                        tmp_proyecto
+                                    })
+                                }
+                            }
+                        /> 
+                    </FormRow> :
+                    null
+                }
+            </ Modal> 
+        );     
+    }
+
+    /**
      * Renderiza la tarjeta de "Nuevo proyecto " y posteriormente la lista de proyectos
      */
     render(){
+
+        // Si el tmp_proyecto está vacío significa que no se ha inicializado ó que se le acaba de dar guardar
+        // Si el mostralModal es "true" significa que se estaba editando el proyecto
+        // Si se cumplen ambos significa que le acaban de dar guardar por tanto aquí modifico el state
+        if(Object.keys(this.props.proyectoActual.tmp_proyecto).length === 0 && this.state.mostrarModal === true){
+            this.setState({ mostrarModal: false });
+            this.props.actualizaListaProyectos(this.props.proyectos, this.props.proyectoActual.proyecto);
+            this.props.limpiarProyectoActual();
+        }
+        
         return(
             <div id="mainProyectos" style={{display:'block'}}>
                 <div id="list">
-                    <div className="project w3-col newProject w3-card" style={{justifyContent: 'center', alignItems: 'center', maxHeight: '181px'}}>
+                    <div 
+                        className="project w3-col newProject w3-card" 
+                        style={{justifyContent: 'center', 
+                        alignItems: 'center', 
+                        maxHeight: '181px'}}
+                        onClick={this.onNuevoProyecto.bind(this)}
+                    >
                         <div className="w3-circle newItem">
                             <i className="material-icons fHuge">add</i>
                         </div>
                         Nuevo Proyecto
                     </div>                    
                     {this.renderList()}
+                    {this.renderModal()}
                 </div>       
             </div>
         );        
@@ -93,8 +305,10 @@ class Proyectos extends Component{
  */
 const mapStateToProps = state => {
     return { 
-        proyectos: state.proyectos.proyectos, 
-        id_proyecto: state.proyectos.current_id_proyecto 
+        proyectos: state.listaProyectos.proyectos, 
+        proyectoActual: state.proyectoActual,
+        loading: state.proyectoActual.loading,
+        id_proyecto: state.listaProyectos.current_id_proyecto 
     }
 };
 
@@ -103,9 +317,13 @@ const mapStateToProps = state => {
  * @param {*} dispatch 
  */
 const mapDispatchToProps = dispatch => bindActionCreators({
-    cargarProyectos,
-    selectProyecto,
-    updateProyectos,
+    listaProyectos,
+    seleccionarProyecto,
+    actualizarProyecto,
+    guardarProyecto,
+    guardarProyectoNuevo,
+    actualizaListaProyectos,
+    limpiarProyectoActual,
     changePage: (id_proyecto) => push(`proyectos/${id_proyecto}`)
 }, dispatch)
 

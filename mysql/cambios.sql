@@ -20,6 +20,8 @@
     ALTER TABLE bit_view_tarea
     ADD role_id int NULL;
     #--------------------------------------
+    ALTER TABLE cat_proyecto MODIFY id_proyecto INT AUTO_INCREMENT;
+    #--------------------------------------
 	#--Marcar con rol de creador
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
@@ -135,7 +137,7 @@
     
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreateProyecto`$$
-	CREATE PROCEDURE `CreateProyecto` (IN _txt_proyecto int, IN _id_usuario int, IN _fec_actualiza date, IN _id_status int, IN _fec_inicio date, IN _fec_limite date)
+	CREATE PROCEDURE `CreateProyecto` (IN _txt_proyecto varchar(100), IN _id_usuario int, IN _fec_inicio date, IN _fec_limite date)
 	BEGIN
     
 		DECLARE _id_proyecto INT;
@@ -146,7 +148,7 @@
 				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
 			ROLLBACK;
 			
-			INSERT INTO esnLog ( errorDescription, dateOfError, personId )
+			INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
 			VALUES (@full_error, NOW(), _id_usuario );
 			
 			SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
@@ -156,7 +158,7 @@
 		START TRANSACTION;    
 
 			INSERT INTO cat_proyecto(txt_proyecto, id_usuario, fec_actualiza, id_status, fec_inicio, fec_limite) 
-			VALUES(_txt_proyecto, _id_usuario, NOW(), _id_status, _fec_inicio, _fec_limite);
+			VALUES(_txt_proyecto, _id_usuario, NOW(), 1, _fec_inicio, _fec_limite);
 			
 			SET _id_proyecto = LAST_INSERT_ID();
             
@@ -168,7 +170,7 @@
     
 	DELIMITER $$
 	DROP procedure IF EXISTS `EditProyecto`$$
-	CREATE PROCEDURE `EditProyecto` (IN _id_proyecto int, IN _txt_proyecto int, IN _id_usuario int, IN _fec_actualiza date, IN _id_status int, IN _fec_inicio date, IN _fec_limite date)
+	CREATE PROCEDURE `EditProyecto` (IN _id_proyecto int, IN _txt_proyecto varchar(100), IN _id_usuario int, IN _id_status int, IN _fec_inicio date, IN _fec_limite date)
 	BEGIN
 
 		DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -178,7 +180,7 @@
 				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
 			ROLLBACK;
 			
-			INSERT INTO esnLog ( errorDescription, dateOfError, personId )
+			INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
 			VALUES (@full_error, NOW(), _id_usuario );
 			
 			SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
@@ -190,7 +192,7 @@
 			UPDATE cat_proyecto
 			SET txt_proyecto = _txt_proyecto, 
 				id_usuario = _id_usuario, 
-				fec_actualiza = _fec_actualiza, 
+				fec_actualiza = NOW(), 
 				id_status = _id_status, 
 				fec_inicio = _fec_inicio, 
 				fec_limite = _fec_limite
@@ -200,7 +202,8 @@
 		
 		CALL getContenido(_id_usuario,_id_proyecto, null, null);
 
-END$$            
+END$$         
+
 
 	#-------------------------------------------------------------------
     
@@ -410,11 +413,12 @@ BEGIN
 						 WHEN _status_proyectos = 1 THEN cp.id_status in (1,3)
                          ELSE cp.id_status = 2 END
 		GROUP BY cp.id_proyecto, cp.txt_proyecto, cp.id_status
-    ) AS SC;
+    ) AS SC
+    ORDER BY txt_proyecto;
 
 END$$
 
-
+SELECT * FROM cat_proyecto
 #CALL getContenido('12',NULL,1,1)
 
 

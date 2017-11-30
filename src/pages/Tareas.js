@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { Database, Helper } from '../configuracion';
-import { Tarea, ChatItem, Input } from '../components'
+import { Tarea, ChatItem, Input, Modal } from '../components'
 import { withRouter } from 'react-router-dom';
 
 import { connect } from 'react-redux';
-import { cargarTareas, cargarProyectos, selectProyecto } from '../actions';
+import { cargarTareas, listaProyectos, selectProyecto } from '../actions';
 
 class Tareas extends Component{
     constructor(props){
@@ -17,16 +17,13 @@ class Tareas extends Component{
     }
 
     /**
-     * Al inicio trato de cargar las tareas del proyecto seleccionado.
-     * Pero si se llegó a la pantalla directamente con el link entonces tiene que buscar en la url y
+     * Si se llegó a la pantalla directamente con el link entonces tiene que buscar en la url y
      * cargar todos los proyectos y posteriormente seleccionarlos en ComponentWillReceiveProps
      */
     componentWillMount(){
         
-        if(this.props.id_proyecto) {
-            this.props.cargarTareas(this.props.proyectos, this.props.id_proyecto);
-        } else {
-            this.props.cargarProyectos(12);
+        if(!this.props.proyectoActual.tmp_proyecto.id_proyecto) {
+            this.props.listaProyectos(12);
         }
     }
 
@@ -91,6 +88,27 @@ class Tareas extends Component{
     }
 
     /**
+     * Mostrar Modal para editar/crear tareas
+     */
+    renderModalTareas(){
+        const txt_tarea = 'Tarea';
+
+        return (
+            <Modal 
+            type='FORM' 
+            isVisible={this.state.mostrarModal} 
+            titulo={txt_tarea}
+            loading={this.props.loading}
+            componenteInicial="txt_tarea"
+            onGuardar={() => { this.onGuardar(); }}
+            onCerrar={() => { this.setState({ mostrarModal: false }) }}
+            >
+                <div> Modal! </div>
+            </Modal>            
+        )
+    }
+
+    /**
      * Renderizar los comentarios
      */
     renderMessages(){
@@ -102,7 +120,7 @@ class Tareas extends Component{
      * Renderizo las tareas si ya existen en el state
      */
     renderTareas(){
-        if(this.props.tareas !== null) {
+        if(this.props.tareas !== null && this.props.tareas !== undefined) {
             return this.props.tareas.map(tarea => {
                     return (
                         <Tarea 
@@ -113,6 +131,7 @@ class Tareas extends Component{
                             fec_limite={tarea.fec_limite}
                             notificaciones={tarea.notificaciones}
                             onClick={this.tareaClick.bind(this)}
+                            onMenuOpen={() => this.setState({ mostrarModal: true })}
                         />
                     )
             });
@@ -129,6 +148,7 @@ class Tareas extends Component{
             <div className="detallesContainer divideTop">
                 <div id="listaTareas" className="w3-third chatPanel lightBackground">
                 {this.renderTareas()}
+                {this.renderModalTareas()}
                 </div>
                 <div className="w3-twothird chatPanel divideLeft" >
                     <div ref={'chatScroll'} style={{height: '100%', overflow:'auto'}}>
@@ -156,11 +176,11 @@ class Tareas extends Component{
 
 const mapStateToProps = state => {
     return { 
-        proyectos: state.proyectos.proyectos,
-        tareas: state.proyectos.tareas, 
-        ...state.proyectos.current_id_proyecto 
+        proyectos: state.listaProyectos.proyectos,
+        proyectoActual: state.proyectoActual,
+        tareas: state.proyectoActual.proyecto.tareas,
     }
 };
 
 //export { Proyectos };
-export default withRouter(connect(mapStateToProps, { cargarTareas, cargarProyectos, selectProyecto })(Tareas))
+export default withRouter(connect(mapStateToProps, { cargarTareas, listaProyectos, selectProyecto })(Tareas))
