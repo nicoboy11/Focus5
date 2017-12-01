@@ -13,7 +13,7 @@ class ChatItem extends Component {
 
         if(id_tipo_comentario === 2 ) {
             return (
-                <div className="bitacora">{txt_comentario}</div>
+                <div className="bitacora">{Helper.decode_utf8(Helper.htmlPaso(txt_comentario))}</div>
             );
         }
 
@@ -22,10 +22,10 @@ class ChatItem extends Component {
                     <div className="chatMessage">
                         <div className="messageSelf">
                             <div>
-                                {txt_comentario}
+                                {Helper.decode_utf8(Helper.htmlPaso(txt_comentario))}
                             </div>
                             <div>
-                                <div className="messageTimeSelf">{Helper.prettyfyDate(fec_comentario).date}</div>
+                                <div className="messageTimeSelf">{Helper.decode_utf8(Helper.prettyfyDate(fec_comentario).date)}</div>
                             </div>
                         </div>
                     </div>  
@@ -36,7 +36,7 @@ class ChatItem extends Component {
                 <div className="chatMessage">
                     <div className="messageOther">
                         <div>
-                            {txt_comentario}
+                            {Helper.decode_utf8(Helper.htmlPaso(txt_comentario))}
                         </div>
                         <div>
                             <div className="messageTimeOther">{Helper.prettyfyDate(fec_comentario).date}</div>

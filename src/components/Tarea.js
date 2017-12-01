@@ -15,7 +15,7 @@ class Tarea extends Component{
     onMenuClick(e) {
         e.stopPropagation();
         e.nativeEvent.stopImmediatePropagation();
-        this.props.onMenuOpen();
+        this.props.onMenuOpen(e);
     }    
 
     onClick() {
@@ -33,8 +33,7 @@ class Tarea extends Component{
     }
 
     render(){
-
-        const { participantes, txt_tarea, fec_limite } = this.props;
+        const { participantes, txt_tarea, fec_limite, txt_proyecto } = this.props;
 
         return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} className="tareaCard divideBottom">
                     <div className="c100 p50 tiny blue">
@@ -46,13 +45,13 @@ class Tarea extends Component{
                     </div>
                     <div className="chatItemContent">
                         <div className="chatContentTop">
-                            <div className="chatContentTitle" title={txt_tarea}>{txt_tarea}</div>
+                            <div className="chatContentTitle" title={Helper.decode_utf8(txt_tarea)}>{Helper.decode_utf8(txt_tarea)}</div>
                             {this.renderNotificaciones()}
                             <i onClick={(e) => this.onMenuClick(e)} className="material-icons fadeColor">more_vert</i>
                         </div>
                         <div className="chatContentBottom">
                             <div className="chatContentStatus fadeColor">
-                                Proyecto de pruebas
+                                {txt_proyecto}
                             </div>
                         </div>
                     </div>

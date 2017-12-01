@@ -16,7 +16,8 @@ import {
     guardarProyecto, 
     guardarProyectoNuevo,
     actualizaListaProyectos,
-    limpiarProyectoActual
+    limpiarProyectoActual,
+    listaUsuarios
 } from '../actions';
 
 class Proyectos extends Component{
@@ -34,7 +35,8 @@ class Proyectos extends Component{
      * Al abrir esta pantalla por primera vez se cargan todos los proyectos y las tareas
      */
     componentWillMount(){
-       this.props.listaProyectos(12);
+       this.props.listaProyectos(294);
+       this.props.listaUsuarios(294);
     }
 
     /**
@@ -324,6 +326,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     guardarProyectoNuevo,
     actualizaListaProyectos,
     limpiarProyectoActual,
+    listaUsuarios,
     changePage: (id_proyecto) => push(`proyectos/${id_proyecto}`)
 }, dispatch)
 

@@ -4,9 +4,20 @@ export const LISTA_PROYECTOS_FAILED = 'lista_proyectos_failed';
 export const LISTA_PROYECTOS_UPDATE = 'lista_proyectos_update';
 
 export const PROYECTO_SELECT = 'proyecto_select';
-export const TAREA_SELECT = 'tarea_select';
+export const TAREA_ACTUAL = 'tarea_actual';
+export const TAREA_ACTUALIZA = 'tarea_actualiza';
+export const TAREA_ACTUAL_GUARDAR = 'tarea_actual_guardar';
+export const TAREA_ACTUAL_GUARDAR_FAILED = 'tarea_actual_guardar_failed';
+export const TAREA_ACTUAL_GUARDAR_SUCESS = 'tarea_actual_guardar_success';
+export const TAREA_ACTUAL_LIMPIAR = 'tarea_actual_limpiar';
 export const TAREAS = 'tareas';
-export const COMENTARIOS = 'comentarios';
+
+export const USUARIOS = 'usuarios';
+export const USUARIOS_FAILED = 'usuarios_failed';
+export const USUARIOS_SUCCESS = 'usuarios_success';
+export const USUARIO_RESPONSABLE = 'USUARIO_RESPONSABLE';
+export const USUARIOS_PARTICIPANTES = 'USUARIOS_PARTICIPANTES';
+export const USUARIOS_ACTUAL_LIMPIAR = 'USUARIOS_ACTUAL_LIMPIAR';
 
 export const PROYECT_UPDATE = 'proyect_update';
 export const PROYECT_CREATE = 'proyect_create';

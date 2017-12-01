@@ -8,6 +8,7 @@ import { Route } from 'react-router-dom';
 import { Chats, Personal, Ajustes } from './pages';
 import Proyectos from './pages/Proyectos';
 import Tareas from './pages/Tareas';
+import 'react-datepicker/dist/react-datepicker.css';
 
 class App extends Component {
 

@@ -1,18 +1,12 @@
-import { Database, Helper } from '../configuracion';
+import { Database } from '../configuracion';
 import {
     PROYECTO_ACTUALIZA,
-    PROYECT_CREATE,
-    PROYECT_FEC_FIN,
-    PROYECT_FEC_OPEN,
-    PROYECT_FEC_INICIO,
     PROYECTO_ACTUAL,
     PROYECTO_ACTUAL_GUARDAR,
     PROYECTO_ACTUAL_GUARDAR_FAILED,
     PROYECTO_ACTUAL_GUARDAR_SUCESS,
     PROYECTO_ACTUAL_LIMPIAR,
-    PROYECT_UPDATE,
-    PROYECT_STATUS,
-    PROYECT_TEXT
+    PROYECT_UPDATE
 } from './types';
 
 

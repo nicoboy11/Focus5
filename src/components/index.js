@@ -8,3 +8,4 @@ export * from './Input';
 export * from './Modal';
 export * from './Radio';
 export * from './FormRow';
+export * from './ContextMenu';

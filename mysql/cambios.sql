@@ -222,6 +222,7 @@ END$$
 						group_concat( concat(
 						'{',
 							'"id_tarea":',ct.id_tarea,',',
+                            '"id_proyecto":',_id_proyecto,',',
 							'"txt_tarea":"',ct.txt_tarea,'",',
 							'"fec_creacion":"',ct.fec_creacion,'",',
 							'"fec_limite":"',ct.fec_limite,'",',
@@ -259,6 +260,7 @@ END$$
 						group_concat( concat(
 						'{',
 							'"id_usuario":',cu.id_usuario,',',
+                            '"role_id":',bvt.role_id,',',
 							'"txt_usuario":"',cu.txt_usuario,'",',
 							'"txt_abbr":"',ifnull(cu.txt_abbr,''),'",',
 							'"color":"',ifnull(cu.color,''),'",',
@@ -418,7 +420,7 @@ BEGIN
 
 END$$
 
-SELECT * FROM cat_proyecto
+#SELECT * FROM cat_proyecto
 #CALL getContenido('12',NULL,1,1)
 
 

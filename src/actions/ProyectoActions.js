@@ -25,6 +25,15 @@ export const listaProyectos = (id_usuario) => {
                 for(const proyecto of response) {
                     const datos = Helper.clrHtml(proyecto.tareas);
                     proyecto.tareas = proyecto.tareas ? JSON.parse(datos) : [];  
+                    proyecto.txt_proyecto = Helper.decode_utf8(Helper.htmlPaso(proyecto.txt_proyecto));
+
+                    for(const tarea of proyecto.tareas) {
+                        for(const usuario of tarea.participantes) {
+                            usuario.txt_usuario = Helper.decode_utf8(Helper.htmlPaso(usuario.txt_usuario));
+                        }
+
+                        tarea.txt_tarea = Helper.decode_utf8(Helper.htmlPaso(tarea.txt_tarea));
+                    }
                 }
   
 
@@ -41,7 +50,7 @@ export const listaProyectos = (id_usuario) => {
  */
 export const actualizaListaProyectos = (proyectos, proyecto) => {
     
-    const foundIndex = proyectos.findIndex(x=>x.id_proyecto == proyecto.id_proyecto);
+    const foundIndex = proyectos.findIndex(x=>x.id_proyecto === proyecto.id_proyecto);
 
     //Si no encuentra el proyecto en la lista lo inserta (nuevo proyecto)
     if(foundIndex === -1){

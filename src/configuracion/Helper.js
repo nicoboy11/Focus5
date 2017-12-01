@@ -81,6 +81,38 @@ class Helper {
         return str.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, '&nsbp;');
     }
 
+    static htmlPaso(str){
+        try{
+            if(str !== undefined && str !== null){
+                return str
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");        
+            }
+            else{
+                return "";
+            }
+        }
+        catch(err){
+            console.log(err);
+            return "";
+        }
+
+    }    
+
+    static decode_utf8(s) {
+        try{
+            var newstr = decodeURIComponent(escape(s));
+            return newstr;      
+        }
+        catch(err){
+            return s;
+        }
+        // return s;
+    }    
+
 }
 
 export { Helper };

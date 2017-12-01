@@ -3,9 +3,7 @@ import {
     LISTA_PROYECTOS_SUCESS,
     LISTA_PROYECTOS,
     LISTA_PROYECTOS_UPDATE,
-    PROYECTO_SELECT,
-    TAREAS,
-    TAREA_SELECT
+    PROYECTO_SELECT
 } from '../actions/types';
 
 const INITIAL_STATE = { proyectos: [], current_id_proyecto: null, tareas: [], current_id_tarea: null, loading: false, error: '' };
@@ -22,10 +20,6 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, proyectos: action.payload }            
         case PROYECTO_SELECT:
             return { ...state, current_id_proyecto: action.payload }
-        case TAREAS:
-            return { ...state, tareas: action.payload }     
-        case TAREA_SELECT:
-            return { ...state, current_id_tarea: action.payload }    
         default:
             return state;
     }

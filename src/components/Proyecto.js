@@ -1,13 +1,5 @@
 import React, {Component} from 'react';
-import { Modal, Input, Radio, FormRow} from './';
 import { Helper} from '../configuracion';
-import DatePicker from 'react-datepicker';
-import moment from 'moment';
-import 'moment/locale/es'
-import 'react-datepicker/dist/react-datepicker.css';
-
-import { connect } from 'react-redux';
-import { proyect_update, proyect_save, updateProyectos } from '../actions';
 
 class Proyecto extends Component{
     static defaultProps = {
@@ -105,8 +97,7 @@ class Proyecto extends Component{
             txt_proyecto,
             fec_inicio,
             fec_limite,
-            id_status,
-            txt_proyecto_text
+            id_status
             //participantes,
             //tareas
         } = this.props;

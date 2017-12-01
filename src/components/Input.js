@@ -60,7 +60,7 @@ class Input extends Component{
 
         if(multiline){
             return (
-                <textarea id={id} placeholder={placeholder} className="chatTextArea">{value}</textarea>
+                <textarea id={id} placeholder={placeholder} className="chatTextArea" value={value} />
             );
         }
 
@@ -99,7 +99,8 @@ let styles = {
         flex: 1,
         lineHeight: '2.5em',
         paddingLeft: '10px',
-        border: '1px solid #E1E4E8'
+        border: '1px solid #E1E4E8',
+        borderRadius: '4px'
     },
     labelStyle: {
         display:'flex',
