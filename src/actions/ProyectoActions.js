@@ -24,6 +24,8 @@ export const listaProyectos = (id_usuario) => {
                 //convertir tareas a objetos
                 for(const proyecto of response) {
                     const datos = Helper.clrHtml(proyecto.tareas);
+                    proyecto.id_proyecto = parseInt(proyecto.id_proyecto);
+                    proyecto.id_status = parseInt(proyecto.id_status);
                     proyecto.tareas = proyecto.tareas ? JSON.parse(datos) : [];  
                     proyecto.txt_proyecto = Helper.decode_utf8(Helper.htmlPaso(proyecto.txt_proyecto));
 

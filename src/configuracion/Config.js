@@ -1,7 +1,7 @@
 class Config {}
 
 Config.network = {
-    server: 'http://localhost:8081/route/',
+    server: 'http://localhost:8081/sistemafocus/FocusDesktop/api/',
     wsServer: 'ws://localhost:9998/tarea',
     blured: 'thumbs/blured/',
     big: 'thumbs/big/',

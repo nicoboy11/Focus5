@@ -11,14 +11,8 @@
     UPDATE ctrl_tareas_detalle
     SET txt_comentario = Replace(txt_comentario,'"','&quot;')
     WHERE txt_comentario like '%"%';
-    #--------------------------------------
-	CALL CreateRoleType('Creador');
-	CALL CreateRoleType('Responsable');
-	CALL CreateRoleType('Participante');
-	CALL CreateRoleType('Administrador');       
 	#--------------------------------------
-    ALTER TABLE bit_view_tarea
-    ADD role_id int NULL;
+    #ALTER TABLE bit_view_tarea ADD role_id int NULL;
     #--------------------------------------
     ALTER TABLE cat_proyecto MODIFY id_proyecto INT AUTO_INCREMENT;
     #--------------------------------------
@@ -34,7 +28,7 @@
 	SET role_id = 2
 	WHERE bv.id_usuario = ct.id_responsable and bv.id_usuario <> ct.id_usuario;
 
-	--Marcar con rol de participante
+	#--Marcar con rol de participante
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
 	SET role_id = 3
@@ -112,7 +106,12 @@
 		SELECT LAST_INSERT_ID() as id;
 		
 	END$$
-
+    #--------------------------------------
+	CALL CreateRoleType('Creador');
+	CALL CreateRoleType('Responsable');
+	CALL CreateRoleType('Participante');
+	CALL CreateRoleType('Administrador');  
+	#--------------------------------------
 	DELIMITER $$
 	DROP procedure IF EXISTS `GetRoleType`$$
 	CREATE PROCEDURE `GetRoleType` (IN _id varchar(255))
@@ -134,18 +133,19 @@
 		WHERE id = _id;
 		
 	END$$
-    
+
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreateProyecto`$$
 	CREATE PROCEDURE `CreateProyecto` (IN _txt_proyecto varchar(100), IN _id_usuario int, IN _fec_inicio date, IN _fec_limite date)
 	BEGIN
     
+		
 		DECLARE _id_proyecto INT;
 		DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
-		
+		/*
 			GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
-				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
+				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); */
 			ROLLBACK;
 			
 			INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
@@ -176,8 +176,8 @@
 		DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
 		
-			GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
-				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
+			/*GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); */
 			ROLLBACK;
 			
 			INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )

@@ -1,5 +1,5 @@
 import { Config } from './';
-const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImV2ZW4uc29zYUBnbWFpbC5jb20iLCJwYXNzd29yZCI6InNvc2EifQ.e5gaUw2apXJnH747Wp2EBCdUzktMratJV3Fq48DmHBc';
+const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6bnVsbCwicGFzc3dvcmQiOm51bGx9.r-btFJ2d9-3IXT37JjzeAeS78xsUxYo6edFvvDvURR4';
 
 class Database {
 

@@ -47,7 +47,7 @@ class Modal extends Component {
                         }
                         
                     </div>
-                    <div style={{ flex: 1, padding: '20px'}}>
+                    <div style={{ flex: 1, padding: '20px', overflowY: 'auto'}}>
                         {this.props.children}
                     </div>
                 </div>
