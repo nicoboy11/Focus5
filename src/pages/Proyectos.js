@@ -35,8 +35,14 @@ class Proyectos extends Component{
      * Al abrir esta pantalla por primera vez se cargan todos los proyectos y las tareas
      */
     componentWillMount(){
-       this.props.listaProyectos(294);
-       this.props.listaUsuarios(294);
+        if(localStorage.sessionData) {
+            const sessionData = JSON.parse(localStorage.sessionData);
+            this.props.listaProyectos(sessionData.id_usuario);
+            this.props.listaUsuarios(sessionData.id_usuario);
+        } else {
+            this.props.changePage("","");
+        }
+
     }
 
     /**
@@ -52,7 +58,7 @@ class Proyectos extends Component{
         this.props.seleccionarProyecto(proyectoActual[0], JSON.parse(JSON.stringify(proyectoActual[0])));
 
         //Cambiar de página
-        this.props.changePage(proyectoActual[0].id_proyecto);
+        this.props.changePage("proyectos",proyectoActual[0].id_proyecto);
     }
 
     /**
@@ -279,12 +285,15 @@ class Proyectos extends Component{
         
         return(
             <div id="mainProyectos" style={{display:'block'}}>
-                <div id="list">
+                <div id="list" style={styles.listWrap}>
                     <div 
-                        className="project w3-col newProject w3-card" 
-                        style={{justifyContent: 'center', 
-                        alignItems: 'center', 
-                        maxHeight: '181px'}}
+                        className="w3-col newProject w3-card" 
+                        style={{...styles.project,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center', 
+                                alignItems: 'center', 
+                                maxHeight: '181px'}}
                         onClick={this.onNuevoProyecto.bind(this)}
                     >
                         <div className="w3-circle newItem">
@@ -327,7 +336,25 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     actualizaListaProyectos,
     limpiarProyectoActual,
     listaUsuarios,
-    changePage: (id_proyecto) => push(`proyectos/${id_proyecto}`)
+    changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
+
+const styles = {
+    listWrap: {
+        display: 'flex', 
+        flexWrap: 'wrap',
+        maxHeight: '800px'
+    },
+    project: {
+        backgroundColor: '#FFF',
+        margin: '15px',
+        padding: '5px',
+        paddingBottom: '0px',
+        minWidth: '180px',
+        maxWidth: '250px',
+        borderRadius: '3px',
+        cursor: 'pointer'     
+    }
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(Proyectos)

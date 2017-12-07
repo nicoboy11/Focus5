@@ -10,11 +10,16 @@ class MenuTop extends Component{
             obj => currentRoute.includes(obj.uri)
         );
 
-        return (
-            <div className="currentTitle">
-                {current[0].nombre}
-            </div>            
-        )
+        if(current.length > 0) {
+            return (
+                <div className="currentTitle">
+                    {current[0].nombre}
+                </div>            
+            )
+        } else {
+            return null;
+        }
+
     }
 
     render(){

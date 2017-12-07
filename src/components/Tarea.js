@@ -33,11 +33,11 @@ class Tarea extends Component{
     }
 
     render(){
-        const { participantes, txt_tarea, fec_limite, txt_proyecto } = this.props;
+        const { participantes, txt_tarea, fec_limite, txt_proyecto, avance, selected } = this.props;
 
-        return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} className="tareaCard divideBottom">
-                    <div className="c100 p50 tiny blue">
-                        <span>50%</span>
+        return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} style={(selected)?styles.selectedStyle:null} className="tareaCard divideBottom">
+                    <div className={`c100 p${avance} tiny blue`}>
+                        <span>{avance}%</span>
                         <div className="slice">
                             <div className="bar"></div>
                             <div className="fill"></div>
@@ -62,6 +62,13 @@ class Tarea extends Component{
             </div>);
     }
 
+}
+
+const styles = {
+    selectedStyle: {
+        borderLeft: "5px solid #1ABC9C",
+        backgroundColor: "#F6F6F6"
+    }
 }
 
 export {Tarea};

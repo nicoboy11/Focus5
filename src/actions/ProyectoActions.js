@@ -4,6 +4,7 @@ import {
     LISTA_PROYECTOS_SUCESS,
     LISTA_PROYECTOS_FAILED,
     LISTA_PROYECTOS_UPDATE,
+    LISTA_TAREAS_UPDATE,
     PROYECTO_SELECT
 } from './types';
 
@@ -35,7 +36,16 @@ export const listaProyectos = (id_usuario) => {
                         }
 
                         tarea.txt_tarea = Helper.decode_utf8(Helper.htmlPaso(tarea.txt_tarea));
+
+                        for(const comentario of tarea.topComments) {
+                            let coment = Helper.decode_utf8(comentario.txt_comentario);
+                            coment = Helper.htmlDecode(comentario.txt_comentario);
+
+                            comentario.txt_comentario = coment;
+                        }
                     }
+
+
                 }
   
 
@@ -63,6 +73,41 @@ export const actualizaListaProyectos = (proyectos, proyecto) => {
 
     return {
         type: LISTA_PROYECTOS_UPDATE,
+        payload: proyectos
+    }
+}
+
+/**
+ * Recibe la lista de proyectos y la tarea modificada y actualiza la lista
+ * @param {*} proyectos 
+ * @param {*} proyecto 
+ */
+export const actualizaListaTareas = (proyectos, proyecto, tarea, comentario) => {
+    
+    const foundIndex = proyectos.findIndex(x=>x.id_proyecto === proyecto.id_proyecto);
+    const tareaIndex = proyecto.tareas.findIndex(x=>x.id_tarea === tarea.id_tarea);
+
+    //Agrega nuevo comentario
+    if(comentario !== undefined) {
+        tarea.topComments.unshift(comentario);
+    }
+
+    //Si no encuentra la tarea en la lista la inserta (nueva tarea)
+    if(tareaIndex === -1) {
+        proyecto.tareas.push(tarea);
+    } else {
+        proyecto.tareas[tareaIndex] = tarea;
+    }
+
+    //Si no encuentra el proyecto en la lista lo inserta (nuevo proyecto)
+    if(foundIndex === -1){
+        proyectos.push(proyecto);
+    } else {
+        proyectos[foundIndex] = proyecto;
+    }
+
+    return {
+        type: LISTA_TAREAS_UPDATE,
         payload: proyectos
     }
 }

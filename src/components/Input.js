@@ -41,7 +41,10 @@ class Input extends Component{
      * @param {*} text 
      */
     onChangeText(text) {
-        this.props.onChangeText(text.target.value.replace(types[this.props.type],''));
+        if(this.props.onChangeText !== undefined) {
+            this.props.onChangeText(text.target.value.replace(types[this.props.type],''));
+        }
+        
     }
 
     /**
@@ -60,7 +63,13 @@ class Input extends Component{
 
         if(multiline){
             return (
-                <textarea id={id} placeholder={placeholder} className="chatTextArea" value={value} />
+                <textarea 
+                    id={id} 
+                    placeholder={placeholder} 
+                    className="chatTextArea" 
+                    value={value} 
+                    onChange={this.onChangeText.bind(this)}
+                />
             );
         }
 

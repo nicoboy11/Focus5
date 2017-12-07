@@ -11,7 +11,7 @@ class Ajustes extends Component{
     render(){
         return(
             <div id="mainProyectos" style={{display:'block'}}>
-                Ajustes        
+                <button onClick={() => {} }>Cerrar Session</button>
             </div>
         );        
     }

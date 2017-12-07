@@ -81,6 +81,24 @@ class Helper {
         return str.replace(/(?:\r\n|\r|\n)/g, '<br />').replace(/(?:\t)/g, '&nsbp;');
     }
 
+    static htmlEncode(str) {
+        return str
+            .replace("&amp;", '&')
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&quot;", '"')
+            .replace("&#039;", "'");           
+    }
+
+    static htmlDecode(str) {
+        return str
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&quot;/g, '"')
+            .replace(/&#039;/g, "'");           
+    }    
+
     static htmlPaso(str){
         try{
             if(str !== undefined && str !== null){

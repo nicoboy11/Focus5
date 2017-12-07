@@ -5,7 +5,7 @@ class UserList extends Component{
     obtieneLista(){
         let {participantes, limit} = this.props;
         //poner un limite de usuarios visibles, el resto se pone con un +N
-        if(limit === undefined) { limit = 3; }
+        if(limit === undefined) { limit = 5; }
         
         var i = 0;
 
@@ -16,17 +16,17 @@ class UserList extends Component{
             let overlayVal = i*12;
 
             if( i > limit){
-                return <div></div>;
+                return <div key={`usrlst${i}` }></div>;
             }
 
-            if (i === limit) {
+            if (i === limit && ((participantes.length - limit + 1) > 1)) {
                 return (<div 
                             key={participante.id_usuario} 
-                            title={this.listaNombres(participantes,i)} 
+                            title={this.listaNombres(participantes,i-1)} 
                             className="w3-circle avtSmall w3-light-gray ensimoso"
                             style={{position: 'absolute', left: overlayVal}}
                         > 
-                            {(participantes.length - limit).toString()}
+                            {`+${(participantes.length - limit + 1).toString()}`}
                         </div>);
             }
 

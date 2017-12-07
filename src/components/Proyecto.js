@@ -105,7 +105,7 @@ class Proyecto extends Component{
         const promedio = (this.state.terminadas/this.state.totalTareas)*100;
 
         if(id_status === 1 || id_status === 3){
-            return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} className="project w3-card w3-col">
+            return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={styles.project} className="w3-card w3-col">
                         <div className="projectTop">                     
                             <div className="cardTitle">{txt_proyecto}</div>   
                             {this.renderNotificaciones()}     
@@ -131,6 +131,21 @@ class Proyecto extends Component{
 
     }
 
+}
+
+const styles = {
+    project: {
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#FFF',
+        margin: '15px',
+        padding: '5px',
+        paddingBottom: '0px',
+        minWidth: '180px',
+        maxWidth: '250px',
+        borderRadius: '3px',
+        cursor: 'pointer'     
+    }
 }
 
 export default (Proyecto);

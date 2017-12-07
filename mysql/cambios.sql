@@ -1,3 +1,6 @@
+    ALTER TABLE ctrl_tareas ADD isCalendarSync int DEFAULT NULL;
+    ALTER TABLE ctrl_tareas ADD fec_limiteCal datetime DEFAULT NULL;
+    #---------------------------------------
     DROP TABLE IF EXISTS roleType;
 	CREATE TABLE roleType(
 		id int PRIMARY KEY AUTO_INCREMENT,
@@ -11,8 +14,14 @@
     UPDATE ctrl_tareas_detalle
     SET txt_comentario = Replace(txt_comentario,'"','&quot;')
     WHERE txt_comentario like '%"%';
+    #--------------------------------------
+	CALL CreateRoleType('Creador');
+	CALL CreateRoleType('Responsable');
+	CALL CreateRoleType('Participante');
+	CALL CreateRoleType('Administrador');       
 	#--------------------------------------
-    #ALTER TABLE bit_view_tarea ADD role_id int NULL;
+    ALTER TABLE bit_view_tarea
+    ADD role_id int NULL;
     #--------------------------------------
     ALTER TABLE cat_proyecto MODIFY id_proyecto INT AUTO_INCREMENT;
     #--------------------------------------
@@ -81,20 +90,15 @@
 	CALL CreatePriority('Alta');
 	CALL CreatePriority('Urgente');
     #------------------------------------
-    ALTER TABLE ctrl_tareas
-    ADD priority_id int NULL
+    ALTER TABLE ctrl_tareas ADD priority_id int NULL;
+    ALTER TABLE ctrl_tareas ADD avance int NULL;
     #------------------------------------
-    UPDATE ctrl_tareas
-    SET priority_id = 1
+    UPDATE ctrl_tareas SET priority_id = 1;
+    UPDATE ctrl_tareas SET avance = id_tarea;
     #------------------------------------
-    ALTER TABLE cat_usuario
-    ADD color varchar(10) NULL;
-    
-    ALTER TABLE cat_usuario
-    ADD nombre varchar(50) NULL;
-    
-    ALTER TABLE cat_usuario
-    ADD apellidos varchar(100) NULL;
+    ALTER TABLE cat_usuario ADD color varchar(10) NULL;
+    ALTER TABLE cat_usuario ADD nombre varchar(50) NULL;
+    ALTER TABLE cat_usuario ADD apellidos varchar(100) NULL;
     #------------------------------------
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreateRoleType`$$
@@ -106,12 +110,7 @@
 		SELECT LAST_INSERT_ID() as id;
 		
 	END$$
-    #--------------------------------------
-	CALL CreateRoleType('Creador');
-	CALL CreateRoleType('Responsable');
-	CALL CreateRoleType('Participante');
-	CALL CreateRoleType('Administrador');  
-	#--------------------------------------
+
 	DELIMITER $$
 	DROP procedure IF EXISTS `GetRoleType`$$
 	CREATE PROCEDURE `GetRoleType` (IN _id varchar(255))
@@ -133,19 +132,18 @@
 		WHERE id = _id;
 		
 	END$$
-
+    
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreateProyecto`$$
 	CREATE PROCEDURE `CreateProyecto` (IN _txt_proyecto varchar(100), IN _id_usuario int, IN _fec_inicio date, IN _fec_limite date)
 	BEGIN
     
-		
 		DECLARE _id_proyecto INT;
 		DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
-		/*
+		
 			GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
-				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); */
+				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
 			ROLLBACK;
 			
 			INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
@@ -176,8 +174,8 @@
 		DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
 		
-			/*GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
-				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); */
+			GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
 			ROLLBACK;
 			
 			INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
@@ -202,14 +200,14 @@
 		
 		CALL getContenido(_id_usuario,_id_proyecto, null, null);
 
-END$$         
+	END$$         
 
 
 	#-------------------------------------------------------------------
     
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTarea$$
-	CREATE FUNCTION getJsonTarea(_id_proyecto int, _id_usuario int, _bitStatus int) RETURNS MEDIUMTEXT
+	CREATE FUNCTION getJsonTarea(_id_proyecto int, _id_tarea int, _id_usuario int, _bitStatus int) RETURNS MEDIUMTEXT
 	BEGIN
 		       
 		# Status NULL: trae todas las tareas
@@ -222,20 +220,22 @@ END$$
 						group_concat( concat(
 						'{',
 							'"id_tarea":',ct.id_tarea,',',
-                            '"id_proyecto":',_id_proyecto,',',
+                            '"id_proyecto":',ifnull(_id_proyecto,ct.id_proyecto),',',
 							'"txt_tarea":"',ct.txt_tarea,'",',
 							'"fec_creacion":"',ct.fec_creacion,'",',
 							'"fec_limite":"',ct.fec_limite,'",',
 							'"id_status":',ct.id_status,',',
+                            '"avance":',ct.avance,',',
 							'"priority_id":"',ct.priority_id,'",',
 							'"notificaciones":',FN_ULTIMO_COMMENT(bvt.id_tarea, IFNULL(bvt.fec_actualiza, '2000-01-01')),',',                            
 							'"participantes":',getJsonUsuariosTarea(ct.id_tarea),',',
-							'"topComments":',getJsonTopComments(ct.id_tarea),'',
+							'"topComments":',getJsonTopComments(ct.id_tarea,null),'',
 						'}') separator ','),
 					  ']') INTO _tareas
 		FROM ctrl_tareas as ct
 		LEFT JOIN vbit_view_tarea as bvt on bvt.id_tarea = ct.id_tarea and bvt.id_usuario = _id_usuario
-		WHERE 	ct.id_proyecto = _id_proyecto AND
+		WHERE 	ct.id_proyecto = coalesce(_id_proyecto, ct.id_proyecto) AND
+				ct.id_tarea = coalesce(_id_tarea,ct.id_tarea) AND
 				CASE WHEN _bitStatus is NULL THEN ct.id_status in (1,2,3) 
 					 WHEN _bitStatus = 1 THEN ct.id_status in (1,3)
                      ELSE ct.id_status = 2 END
@@ -260,10 +260,15 @@ END$$
 						group_concat( concat(
 						'{',
 							'"id_usuario":',cu.id_usuario,',',
+                            '"id_usuario_superior":',cu.id_usuario_superior,',',
+                            '"clave":"',FN_NIVEL(cu.id_usuario),'",',
                             '"role_id":',bvt.role_id,',',
+                            '"txt_login":"',cu.txt_login,'",',
 							'"txt_usuario":"',cu.txt_usuario,'",',
 							'"txt_abbr":"',ifnull(cu.txt_abbr,''),'",',
 							'"color":"',ifnull(cu.color,''),'",',
+                            '"sn_imagen":',ifnull(cu.sn_imagen,0),',',
+                            '"sn_espadre":',FN_ESPADRE(cu.id_usuario),',',
 							'"txt_email":"',ifnull(cu.txt_email,''),'"',
 						'}') separator ','),
 					  ']') INTO _usuarios
@@ -280,7 +285,7 @@ END$$
 
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTopComments$$
-	CREATE FUNCTION getJsonTopComments(_id_tarea int) RETURNS text
+	CREATE FUNCTION getJsonTopComments(_id_tarea int, _id_tarea_detalle int) RETURNS text
 	BEGIN
 
 		DECLARE _commentarios text;
@@ -314,7 +319,7 @@ END$$
 			FROM ctrl_tareas as ct
 			INNER JOIN ctrl_tareas_detalle as ctd on ctd.id_tarea = ct.id_tarea
 			INNER JOIN cat_usuario as cu on cu.id_usuario = ctd.id_usuario
-			WHERE 	ct.id_tarea = _id_tarea
+			WHERE 	ct.id_tarea = _id_tarea AND ctd.id_tarea_detalle = coalesce(_id_tarea_detalle, ctd.id_tarea_detalle)
 			ORDER BY ctd.fec_comentario desc LIMIT 10
 		) sc
         ORDER BY sc.fec_comentario asc;
@@ -399,7 +404,7 @@ BEGIN
 	# Status 2: trae tareas Terminadas
     
 	SELECT 	*,
-			getJsonTarea(id_proyecto,_id_usuario,_status_tareas) as tareas
+			getJsonTarea(id_proyecto,NULL,_id_usuario,_status_tareas) as tareas
     FROM (
 		SELECT 	cp.id_proyecto,
 				cp.txt_proyecto,
@@ -460,6 +465,93 @@ BEGIN
 	RETURN _key;
     
 END$$
+
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS EditTarea$$
+CREATE PROCEDURE EditTarea(IN _id_tarea int, IN _txt_tarea varchar(100), IN _txt_descripcion varchar(500), IN _fec_limite date, IN _id_usuario int, IN _id_responsable int, 
+							IN _id_proyecto int, IN _id_status int, IN _priority_id int, IN _avance int, IN _participantes varchar(500))
+BEGIN
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+	
+		GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+			SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
+		ROLLBACK;
+		
+		INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
+		VALUES (@full_error, NOW(), _id_usuario );
+		
+		SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
+			
+	END;
+
+	START TRANSACTION;
+    
+    #-----------Falta validar los cambios para el log
+
+		UPDATE ctrl_tareas
+		SET txt_tarea = _txt_tarea,
+			txt_descripcion = _txt_descripcion,
+            fec_limite = _fec_limite,
+            id_usuario = _id_usuario,
+            id_responsable = _id_responsable,
+            id_proyecto = _id_proyecto,
+            id_status = _id_status,
+            priority_id = _priority_id,
+            avance = _avance,
+            fec_actualiza = NOW()
+		WHERE id_tarea = _id_tarea;
+        
+		IF EXISTS (SELECT * FROM bit_view_tarea where id_tarea = _id_tarea and id_usuario = _id_responsable)
+		THEN
+
+			UPDATE bit_view_tarea
+            SET role_id = 2
+            WHERE id_usuario = _id_responsable AND
+					id_tarea = _id_tarea;
+
+		ELSE
+
+			INSERT bit_view_tarea (id_tarea, id_usuario, fec_actualiza, role_id)
+            VALUE(_id_tarea, _id_usuario, NULL, 2);
+			
+		END IF;
+		
+        
+		DELETE FROM bit_view_tarea
+		WHERE id_tarea = _id_tarea and role_id = 3;
+
+		INSERT INTO bit_view_tarea
+		SELECT _id_tarea as id_tarea, id_usuario, NULL as fec_actualiza, 3 as role_id 
+		FROM cat_usuario 
+		WHERE FIND_IN_SET(id_usuario, _participantes);
+        
+        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL) as tarea;
+        
+	COMMIT;       
+	
+END$$   
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS CreateComentario$$
+CREATE PROCEDURE CreateComentario(IN _id_tarea int, IN _txt_comentario varchar(500), IN _imagen varchar(500), IN _id_usuario int)
+BEGIN
+	DECLARE _id_tarea_detalle int;
+    
+	SELECT ifnull(max(id_tarea_detalle),1) + 1 INTO _id_tarea_detalle FROM ctrl_tareas_detalle;
+
+	INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
+	VALUES(_id_tarea,_id_tarea_detalle,_txt_comentario,_imagen,NOW(),1,_id_tarea_detalle-1,_id_usuario,1);
+
+
+	UPDATE bit_view_tarea SET fec_actualiza = NOW() where id_usuario = _id_usuario and id_tarea = _id_tarea;
+    
+    SELECT getJsonTopComments(_id_tarea, _id_tarea_detalle) as comentario;
+
+END$$
+
 /*
 select id_usuario from cat_usuario
 
@@ -489,4 +581,56 @@ select id_usuario from cat_usuario
     UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 298;
     UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 299;
     UPDATE cat_usuario SET color = '#FF6D00' WHERE id_usuario = 300;
+    
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 301;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 302;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 303;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 304;
+    UPDATE cat_usuario SET color = '#FF6D00' WHERE id_usuario = 305;
+    UPDATE cat_usuario SET color = '#AA00FF' WHERE id_usuario = 306;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 307;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 308;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 309;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 310;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 311;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 312;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 313;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 314;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 315;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 316;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 317;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 318;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 319;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 320;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 321;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 322;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 323;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 324;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 325;
+    UPDATE cat_usuario SET color = '#FF6D00' WHERE id_usuario = 326;   
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 327;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 328;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 329;
+    UPDATE cat_usuario SET color = '#FF6D00' WHERE id_usuario = 330;
+    UPDATE cat_usuario SET color = '#AA00FF' WHERE id_usuario = 331;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 332;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 333;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 334;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 335;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 336;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 337;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 338;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 339;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 340;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 341;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 342;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 343;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 344;
+    UPDATE cat_usuario SET color = '#D50000' WHERE id_usuario = 345;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 346;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 347;
+    UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 348;
+    UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 349;
+    UPDATE cat_usuario SET color = '#304FFE' WHERE id_usuario = 350;
+    UPDATE cat_usuario SET color = '#FF6D00' WHERE id_usuario = 351;      
 select * from ctrl_Tareas_detalle where id_tarea = 905*/

@@ -6,6 +6,7 @@ class Modal extends Component {
         type: 'FORM',//o MENSAJE
         isVisible: false,
         titulo: '',
+        mensaje: '',
         onGuardar: () => {},
         onCancelar: () => {},
         loading: false,
@@ -55,7 +56,15 @@ class Modal extends Component {
         }
 
         return (
-            <div style={{...content, ...mensaje}}>....</div>
+            <div className="w3-animate-top" onClick={(e) => { this.stopPropagation(e); } } style={{...content, ...form}}>
+            <div style={{ display: 'flex', flexDirection: 'row', flex: 1 }}>
+                <div style={styles.title}>{this.props.titulo}</div>
+            </div>
+            <div style={{ flex: 1, padding: '20px', overflowY: 'auto'}}>
+                <div style={{...content, ...mensaje}}>{this.props.mensaje}</div>
+            </div>
+        </div>            
+            
         )
     }
 
@@ -92,7 +101,8 @@ const styles = {
         zIndex: 1,
         borderBottomLeftRadius: '5px',
         borderBottomRightRadius: '5px',
-        cursor:'default'
+        cursor:'default',
+        maxWidth: '450px'
     },
     mensaje:{
         flex: 1,

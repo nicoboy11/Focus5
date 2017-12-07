@@ -215,7 +215,7 @@ html, body {
     }
 /*-- PROJECTS ---------------------------------------*/
 
-    .project{
+    /*.project{
         display: flex;
         flex: 1;
         flex-direction: column;
@@ -227,7 +227,7 @@ html, body {
         max-width: 250px;
         border-radius: 3px;
         cursor: pointer;
-    }
+    }*/
 
     .projectTop{
         display: flex;
@@ -447,7 +447,7 @@ html, body {
         flex: 1;
     }
 
-    .messageSelf{
+    /*.messageSelf{
         background-color: #1ABC9C;
         border-radius: 10px;        
         border-top-right-radius: 0px;
@@ -458,7 +458,7 @@ html, body {
         color: #FFF;   
         float: right;
         margin: 10px;
-    }
+    }*/
 
     .messageOther{
         background-color: #E9E9E9;

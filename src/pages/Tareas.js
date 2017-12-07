@@ -1,15 +1,32 @@
 import React, { Component } from 'react';
 import { Tarea, ChatItem, Input, Modal, ContextMenu, FormRow } from '../components';
+import Slider from 'react-rangeslider';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
-import { Helper} from '../configuracion';
+import { Helper, Config } from '../configuracion';
 import DatePicker from 'react-datepicker';
 import { withRouter } from 'react-router-dom';
+import { push } from 'react-router-redux';
+import { bindActionCreators } from 'redux';
 import moment from 'moment';
 import 'moment/locale/es'
+import 'react-rangeslider/lib/index.css'
 
 import { connect } from 'react-redux';
-import { cargarTareas, listaProyectos, seleccionarProyecto, seleccionarTarea, actualizarTarea, listaUsuarios } from '../actions';
+import { 
+    cargarTareas, 
+    listaProyectos, 
+    seleccionarProyecto, 
+    seleccionarTarea, 
+    actualizarTarea, 
+    listaUsuarios, 
+    actualizarGente, 
+    guardarTarea,
+    actualizaListaTareas,
+    commentChanged,
+    commentGuardar,
+    commentListUpdate
+} from '../actions';
 
 class Tareas extends Component{
     constructor(props){
@@ -19,7 +36,8 @@ class Tareas extends Component{
             id_tarea_selected: null,
             currentComments: [],
             listaContext: [],
-            mostrarContextMenu: false
+            mostrarContextMenu: false,
+            imageUrl:null
         }
     }
 
@@ -29,10 +47,20 @@ class Tareas extends Component{
      */
     componentWillMount(){
         
-        if(!this.props.proyectoActual.tmp_proyecto.id_proyecto) {
-            this.props.listaProyectos(294);
-            //this.props.listaUsuarios(294);            
+        let sessionData = {};
+
+        //Si no está logeado se manda a la pantalla de log in
+        if(!localStorage.sessionData) {
+            this.props.changePage("","");
+            return;
+        } else {
+            sessionData = JSON.parse(localStorage.sessionData)
         }
+
+        if(!this.props.proyectoActual.tmp_proyecto.id_proyecto) {
+            this.props.listaProyectos(sessionData.id_usuario);
+        } 
+
     }
 
     /**
@@ -49,10 +77,23 @@ class Tareas extends Component{
             //Seleccionar proyecto y obtener objeto
             const proyectoActual = nextProps.proyectos.filter(proyecto => proyecto.id_proyecto === parseInt(currentRoute.split("/")[2]));
         
-            //Guardar proyecto en el estate (Accion seleccionar)
-            this.props.seleccionarProyecto(proyectoActual[0], JSON.parse(JSON.stringify(proyectoActual[0])));            
+            //Si el proyecto no existe (es de otro usuario ó no tiene permisos) regresar a proyectos
+            if(proyectoActual.length === 0){
+                this.props.changePage("/proyectos","");
+                return;
+            }
 
-        } else if ( nextProps.proyectoActual.tmp_proyecto.id_proyecto && nextProps.tareas.length === 0 && nextProps.tareas === this.props.tareas){
+            //Guardar proyecto en el estate (Accion seleccionar)
+            this.props.seleccionarProyecto(proyectoActual[0], JSON.parse(JSON.stringify(proyectoActual[0])));     
+            
+            //Cargar usuarios
+            this.props.listaUsuarios(294);         
+
+        } else if ( nextProps.proyectoActual.tmp_proyecto.id_proyecto && 
+                    nextProps.tareas.length === 0 && 
+                    nextProps.tareas === this.props.tareas &&
+                    nextProps.usuarios === this.props.usuarios
+                ){
             this.props.cargarTareas(nextProps.proyectos, nextProps.id_proyecto);
         }
 
@@ -104,29 +145,40 @@ class Tareas extends Component{
     }
 
     /**
+     * Guardar una tarea nuevo o editar uno
+     */
+    onGuardar(){
+        //Cuando el proyecto es nuevo el id_status es null
+        if(this.props.tareaActual.tmp_tarea.id_status !== null) {
+            this.props.guardarTarea(this.props.tareaActual.tmp_tarea);
+        } else {
+            this.props.guardarTarea(this.props.tareaActual.tmp_tarea);
+        }
+        
+    }       
+
+    /**
+     * Commentar
+     */
+    enviarComment(){
+        const comentario = {
+            id_usuario: JSON.parse(localStorage.sessionData).id_usuario,
+            txt_comentario: this.props.comments.commentText,
+            imagen: ""
+        };
+
+        this.props.commentGuardar(comentario, this.props.tareaActual.tmp_tarea.id_tarea, this.state.attachment)
+    }
+
+    /**
      * Cargo el chat una vez que seleccionan la tarea
      * @param {*} id_tarea 
      */
     tareaClick(id_tarea){
-        const currentTarea = this.props.tareas.filter(tarea => tarea.id_tarea === id_tarea);
-        const chat = currentTarea[0].topComments;
-        const currentComments = chat.map(comment => {
-            return (
-                <ChatItem 
-                    key={parseInt(comment.id_tarea_unique)}
-                    id_tipo_comentario={parseInt(comment.id_tipo_comentario)}
-                    txt_comentario={comment.txt_comentario}
-                    fec_comentario={comment.fec_comentario}
-                    id_usuario={parseInt(comment.id_usuario)}
-                    id_tarea_unique={parseInt(comment.id_tarea_unique)}
-                    id_current_user={12}
-                />
-            )
-        }).reverse();
 
-        this.setState({
-            currentComments
-        });
+        //Seleccionar Tarea
+        const currentTarea = this.props.tareas.filter(tarea => tarea.id_tarea === id_tarea);
+        this.props.seleccionarTarea(currentTarea[0],JSON.parse(JSON.stringify(currentTarea[0])));
     }
 
     /**
@@ -147,15 +199,17 @@ class Tareas extends Component{
             fec_limite,
             id_proyecto,
             id_status,
-            participantes
+            participantes,
+            avance
         } = this.props.tareaActual.tmp_tarea;
 
         const tmp_tarea = this.props.tareaActual.tmp_tarea;
         let responsable = [{id_usuario: null}];
         let participaTarea = [{id_usuario: null}];
 
-        if(participantes !== undefined && participantes.length > 0){
+        if(participantes !== undefined && participantes.length > 0 && !this.props.loading){
             responsable = participantes.filter(participante => participante.role_id === 2 || participante.role_id === 1);
+            responsable = responsable.sort((a,b) => b.role_id - a.role_id);
             participaTarea = participantes.filter(participante => participante.role_id === 3);
         }
         
@@ -191,7 +245,6 @@ class Tareas extends Component{
                     <Input 
                         type="EXTENDEDTEXT"
                         multiline={true}
-                        autoFocus={true}
                         placeholder='Descripción de la tarea' 
                         value={txt_descripcion}
                         onChangeText={
@@ -202,7 +255,41 @@ class Tareas extends Component{
                                     })
                         }
                     />  
-                </FormRow>      
+                </FormRow>  
+                <FormRow titulo='RESPONSABLE'>                    
+                    <Select 
+                        name='selResponsable'
+                        value={responsable[0].id_usuario}
+                        onChange={  value => {
+                                        this.props.actualizarGente({ 
+                                            rolId: 2, 
+                                            persona: value, 
+                                            tmp_tarea,
+                                            usuarios: this.props.usuarios.usuarios
+                                        });
+                                    }
+                                }
+                        valueKey="id_usuario"
+                        labelKey="txt_usuario"
+                        options={this.props.usuarios.usuarios}
+                    />                    
+                </FormRow>     
+                <FormRow titulo='PARTICIPANTES'>                    
+                    <Select 
+                        name='selParticipantes'
+                        value={participaTarea}
+                        onChange={  value => this.props.actualizarGente({ 
+                                        rol: 3, 
+                                        persona: value, 
+                                        tmp_tarea,
+                                        usuarios: this.props.usuarios.usuarios
+                                    })}
+                        valueKey="id_usuario"
+                        labelKey="txt_usuario"
+                        options={this.props.usuarios.usuarios}
+                        multi={true}
+                    />                    
+                </FormRow>                      
                 <FormRow titulo='FECHA LIMITE'>
                         <DatePicker 
                             selected={Helper.toDateM(fec_limite)}
@@ -239,45 +326,114 @@ class Tareas extends Component{
                         options={this.props.proyectos}
                     />
                 </FormRow>      
-                <FormRow titulo='RESPONSABLE'>                    
-                    <Select 
-                        name='selResponsable'
-                        value={responsable[0].id_usuario}
-                        onChange={  value => this.props.actualizarTarea({ 
-                                        prop: 'id_responsable', 
+                <FormRow titulo='AVANCE'>
+                    <div className='slider-vertical'>
+                    <Slider
+                        min={0}
+                        max={100}
+                        value={avance}
+                        onChange={value => this.props.actualizarTarea({ 
+                                        prop: 'avance', 
                                         value, 
                                         tmp_tarea
                                     })}
-                        valueKey="id_usuario"
-                        labelKey="txt_usuario"
-                        options={this.props.usuarios.usuarios}
-                    />                    
-                </FormRow>     
-                <FormRow titulo='PARTICIPANTES'>                    
-                    <Select 
-                        name='selParticipantes'
-                        value={participaTarea}
-                        onChange={  value => this.props.actualizarTarea({ 
-                                        prop: 'participantes', 
-                                        value, 
-                                        tmp_tarea
-                                    })}
-                        valueKey="id_usuario"
-                        labelKey="txt_usuario"
-                        options={this.props.usuarios.usuarios}
-                        multi={true}
-                    />                    
-                </FormRow>                                
+                    />
+                    <div className='value'>{avance}%</div>
+                    </div>
+                </FormRow>                                                   
             </Modal>            
         )
+    }
+
+    /**
+     * Renderizar ó no el textbox del chat
+     */
+    renderChatFooter() {
+
+        if(this.props.tareaActual.tarea.id_tarea === undefined) {
+            return null;
+        }
+         
+        return(
+            <footer className="chatSender divideTop">
+                <div className="chatTextAreaContainer">
+                    <Input 
+                        multiline={true} 
+                        placeholder="Escribe un mensaje..." 
+                        value={this.props.comments.commentText}
+                        onChangeText={(value) => this.props.commentChanged(value)} 
+                    />
+                </div>
+                <div className="iconContainer">
+                    <div style={{height:'48px', width:'48px'}}>
+                        {(this.state.imageUrl !== null)?<img style={{height:'100%', border: '1px dashed gray'}} src={this.state.imageUrl} />:null}
+                    </div>
+                </div>
+                <div className="iconContainer">
+                    <label id="lblUp" htmlFor="up_file_even" style={{ cursor:"pointer" }}>
+                        <i className="material-icons fadeColor">attach_file</i>
+                    </label>
+                    <input onChange={this.mostrarImagen.bind(this)} type="file" id="up_file_even" name="up_file_even" style={{ display:'none' }} />
+                </div>
+                <div onClick={() => this.enviarComment()} className="iconContainer" style={{cursor:'pointer'}}>
+                    <i className="material-icons mainColor">send</i>
+                </div>
+            </footer>
+        );
+    }
+
+    renderLoadingMessage(){
+        const sessionData = JSON.parse(localStorage.sessionData)
+        if(this.props.loadingComentario){
+            return <ChatItem 
+                txt_comentario={this.props.comments.comment.txt_comentario}
+                loading={true}
+                progress={this.props.fileProgress}
+                id_usuario={parseInt(this.props.comments.comment.id_usuario)}
+                id_current_user={sessionData.id_usuario}
+            />            
+        }
+
+        if(this.props.loadingFile){
+            return <ChatItem 
+                        loading={true}
+                        progress={this.props.fileProgress}
+                        imagen={this.state.imageUrl}
+                        id_usuario={sessionData.id_usuario}
+                        id_current_user={sessionData.id_usuario}
+                        id_tipo_comentario={1}
+                    />      
+        }
+
+        return null;
     }
 
     /**
      * Renderizar los comentarios
      */
     renderMessages(){
+        if(this.props.tareaActual.tarea.topComments === undefined){
+            return null;
+        }
         //obtener tarea actual
-        return this.state.currentComments;
+        return this.props.tareaActual.tarea.topComments.map(comment => {
+            let ruta = "";
+            if(comment.imagen !== ""){
+                ruta = `${Config.network.server}/archivos/${comment.imagen}`                
+            }
+            return (
+                <ChatItem 
+                    key={parseInt(comment.id_tarea_unique)}
+                    id_tipo_comentario={parseInt(comment.id_tipo_comentario)}
+                    txt_comentario={comment.txt_comentario}
+                    fec_comentario={comment.fec_comentario}
+                    id_usuario={parseInt(comment.id_usuario)}
+                    id_tarea_unique={parseInt(comment.id_tarea_unique)}
+                    id_current_user={12}
+                    imagen={ruta}
+                />
+            )
+        }).reverse();
     }
 
     /**
@@ -286,6 +442,7 @@ class Tareas extends Component{
     renderTareas(){
         if(this.props.tareas !== null && this.props.tareas !== undefined) {
             return this.props.tareas.map(tarea => {
+                    const selected = (tarea.id_tarea == this.props.tareaActual.tmp_tarea.id_tarea)?true:false;
                     return (
                         <Tarea 
                             key={tarea.id_tarea}
@@ -295,6 +452,8 @@ class Tareas extends Component{
                             fec_limite={tarea.fec_limite}
                             notificaciones={tarea.notificaciones}
                             txt_proyecto={this.props.proyectoActual.proyecto.txt_proyecto}
+                            avance={tarea.avance}
+                            selected={selected}
                             onClick={this.tareaClick.bind(this)}
                             onMenuOpen={(e) => this.onContextOpen(e,tarea.id_tarea)}
                         />
@@ -309,6 +468,20 @@ class Tareas extends Component{
      * Renderizo la pagina completa
      */
     render(){
+
+        //Actualizar tarea editada del modal
+        if(Object.keys(this.props.tareaActual.tmp_tarea).length === 0 && this.state.mostrarModal === true){
+            this.setState({ mostrarModal: false });
+            this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea);
+           // this.props.limpiarProyectoActual();
+        }        
+
+        //Actualizar tarea de comentarios
+        if(Object.keys(this.props.comments.comment).length > 0) {
+            this.props.commentListUpdate();
+            this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea, this.props.comments.comment);
+        }
+
         return(
             <div className="detallesContainer divideTop">
                 <div id="listaTareas" className="w3-third chatPanel lightBackground">
@@ -326,22 +499,42 @@ class Tareas extends Component{
                     <div ref={'chatScroll'} style={{height: '100%', overflow:'auto'}}>
                         <div id="chatMessageContainer" className="chatMessages">
                         {this.renderMessages()}
+                        {this.renderLoadingMessage()}
                         </div>
                     </div>
-                    <footer className="chatSender divideTop">
-                        <div className="chatTextAreaContainer">
-                            <Input multiline={true} placeholder="Escribe un mensaje..." />
-                        </div>
-                        <div className="iconContainer">
-                            <i className="material-icons fadeColor">attach_file</i>
-                        </div>
-                        <div className="iconContainer">
-                            <i className="material-icons mainColor">send</i>
-                        </div>
-                    </footer>
+                    {this.renderChatFooter()}
                 </div>
             </div>
         );        
+    }
+
+    mostrarImagen(evt){
+        try{
+            const files = evt.target.files;
+            const filename = files[0].name;
+            const filetype = files[0].type;
+
+            for (let i = 0, f; f = files[i]; i++) {
+
+                let reader = new FileReader();
+                const me = this;
+                reader.onload = function (evt) {
+                    let archivo = '';
+                    me.setState({ imageUrl: evt.target.result });
+                    const attachment = {
+                                            uri: evt.target.result,
+                                            name: filename,
+                                            type: filetype
+                                        }
+                    me.setState({ attachment: files[0] });
+
+                }
+
+                reader.readAsDataURL(f);
+            }
+        } catch(err){
+
+        }
     }
 
 }
@@ -352,9 +545,33 @@ const mapStateToProps = state => {
         proyectoActual: state.proyectoActual,
         tareas: state.proyectoActual.proyecto.tareas,
         tareaActual: state.tareaActual,
-        usuarios: state.usuarios
+        loading: state.tareaActual.loading,
+        usuarios: state.usuarios,
+        comments: state.comments,
+        loadingComentario: state.comments.loading,
+        fileProgress: state.fileProgress.progress,
+        loadingFile: state.fileProgress.loading
     }
 };
 
-//export { Proyectos };
-export default withRouter(connect(mapStateToProps, { cargarTareas, listaProyectos, seleccionarProyecto, seleccionarTarea, actualizarTarea, listaUsuarios })(Tareas))
+/**
+ * Se utilizan los Action Creators para Cargar proyecto, seleccionar proyecto y para el cambio de página
+ * @param {*} dispatch 
+ */
+const mapDispatchToProps = dispatch => bindActionCreators({
+    cargarTareas, 
+    listaProyectos, 
+    seleccionarProyecto, 
+    seleccionarTarea, 
+    actualizarTarea, 
+    listaUsuarios, 
+    actualizarGente, 
+    guardarTarea, 
+    actualizaListaTareas,
+    commentChanged,
+    commentGuardar,
+    commentListUpdate,
+    changePage: (page, id) => push(`${page}/${id}`)
+}, dispatch)
+
+export default connect(mapStateToProps, mapDispatchToProps)(Tareas)

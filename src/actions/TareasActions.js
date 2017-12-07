@@ -1,6 +1,7 @@
 import { Database, Helper } from '../configuracion';
 import {
-    TAREAS
+    TAREAS,
+    LISTA_TAREAS_UPDATE
 } from './types';
 
 export const cargarTareas = (proyectos, id_proyecto) => {
@@ -15,3 +16,4 @@ export const cargarTareas = (proyectos, id_proyecto) => {
         payload: tareas
     }
 }
+
