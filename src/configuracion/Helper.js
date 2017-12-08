@@ -48,7 +48,8 @@ class Helper {
         if (uglyDate === undefined || uglyDate === null || uglyDate === 'null' || uglyDate === '') {
             return {
                 color: colors.main,
-                date: ''
+                date: '',
+                datetime: ''
             };
         }
     
@@ -58,7 +59,7 @@ class Helper {
         today.setHours(0, 0, 0, 0);
     
         const diff = this.getDifference(date, today) / (3600 * 24 * 1000);
-        const time =  ' ' + realDate.getHours().toString() + ':' + realDate.getMinutes().toString() + ':' + realDate.getSeconds().toString();
+        const time =  ' ' + realDate.getHours().toString() + ':' + realDate.getMinutes().toString() /*+ ':' + realDate.getSeconds().toString()*/;
     
         if (diff === 0) {
             return { color: colors.main, date: 'Hoy', datetime: 'Hoy' + time };
@@ -130,6 +131,8 @@ class Helper {
         }
         // return s;
     }    
+
+    
 
 }
 

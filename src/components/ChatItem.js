@@ -9,7 +9,9 @@ class ChatItem extends Component {
         txt_comentario: '',
         id_tipo_comentario: 2,
         fec_comentario: '',
-        loading: false
+        loading: false,
+        imagen: '',
+        progress: undefined
     }
 
     renderImage() {
@@ -20,11 +22,11 @@ class ChatItem extends Component {
             }
             return (
                 <div>
-                <img 
-                    src={`${this.props.imagen}`} 
-                    style={{ ...loading, borderRadius: '10px', objectFit: 'cover', width: '230px', height: '230px'}} 
-                />
-                <br />
+                    <img 
+                        src={`${this.props.imagen}`} 
+                        style={{ ...loading, borderRadius: '10px', objectFit: 'cover', width: '230px', height: '230px'}} 
+                    />
+                    <br />
                 </div>
             );
         }
@@ -49,8 +51,9 @@ class ChatItem extends Component {
         }
 
         if(id_current_user === id_usuario){
+            const loadingStyle = (loading && !progress)?styles.loadingStyle:null;
             return (
-                    <div className="chatMessage">
+                    <div className="chatMessage" style={loadingStyle}>
                         <div style={styles.messageSelf}>
                             <div style={{ position:'relative' }}>
                                 {this.renderImage()}
@@ -61,7 +64,7 @@ class ChatItem extends Component {
                                 </div>: null}                                
                             </div>
                             <div>
-                                <div className="messageTimeSelf">{Helper.decode_utf8(Helper.prettyfyDate(fec_comentario).date)}</div>
+                                <div className="messageTimeSelf">{Helper.decode_utf8(Helper.prettyfyDate(fec_comentario).datetime)}</div>
                             </div>
                         </div>
                     </div>  
@@ -71,11 +74,12 @@ class ChatItem extends Component {
         return  (
                 <div className="chatMessage">
                     <div className="messageOther">
-                        <div>
+                        <div style={{ position:'relative' }}>
+                            {this.renderImage()}
                             {Helper.decode_utf8(Helper.htmlPaso(txt_comentario))}
                         </div>
                         <div>
-                            <div className="messageTimeOther">{Helper.prettyfyDate(fec_comentario).date}</div>
+                            <div className="messageTimeOther">{Helper.prettyfyDate(fec_comentario).datetime}</div>
                         </div>
                     </div>
                 </div>            

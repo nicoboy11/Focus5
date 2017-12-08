@@ -25,7 +25,9 @@ import {
     actualizaListaTareas,
     commentChanged,
     commentGuardar,
-    commentListUpdate
+    commentListUpdate,
+    fileCancel,
+    fileChange
 } from '../actions';
 
 class Tareas extends Component{
@@ -36,8 +38,7 @@ class Tareas extends Component{
             id_tarea_selected: null,
             currentComments: [],
             listaContext: [],
-            mostrarContextMenu: false,
-            imageUrl:null
+            mostrarContextMenu: false
         }
     }
 
@@ -164,10 +165,10 @@ class Tareas extends Component{
         const comentario = {
             id_usuario: JSON.parse(localStorage.sessionData).id_usuario,
             txt_comentario: this.props.comments.commentText,
-            imagen: ""
+            imagen: this.props.archivo
         };
 
-        this.props.commentGuardar(comentario, this.props.tareaActual.tmp_tarea.id_tarea, this.state.attachment)
+        this.props.commentGuardar(comentario, this.props.tareaActual.tmp_tarea.id_tarea);
     }
 
     /**
@@ -366,7 +367,7 @@ class Tareas extends Component{
                 </div>
                 <div className="iconContainer">
                     <div style={{height:'48px', width:'48px'}}>
-                        {(this.state.imageUrl !== null)?<img style={{height:'100%', border: '1px dashed gray'}} src={this.state.imageUrl} />:null}
+                        {(this.props.url !== null)?<img style={{height:'100%', border: '1px dashed gray'}} src={this.props.url} />:null}
                     </div>
                 </div>
                 <div className="iconContainer">
@@ -384,25 +385,27 @@ class Tareas extends Component{
 
     renderLoadingMessage(){
         const sessionData = JSON.parse(localStorage.sessionData)
-        if(this.props.loadingComentario){
-            return <ChatItem 
-                txt_comentario={this.props.comments.comment.txt_comentario}
-                loading={true}
-                progress={this.props.fileProgress}
-                id_usuario={parseInt(this.props.comments.comment.id_usuario)}
-                id_current_user={sessionData.id_usuario}
-            />            
-        }
 
         if(this.props.loadingFile){
             return <ChatItem 
                         loading={true}
                         progress={this.props.fileProgress}
-                        imagen={this.state.imageUrl}
+                        imagen={this.props.url}
                         id_usuario={sessionData.id_usuario}
                         id_current_user={sessionData.id_usuario}
                         id_tipo_comentario={1}
                     />      
+        }        
+
+        if(this.props.loadingComentario){
+            return <ChatItem 
+                txt_comentario={this.props.comments.commentText}
+                loading={true}
+                id_tipo_comentario={1}
+                id_usuario={parseInt(this.props.comments.comment.id_usuario)}
+                id_current_user={sessionData.id_usuario}
+                id_usuario={sessionData.id_usuario}
+            />            
         }
 
         return null;
@@ -419,7 +422,7 @@ class Tareas extends Component{
         return this.props.tareaActual.tarea.topComments.map(comment => {
             let ruta = "";
             if(comment.imagen !== ""){
-                ruta = `${Config.network.server}/archivos/${comment.imagen}`                
+                ruta = `${Config.network.server}archivos/${comment.imagen}`                
             }
             return (
                 <ChatItem 
@@ -429,7 +432,7 @@ class Tareas extends Component{
                     fec_comentario={comment.fec_comentario}
                     id_usuario={parseInt(comment.id_usuario)}
                     id_tarea_unique={parseInt(comment.id_tarea_unique)}
-                    id_current_user={12}
+                    id_current_user={JSON.parse(localStorage.sessionData).id_usuario}
                     imagen={ruta}
                 />
             )
@@ -519,14 +522,8 @@ class Tareas extends Component{
                 let reader = new FileReader();
                 const me = this;
                 reader.onload = function (evt) {
-                    let archivo = '';
-                    me.setState({ imageUrl: evt.target.result });
-                    const attachment = {
-                                            uri: evt.target.result,
-                                            name: filename,
-                                            type: filetype
-                                        }
-                    me.setState({ attachment: files[0] });
+
+                    me.props.fileChange(files[0], evt.target.result);
 
                 }
 
@@ -549,8 +546,10 @@ const mapStateToProps = state => {
         usuarios: state.usuarios,
         comments: state.comments,
         loadingComentario: state.comments.loading,
-        fileProgress: state.fileProgress.progress,
-        loadingFile: state.fileProgress.loading
+        fileProgress: state.comments.progress,
+        loadingFile: state.comments.loadingFile,
+        archivo: state.comments.archivo,
+        url: state.comments.url
     }
 };
 
@@ -571,6 +570,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     commentChanged,
     commentGuardar,
     commentListUpdate,
+    fileCancel,
+    fileChange,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

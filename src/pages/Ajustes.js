@@ -11,7 +11,7 @@ class Ajustes extends Component{
     render(){
         return(
             <div id="mainProyectos" style={{display:'block'}}>
-                <button onClick={() => {} }>Cerrar Session</button>
+                <button onClick={() => { localStorage.removeItem("sessionData"); } }>Cerrar Session</button>
             </div>
         );        
     }

@@ -5,7 +5,6 @@ import TareaActualReducer from './TareaActualReducer';
 import UsuariosReducer from './UsuariosReducer';
 import LoginReducer from './LoginReducer';
 import CommentReducer from './CommentReducer';
-import FileUploadReducer from './FileUploadReducer';
 import { routerReducer } from 'react-router-redux';
 
 export default combineReducers({
@@ -15,6 +14,5 @@ export default combineReducers({
     tareaActual: TareaActualReducer,
     usuarios: UsuariosReducer,
     comments: CommentReducer,
-    routing: routerReducer,
-    fileProgress: FileUploadReducer
+    routing: routerReducer
 });

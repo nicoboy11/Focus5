@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Config } from '../configuracion'
 
 class UserList extends Component{
 
@@ -12,7 +13,7 @@ class UserList extends Component{
         return participantes.map(participante => {
             i++;
 
-            const srcImg = '../src/img/avatar/' + participante.id_usuario;
+            const srcImg = `${Config.network.server}/avatars/${participante.id_usuario}`;
             let overlayVal = i*12;
 
             if( i > limit){

@@ -10,10 +10,10 @@ const INITIAL_STATE = {
 }
 
 export default (state = INITIAL_STATE, action) => {
-    switch(action.type){
+    /*switch(action.type){
         case FILE_PROGRESS:
             return { ...state, progress: action.payload, loading: true }
         default:
             return state;
-    }
+    }*/
 }

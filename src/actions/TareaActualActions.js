@@ -69,7 +69,7 @@ export const guardarTarea = (tarea) => {
         dispatch({ type: TAREA_ACTUAL_GUARDAR });
         try {
             //El usuario que edita
-            tarea["id_usuario"] = 12;
+            tarea["id_usuario"] = JSON.parse(localStorage.sessionData).id_usuario;
             tarea.txt_descripcion = "";
 
             //Obtengo el responsable (role_id = 2 ó creador (role_id = 1))

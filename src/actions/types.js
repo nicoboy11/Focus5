@@ -41,7 +41,7 @@ export const LOGIN_USER_SUCCESS = 'login_user_success';
 export const LOGIN_USER_FAILED = 'login_user_failed';
 export const LOGOUT = 'logout';
 
-export const COMMENT_CHANGED = 'comment';
+export const COMMENT_CHANGED = 'comment_changed';
 export const COMMENT_FILE_CHANGED = 'comment_file_changed';
 export const COMMENT = 'comment';
 export const COMMENT_SUCCESS = 'comment_success';
@@ -49,3 +49,5 @@ export const COMMENT_FAILED = 'comment_failed';
 export const COMMENT_LIST_UPDATE = 'comment_list_update';
 
 export const FILE_PROGRESS = 'file_progress';
+export const FILE_CHANGE = 'file_change';
+export const FILE_CANCEL = 'file_cancel';

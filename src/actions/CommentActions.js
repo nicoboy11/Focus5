@@ -5,7 +5,9 @@ import {
     COMMENT_FAILED,
     COMMENT_FILE_CHANGED,
     COMMENT_LIST_UPDATE,
-    FILE_PROGRESS
+    FILE_PROGRESS,
+    FILE_CHANGE,
+    FILE_CANCEL
 } from './types';
 import { Database, Helper } from '../configuracion';
 
@@ -16,18 +18,29 @@ export const commentChanged = (text) => {
     };
 };
 
-export const commentGuardar = (comentario, id_tarea, attachment) => {
+export const commentGuardar = (comentario, id_tarea) => {
     return (dispatch) => {
+        dispatch({ type: COMMENT });
         try {
-
-            Database.fileUpload(attachment, (error, res) => {
+            comentario.txt_comentario = Helper.htmlEncode(comentario.txt_comentario);
+            
+            Database.requestWithFile(`CreaComentario/${id_tarea}`, comentario, (error, res) => {
                 if(error) {
-
+                    commentSaveFailed(dispatch, res);
                 } else {
                     switch(res.type) {
                         case "progress":
                             fileUploadProgress(dispatch,res.progress);
+                            break;
+                        case "error":
+                            commentSaveFailed(dispatch, res);
+                            break;
+                        case "complete":
+                            let commentEditado = res.data[0] ? JSON.parse(res.data[0].comentario)[0] : [];
+                            commentSaveSuccess(dispatch, { comentario: commentEditado });
+                            break
                         default:
+                            commentSaveFailed(dispatch, res);
                             return;
                     }
                 }
@@ -57,6 +70,19 @@ export const commentListUpdate = (comentario, tarea, proyecto) => {
     })
 }
 
+export const fileChange = (file, url) => {
+    return({
+        type: FILE_CHANGE,
+        payload: {file, url}
+    });
+}
+
+export const fileCancel = () => {
+    return({
+        type: FILE_CANCEL
+    });
+}
+
 const fileUploadProgress = (dispatch, progress) => {
     dispatch({
         type: FILE_PROGRESS,
@@ -64,8 +90,8 @@ const fileUploadProgress = (dispatch, progress) => {
     });
 }
 
-const commentSaveFailed = (dispatch) => {
-    dispatch({ type: COMMENT_FAILED });
+const commentSaveFailed = (dispatch, error) => {
+    dispatch({ type: COMMENT_FAILED, payload: error });
 }
 
 const commentSaveSuccess = (dispatch, comment) => {

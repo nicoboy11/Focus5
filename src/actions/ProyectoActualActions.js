@@ -40,7 +40,7 @@ export const guardarProyecto = (proyecto) => {
         return (dispatch) => {
             dispatch({ type: PROYECTO_ACTUAL_GUARDAR });
             try {
-                proyecto["id_usuario"] = 12;
+                proyecto["id_usuario"] = JSON.parse(localStorage.sessionData).id_usuario;
                 Database.request('POST', `editarProyecto/${proyecto.id_proyecto}`, proyecto, 2, (error, response) => {
                     if(error){
                         proyectoSaveFailed(dispatch);
@@ -61,7 +61,7 @@ export const guardarProyectoNuevo = (proyecto) => {
         return (dispatch) => {
             dispatch({ type: PROYECTO_ACTUAL_GUARDAR });
             try {
-                proyecto["id_usuario"] = 12;
+                proyecto["id_usuario"] = JSON.parse(localStorage.sessionData).id_usuario;
                 Database.request('POST', 'crearProyecto', proyecto, 2, (error, response) => {
                     if(error){
                         proyectoSaveFailed(dispatch);

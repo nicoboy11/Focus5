@@ -70,13 +70,18 @@ class Database {
         .catch((error) => callback(true,error));                  
     }    
 
-
-    static fileUpload(body, callback){
+    static requestWithFile(ruta, body, callback){
 
         let form = new FormData();
 
-        form.append("up_file_even", body);
-        form.append("id_usuario","12");
+        const keys = Object.keys(body);
+        
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];                    
+            if (body[key] !== undefined) {
+                form.append(key, body[key]);
+            }
+        }
 
         const req = new XMLHttpRequest();
 
@@ -91,12 +96,14 @@ class Database {
             }
         }
 
-        axios.post(Config.network.server + 'uploadsync.php', form, config)
+        axios.post(Config.network.server + ruta, form, config)
             .then(res => {
-                console.log(res.data);
+                res.type="complete";
+                callback(false, res);
             })
             .catch(err => {
-                console.log(err.message);
+                err.type="error";
+                callback(true, err.message);
             })
     
         /** Cuando termina de cargar el archivo */
@@ -128,9 +135,9 @@ class Database {
             callback(true, { progress: -1 })
         }, false);
     
-        this.proxy.once('abort', () => {
+       /* this.proxy.once('abort', () => {
             req.abort();
-        });
+        });*/
     
         /*callback(false, req)
                     .send(this.props.formCustomizer(form));*/

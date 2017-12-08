@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import { Config } from '../configuracion';
 
-const { menu } = Config;
+const { menu, network } = Config;
 
 class MenuTop extends Component{
     renderBreadCrumbs(){
@@ -28,7 +28,7 @@ class MenuTop extends Component{
                 <div id="marca">
                     <div id="avatar">
                             <div id="sessionAvatarContainer" className="fadeColor">
-                                <img id="sessionAvatar" className="w3-circle" src="img/avatar/12.jpg" alt="" />
+                                <img id="sessionAvatar" className="w3-circle" src={`${network.server}/avatars/${JSON.parse(localStorage.sessionData).id_usuario}.jpg`} alt="" />
                             </div>
                     </div>            
                 </div>
