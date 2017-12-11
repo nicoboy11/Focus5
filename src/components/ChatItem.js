@@ -11,7 +11,9 @@ class ChatItem extends Component {
         fec_comentario: '',
         loading: false,
         imagen: '',
-        progress: undefined
+        progress: undefined,
+        userName: '',
+        userColor: '#333'
     }
 
     renderImage() {
@@ -41,7 +43,9 @@ class ChatItem extends Component {
             fec_comentario,
             loading,
             progress,
-            imagen
+            imagen,
+            userName,
+            userColor
         } = this.props;
 
         if(id_tipo_comentario === 2 ) {
@@ -53,35 +57,37 @@ class ChatItem extends Component {
         if(id_current_user === id_usuario){
             const loadingStyle = (loading && !progress)?styles.loadingStyle:null;
             return (
-                    <div className="chatMessage" style={loadingStyle}>
+                    <div className="chatMessage" style={{...loadingStyle, ...styles.chatItemStyle, ...styles.rightItemStyle}}>
                         <div style={styles.messageSelf}>
-                            <div style={{ position:'relative' }}>
-                                {this.renderImage()}
+                            <div style={{...styles.chatTitle}}>{userName}</div>                        
+                            <div style={{ marginLeft: '10px', position:'relative' }}>
+                                  {this.renderImage()}
                                 {txt_comentario}
                                 {(progress !== undefined)?
                                 <div style={styles.barra}>
                                     <div style={{...styles.progress,width: `${progress}%`}}>{progress}%</div>
                                 </div>: null}                                
                             </div>
-                            <div>
-                                <div className="messageTimeSelf">{Helper.decode_utf8(Helper.prettyfyDate(fec_comentario).datetime)}</div>
-                            </div>
                         </div>
+                        <div style={styles.datetimeStyle}>
+                            <div style={styles.messageTimeSelf} className="messageTimeSelf fadeColor">{Helper.decode_utf8(Helper.prettyfyDate(fec_comentario).datetime)}</div>
+                        </div>                        
                     </div>  
             );          
         }
 
         return  (
-                <div className="chatMessage">
-                    <div className="messageOther">
-                        <div style={{ position:'relative' }}>
+                <div className="chatMessage" style={{...styles.chatItemStyle, ...styles.leftItemStyle}}>
+                    <div style={styles.messageOther}>
+                        <div style={{...styles.chatTitle}}>{userName}</div>  
+                        <div style={{ marginLeft: '10px', position:'relative' }}>                     
                             {this.renderImage()}
                             {Helper.decode_utf8(Helper.htmlPaso(txt_comentario))}
                         </div>
-                        <div>
-                            <div className="messageTimeOther">{Helper.prettyfyDate(fec_comentario).datetime}</div>
-                        </div>
                     </div>
+                    <div style={styles.datetimeStyle}>
+                        <div style={styles.messageTimeSelf} className="messageTimeSelf fadeColor">{Helper.decode_utf8(Helper.prettyfyDate(fec_comentario).datetime)}</div>
+                    </div>                    
                 </div>            
         );
     }
@@ -125,13 +131,58 @@ const styles = {
         borderRadius: '10px',   
         borderTopRightRadius: '0px',
         minWidth: '120px',
-        maxWidth: '80%',
-        padding: '10px',
+        /*maxWidth: '80%',*/
+        paddingRight: '10px',
+        paddingTop: '0px',
+        paddingLeft: '0px',
         paddingBottom: '3px',
         color: '#FFF',
         float: 'right',
         margin: '10px'
-    } 
+    },
+    messageOther: {
+        backgroundColor: '#E9E9E9',
+        borderRadius: '10px',   
+        borderTopLeftRadius: '0px',
+        minWidth: '120px',
+        /*maxWidth: '80%',*/
+        paddingRight: '10px',
+        paddingTop: '0px',
+        paddingLeft: '0px',
+        paddingBottom: '3px',
+        color: '#535353',
+        float: 'left',
+        margin: '10px'
+    },      
+    chatItemStyle: {
+        display: 'flex',
+        flexDirection: 'column'
+    },
+    rightItemStyle: {
+        float:'right'
+    },
+    leftItemStyle:{
+        float:'left'
+    },
+    datetimeStyle: {
+        marginRight: '15px',
+        marginTop: '-10px'
+    },
+    messageTimeSelf: {
+        float: 'right',
+        fontSize: '8px'    
+    },
+    chatTitle: {
+        marginLeft: '5px',
+        fontSize: '10px',
+        marginTop: '5px',
+        marginBottom: '5px',
+        fontWeight: 'bold',
+        maxWidth: '70%',
+        whiteSpace: 'nowrap',
+        overflow:'hidden',
+        textOverflow: 'ellipsis'
+    }
 }
 
 export { ChatItem };

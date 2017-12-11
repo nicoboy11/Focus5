@@ -59,7 +59,7 @@ class Helper {
         today.setHours(0, 0, 0, 0);
     
         const diff = this.getDifference(date, today) / (3600 * 24 * 1000);
-        const time =  ' ' + realDate.getHours().toString() + ':' + realDate.getMinutes().toString() /*+ ':' + realDate.getSeconds().toString()*/;
+        const time =  ' ' + ('00' + realDate.getHours().toString()).slice(-2) + ':' + ('00' + realDate.getMinutes().toString()).slice(-2) /*+ ':' + realDate.getSeconds().toString()*/
     
         if (diff === 0) {
             return { color: colors.main, date: 'Hoy', datetime: 'Hoy' + time };
@@ -68,7 +68,7 @@ class Helper {
         } else if (diff === -1) {
             return { color: colors.error, date: 'Ayer', datetime: 'Ayer' + time };
         } else if (diff > -6 && diff < 6) {
-            return { color: (diff > 0) ? colors.main : colors.error, date: this.getDayOfWeek(date) };		
+            return { color: (diff > 0) ? colors.main : colors.error, date: this.getDayOfWeek(date), datetime: this.getDayOfWeek(date) + time };		
         } 
     
         return {

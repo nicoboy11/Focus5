@@ -455,10 +455,10 @@ html, body {
         max-width: 80%;
         padding: 10px;
         padding-bottom: 3px;
-        color: #FFF;   
+        color: #FFF;    
         float: right;
         margin: 10px;
-    }*/
+    }
 
     .messageOther{
         background-color: #E9E9E9;
@@ -471,19 +471,19 @@ html, body {
         color: #535353;   
         float: left;
         margin: 10px;
-    }    
+    }    */
 
     .messageTimeOther {
         float: right;
         font-size: 10px;
         color: #9F999A;
     }    
-
+/*
     .messageTimeSelf {
         float: right;
         font-size: 10px;
         color: #DAD6D6;
-    }        
+    }       */ 
 
     .chatTextArea{
         width: 100%;
