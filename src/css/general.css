@@ -264,6 +264,27 @@ html, body {
         text-align: center;
         margin: 5px;
     }
+    .newItemNormal{
+        border: 2px solid #1ABC9C;
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+        font-size: 16px;
+        color: #1ABC9C;
+        text-align: center;
+        margin: 3px;
+    }    
+
+    .newItemBig{
+        border: 2px solid #1ABC9C;
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+        font-size: 30px;
+        color: #1ABC9C;
+        text-align: center;
+        margin: 3px;
+    }    
 /*-- PERSONAS ---------------------------------------*/
     .person{
         display: flex;
@@ -324,6 +345,10 @@ html, body {
     .taskFechaLimite{
         font-size: 11px;
         float: right;
+    }
+
+    #newTask:hover{
+        background-color: #F6F6F6;
     }
 
 /*-- CHAT -------------------------------------------*/

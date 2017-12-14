@@ -10,3 +10,4 @@ export * from './Radio';
 export * from './FormRow';
 export * from './ContextMenu';
 export * from './Chat';
+export * from './NewTask';

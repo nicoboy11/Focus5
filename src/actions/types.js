@@ -11,7 +11,12 @@ export const TAREA_ACTUAL_GUARDAR_FAILED = 'tarea_actual_guardar_failed';
 export const TAREA_ACTUAL_GUARDAR_SUCESS = 'tarea_actual_guardar_success';
 export const TAREA_ACTUAL_LIMPIAR = 'tarea_actual_limpiar';
 export const TAREAS = 'tareas';
+export const TAREA_NUEVA = 'tarea_nueva';
+export const TAREA_NUEVA_SUCCESS = 'tarea_nueva_success';
+export const TAREA_NUEVA_FAILED = 'tarea_nueva_failed';
 export const LISTA_TAREAS_UPDATE = 'lista_tareas_update';
+
+export const SOCKET = 'socket'
 
 export const USUARIOS = 'usuarios';
 export const USUARIOS_FAILED = 'usuarios_failed';

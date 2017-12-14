@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Tarea, ChatItem, Input, Modal, ContextMenu, FormRow, Chat } from '../components';
+import { Tarea, ChatItem, Input, Modal, ContextMenu, FormRow, Chat, NewTask } from '../components';
 import Slider from 'react-rangeslider';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
@@ -22,12 +22,15 @@ import {
     listaUsuarios, 
     actualizarGente, 
     guardarTarea,
+    guardarTareaNueva,
+    limpiarTareaActual,
     actualizaListaTareas,
     commentChanged,
     commentGuardar,
     commentListUpdate,
     fileCancel,
-    fileChange
+    fileChange,
+    enviarSocket
 } from '../actions';
 
 class Tareas extends Component{
@@ -62,6 +65,18 @@ class Tareas extends Component{
             this.props.listaProyectos(sessionData.id_usuario);
         } 
 
+        //WebSocket
+        this.ws = new WebSocket('ws://localhost:9998/task');
+        this.ws.onmessage = (e) => {
+            this.props.enviarSocket(JSON.parse(e.data));
+        };
+
+        this.ws.onopen = function(){
+            this.send(`{"accion":"conectar",
+            "room":"tareas",
+            "mensaje":"conectado",
+            "id_usuario":${sessionData.id_usuario}}`)
+        }
     }
 
     /**
@@ -139,12 +154,18 @@ class Tareas extends Component{
     /**
      * Guardar una tarea nuevo o editar uno
      */
-    onGuardar(){
-        //Cuando el proyecto es nuevo el id_status es null
-        if(this.props.tareaActual.tmp_tarea.id_status !== null) {
+    onGuardar(txt_tarea){
+        //Cuando la tarea es nueva el txt_tarea es undefined
+        if(!txt_tarea) {
             this.props.guardarTarea(this.props.tareaActual.tmp_tarea);
         } else {
-            this.props.guardarTarea(this.props.tareaActual.tmp_tarea);
+            let tareaNueva = JSON.parse(JSON.stringify(this.props.tareaActual.tareaNueva));
+            tareaNueva.txt_tarea = txt_tarea;
+            tareaNueva.id_proyecto = this.props.proyectoActual.proyecto.id_proyecto;
+            tareaNueva.id_usuario = JSON.parse(localStorage.sessionData).id_usuario;
+            tareaNueva.id_responsable = JSON.parse(localStorage.sessionData).id_usuario;
+            tareaNueva.participantes = '';
+            this.props.guardarTareaNueva(tareaNueva);
         }
         
     }       
@@ -162,6 +183,20 @@ class Tareas extends Component{
         this.props.commentGuardar(comentario, this.props.tareaActual.tmp_tarea.id_tarea);
     }
 
+    wsComment(value){
+        const usuario = JSON.parse(localStorage.sessionData);
+        const mensaje = (value != "")?`${usuario.txt_usuario} está escribiendo...`:"";
+        const obj = {
+            accion: "enviar",
+            room: "tareas",
+            id_usuario: `${usuario.id_usuario}`,
+            datos: { 
+                id_tarea: this.props.tareaActual.tarea.id_tarea,
+                mensaje: mensaje
+            }
+        }
+        this.ws.send(JSON.stringify(obj));        
+    }
     /**
      * Cargo el chat una vez que seleccionan la tarea
      * @param {*} id_tarea 
@@ -171,9 +206,9 @@ class Tareas extends Component{
         //Seleccionar Tarea
         const currentTarea = this.props.tareas.filter(tarea => tarea.id_tarea === id_tarea);
         this.props.seleccionarTarea(currentTarea[0],JSON.parse(JSON.stringify(currentTarea[0])));
+        this.props.commentChanged("");
+        this.wsComment("");
     }
-
-
 
     /**
      * Mostrar Modal para editar/crear tareas
@@ -336,8 +371,10 @@ class Tareas extends Component{
      */
     renderTareas(){
         if(this.props.tareas !== null && this.props.tareas !== undefined) {
+            const me = this;
             return this.props.tareas.map(tarea => {
-                    const selected = (tarea.id_tarea == this.props.tareaActual.tmp_tarea.id_tarea)?true:false;
+                    const selected = (tarea.id_tarea == me.props.tareaActual.tmp_tarea.id_tarea)?true:false;
+                    const typing = (tarea.id_tarea == me.props.socket.id_tarea)?me.props.socket.mensaje:"";
                     return (
                         <Tarea 
                             key={tarea.id_tarea}
@@ -349,10 +386,13 @@ class Tareas extends Component{
                             txt_proyecto={this.props.proyectoActual.proyecto.txt_proyecto}
                             avance={tarea.avance}
                             selected={selected}
+                            typing={typing}
                             onClick={this.tareaClick.bind(this)}
                             onMenuOpen={(e) => this.onContextOpen(e,tarea.id_tarea)}
                         />
                     )
+            }).sort((a,b) => {
+                return (a.props.fec_limite > b.props.fec_limite)?0:1
             });
         }
 
@@ -374,12 +414,23 @@ class Tareas extends Component{
         //Actualizar tarea de comentarios
         if(Object.keys(this.props.comments.comment).length > 0) {
             this.props.commentListUpdate();
+            this.wsComment("");
             this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea, this.props.comments.comment);
         }
+
+        //Actualizar tarea nueva
+        if(this.props.tareaNueva.id_tarea !== null) {
+            this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaNueva);
+            this.props.limpiarTareaActual();
+        }
+        
 
         return(
             <div className="detallesContainer divideTop">
                 <div id="listaTareas" className="w3-third chatPanel lightBackground">
+                <NewTask 
+                    onEnter={(txt_tarea) => this.onGuardar(txt_tarea)}
+                />
                 {this.renderTareas()}
                 {this.renderModalTareas()}
                 <ContextMenu 
@@ -398,7 +449,10 @@ class Tareas extends Component{
                         fileProgress={this.props.fileProgress}
                         url={this.props.url}
                         comments={this.props.comments}
-                        commentChanged={(value) => this.props.commentChanged(value)}
+                        commentChanged={(value) => {
+                            this.props.commentChanged(value);
+                            this.wsComment(value);
+                        }}
                         enviarComment={this.enviarComment.bind(this)}
                         fileChange={(file, event) => this.props.fileChange(file, event)}
                     />
@@ -423,7 +477,9 @@ const mapStateToProps = state => {
         fileProgress: state.comments.progress,
         loadingFile: state.comments.loadingFile,
         archivo: state.comments.archivo,
-        url: state.comments.url
+        url: state.comments.url,
+        tareaNueva: state.tareaActual.tareaNueva,
+        socket: state.socket.socket
     }
 };
 
@@ -440,12 +496,15 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     listaUsuarios, 
     actualizarGente, 
     guardarTarea, 
+    guardarTareaNueva,
+    limpiarTareaActual,
     actualizaListaTareas,
     commentChanged,
     commentGuardar,
     commentListUpdate,
     fileCancel,
     fileChange,
+    enviarSocket,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

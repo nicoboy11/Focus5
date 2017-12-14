@@ -5,7 +5,10 @@ import {
     TAREA_ACTUAL_GUARDAR,
     TAREA_ACTUAL_GUARDAR_FAILED,
     TAREA_ACTUAL_GUARDAR_SUCESS,
-    TAREA_ACTUAL_LIMPIAR
+    TAREA_ACTUAL_LIMPIAR,
+    TAREA_NUEVA,
+    TAREA_NUEVA_SUCCESS,
+    TAREA_NUEVA_FAILED
 } from './types';
 
 
@@ -64,10 +67,32 @@ export const actualizarGente = ({ rolId, persona, tmp_tarea, usuarios }) => {
     };
 }
 
-export const guardarTarea = (tarea) => {
+export const guardarTareaNueva = (tarea) => {
+    return (dispatch) => {
+        dispatch({ type: TAREA_NUEVA });
+        try {
+
+            Database.request('POST', `CrearTarea`, tarea, 2, (error, response) => {
+                if(error){
+                    tareaNuevaSaveFailed(dispatch);
+                } else{
+                    let tareas = Helper.clrHtml(response[0].tarea);
+                    let tareaCreada = tareas ? JSON.parse(tareas)[0] : [];  
+                    tareaNuevaSaveSuccess(dispatch, { tarea: tareaCreada } );
+                }
+            });                 
+
+        } catch(err) {
+            tareaSaveFailed(dispatch);
+        }
+    }
+}
+
+export const guardarTarea = (tmpTarea) => {
     return (dispatch) => {
         dispatch({ type: TAREA_ACTUAL_GUARDAR });
         try {
+            let tarea = JSON.parse(JSON.stringify(tmpTarea));
             //El usuario que edita
             tarea["id_usuario"] = JSON.parse(localStorage.sessionData).id_usuario;
             tarea.txt_descripcion = "";
@@ -90,8 +115,8 @@ export const guardarTarea = (tarea) => {
                 if(error){
                     tareaSaveFailed(dispatch);
                 } else{
-
-                    let tareaEditada = response[0].tarea ? JSON.parse(response[0].tarea)[0] : [];  
+                    let tareaObj = Helper.clrHtml(response[0].tarea);
+                    let tareaEditada = tareaObj ? JSON.parse(tareaObj)[0] : [];  
 
                     for(const usuario of tareaEditada.participantes) {
                         usuario.txt_usuario = Helper.decode_utf8(Helper.htmlPaso(usuario.txt_usuario));
@@ -117,7 +142,6 @@ export const limpiarTareaActual = () => {
     }    
 }
 
-
 const tareaSaveFailed = (dispatch) => {
     dispatch({ type: TAREA_ACTUAL_GUARDAR_FAILED });
 }
@@ -125,6 +149,17 @@ const tareaSaveFailed = (dispatch) => {
 const tareaSaveSuccess = (dispatch, tarea) => {
     dispatch({
         type: TAREA_ACTUAL_GUARDAR_SUCESS,
+        payload: tarea
+    });
+};
+
+const tareaNuevaSaveFailed = (dispatch) => {
+    dispatch({ type: TAREA_NUEVA_FAILED });
+}
+
+const tareaNuevaSaveSuccess = (dispatch, tarea) => {
+    dispatch({
+        type: TAREA_NUEVA_SUCCESS,
         payload: tarea
     });
 };

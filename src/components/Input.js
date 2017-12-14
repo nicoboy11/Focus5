@@ -15,7 +15,8 @@ class Input extends Component{
         label: false,
         labelText: '',
         placeholder: '',
-        value: ''
+        value: '',
+        onEnter: () => {}
     }
 
     /**
@@ -47,6 +48,13 @@ class Input extends Component{
         
     }
 
+    onKeyPress(e){
+        const code = (e.keyCode ? e.keyCode : e.which);
+        if(code === 13){
+            this.props.onEnter();
+        }
+    }
+
     /**
      * Renderizar el componente si es multilinea se usa textarea si no input
      */
@@ -69,6 +77,7 @@ class Input extends Component{
                     className="chatTextArea" 
                     value={value} 
                     onChange={this.onChangeText.bind(this)}
+                    onKeyPress={this.onKeyPress.bind(this)}
                 />
             );
         }
@@ -77,6 +86,7 @@ class Input extends Component{
             <input 
                 autoFocus={autoFocus} 
                 onChange={this.onChangeText.bind(this)}
+                onKeyPress={this.onKeyPress.bind(this)}
                 id={id} 
                 value={value} 
                 placeholder={placeholder} 

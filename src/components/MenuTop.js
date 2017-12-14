@@ -23,6 +23,9 @@ class MenuTop extends Component{
     }
 
     render(){
+        if(localStorage.sessionData == undefined){
+            return null;
+        }
         return(
             <div id="topBar">
                 <div id="marca">

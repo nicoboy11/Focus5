@@ -223,7 +223,7 @@
                             '"id_proyecto":',ifnull(_id_proyecto,ct.id_proyecto),',',
 							'"txt_tarea":"',ct.txt_tarea,'",',
 							'"fec_creacion":"',ct.fec_creacion,'",',
-							'"fec_limite":"',ct.fec_limite,'",',
+							'"fec_limite":"',IFNULL(ct.fec_limite,'2199-01-01'),'",',
 							'"id_status":',ct.id_status,',',
                             '"avance":',ct.avance,',',
 							'"priority_id":"',ct.priority_id,'",',
@@ -240,8 +240,8 @@
 					 WHEN _bitStatus = 1 THEN ct.id_status in (1,3)
                      ELSE ct.id_status = 2 END
 				AND (ct.id_usuario = _id_usuario
-				OR bvt.role_id in (1,2,3,4));
-                
+				OR bvt.role_id in (1,2,3,4))
+		ORDER BY ct.fec_limite is null asc, ct.fec_limite desc;
 		
 		RETURN ifnull(_tareas,'[]');
 
@@ -320,7 +320,7 @@
 			INNER JOIN ctrl_tareas_detalle as ctd on ctd.id_tarea = ct.id_tarea
 			INNER JOIN cat_usuario as cu on cu.id_usuario = ctd.id_usuario
 			WHERE 	ct.id_tarea = _id_tarea AND ctd.id_tarea_detalle = coalesce(_id_tarea_detalle, ctd.id_tarea_detalle)
-			ORDER BY ctd.fec_comentario desc LIMIT 10
+			ORDER BY ctd.fec_comentario desc LIMIT 20
 		) sc
         ORDER BY sc.fec_comentario asc;
 		       
@@ -533,6 +533,67 @@ BEGIN
 	COMMIT;       
 	
 END$$   
+
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS CreateTarea$$
+CREATE PROCEDURE CreateTarea(IN _txt_tarea varchar(100), IN _txt_descripcion varchar(500), IN _fec_limite date, IN _id_usuario int, IN _id_responsable int, 
+							IN _id_proyecto int, IN _priority_id int, IN _participantes varchar(500))
+BEGIN
+	DECLARE _id_tarea INT;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+	
+		GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+			SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
+		ROLLBACK;
+		
+		INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
+		VALUES (@full_error, NOW(), _id_usuario );
+		
+		SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
+			
+	END;
+
+	START TRANSACTION;
+    
+    #-----------Falta validar los cambios para el log
+
+		INSERT INTO ctrl_tareas (txt_tarea, txt_descripcion, fec_limite, id_usuario, id_responsable, id_proyecto, id_status, priority_id, avance, fec_actualiza, id_usuario_actualiza, fec_creacion)
+        VALUES(_txt_tarea, _txt_descripcion, _fec_limite, _id_usuario, _id_responsable, _id_proyecto, 1, _priority_id, 0, NOW(), _id_usuario, NOW());
+        
+        SET _id_tarea = LAST_INSERT_ID();
+        
+		IF EXISTS (SELECT * FROM bit_view_tarea where id_tarea = _id_tarea and id_usuario = _id_responsable)
+		THEN
+
+			UPDATE bit_view_tarea
+            SET role_id = 2
+            WHERE id_usuario = _id_responsable AND
+					id_tarea = _id_tarea;
+
+		ELSE
+
+			INSERT bit_view_tarea (id_tarea, id_usuario, fec_actualiza, role_id)
+            VALUE(_id_tarea, _id_usuario, NULL, 2);
+			
+		END IF;
+		
+        
+		DELETE FROM bit_view_tarea
+		WHERE id_tarea = _id_tarea and role_id = 3;
+
+		INSERT INTO bit_view_tarea
+		SELECT _id_tarea as id_tarea, id_usuario, NULL as fec_actualiza, 3 as role_id 
+		FROM cat_usuario 
+		WHERE FIND_IN_SET(id_usuario, _participantes);
+        
+        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL) as tarea;
+        
+	COMMIT;       
+	
+END$$   
+
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS CreateComentario$$

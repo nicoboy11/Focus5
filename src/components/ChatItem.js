@@ -23,11 +23,12 @@ class ChatItem extends Component {
                 loading = styles.loadingStyle;
             }
             return (
-                <div>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <img 
                         src={`${this.props.imagen}`} 
-                        style={{ ...loading, borderRadius: '10px', objectFit: 'cover', width: '230px', height: '230px'}} 
+                        style={{ ...loading, marginBottom: '10px', borderRadius: '10px', objectFit: 'cover', width: '230px', height: '230px'}} 
                     />
+                    <br />
                     <br />
                 </div>
             );
@@ -59,10 +60,9 @@ class ChatItem extends Component {
             return (
                     <div className="chatMessage" style={{...loadingStyle, ...styles.chatItemStyle, ...styles.rightItemStyle}}>
                         <div style={styles.messageSelf}>
-                            <div style={{...styles.chatTitle}}>{userName}</div>                        
-                            <div style={{ marginLeft: '10px', position:'relative' }}>
+                            <div style={{ margin: '10px', position:'relative' }}>
                                   {this.renderImage()}
-                                {txt_comentario}
+                                {Helper.htmlDecode(Helper.decode_utf8(txt_comentario))}
                                 {(progress !== undefined)?
                                 <div style={styles.barra}>
                                     <div style={{...styles.progress,width: `${progress}%`}}>{progress}%</div>
@@ -79,7 +79,7 @@ class ChatItem extends Component {
         return  (
                 <div className="chatMessage" style={{...styles.chatItemStyle, ...styles.leftItemStyle}}>
                     <div style={styles.messageOther}>
-                        <div style={{...styles.chatTitle}}>{userName}</div>  
+                        <div style={{...styles.chatTitle, color: userColor}}>{Helper.htmlDecode(Helper.decode_utf8(userName))}</div>  
                         <div style={{ marginLeft: '10px', position:'relative' }}>                     
                             {this.renderImage()}
                             {Helper.decode_utf8(Helper.htmlPaso(txt_comentario))}
@@ -156,7 +156,8 @@ const styles = {
     },      
     chatItemStyle: {
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        maxWidth: '80%'
     },
     rightItemStyle: {
         float:'right'

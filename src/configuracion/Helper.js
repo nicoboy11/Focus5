@@ -23,6 +23,10 @@ class Helper {
             return null;
         }
 
+        if(moment(date).year() > 2100){
+            return null;
+        }
+
         return moment(date);        
     }
 
@@ -61,6 +65,10 @@ class Helper {
         const diff = this.getDifference(date, today) / (3600 * 24 * 1000);
         const time =  ' ' + ('00' + realDate.getHours().toString()).slice(-2) + ':' + ('00' + realDate.getMinutes().toString()).slice(-2) /*+ ':' + realDate.getSeconds().toString()*/
     
+        if(diff > 3600) {
+            return { color: colors.lightText, date: 'Sin fecha', datetime: 'Sin fecha'}
+        }
+
         if (diff === 0) {
             return { color: colors.main, date: 'Hoy', datetime: 'Hoy' + time };
         } else if (diff === 1) {
@@ -97,7 +105,8 @@ class Helper {
             .replace(/&lt;/g, "<")
             .replace(/&gt;/g, ">")
             .replace(/&quot;/g, '"')
-            .replace(/&#039;/g, "'");           
+            .replace(/&#039;/g, "'")
+            .replace(/&nsbp;/g, " ");           
     }    
 
     static htmlPaso(str){
@@ -108,7 +117,7 @@ class Helper {
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");        
+                    .replace(/'/g, "&#039;");
             }
             else{
                 return "";

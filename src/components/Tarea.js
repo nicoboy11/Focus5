@@ -33,7 +33,7 @@ class Tarea extends Component{
     }
 
     render(){
-        const { participantes, txt_tarea, fec_limite, txt_proyecto, avance, selected } = this.props;
+        const { participantes, txt_tarea, fec_limite, txt_proyecto, avance, selected, typing } = this.props;
 
         return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} style={(selected)?styles.selectedStyle:null} className="tareaCard divideBottom">
                     <div className={`c100 p${avance} tiny blue`}>
@@ -57,6 +57,7 @@ class Tarea extends Component{
                     </div>
                 <div className="taskBottom chatContentBottom">
                     <UserList participantes={participantes} limit={3} />
+                    <div style={styles.typingStyle}>{typing}</div>
                     <div className="taskFechaLimite chatContentDatetime" style={{ color: Helper.prettyfyDate(fec_limite).color }}>{Helper.prettyfyDate(fec_limite).date}</div>
                 </div>
             </div>);
@@ -68,6 +69,10 @@ const styles = {
     selectedStyle: {
         borderLeft: "5px solid #1ABC9C",
         backgroundColor: "#F6F6F6"
+    },
+    typingStyle: {
+        fontSize: '12px',
+        color: '#1ABC9C'
     }
 }
 
