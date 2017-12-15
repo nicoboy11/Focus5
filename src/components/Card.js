@@ -28,10 +28,10 @@ const styles = {
         flexDirection: 'column',
         backgroundColor: '#FFF',
         margin: '15px',
-        padding: '5px',
-        paddingBottom: '0px',
+        padding: '10px',
         minWidth: '180px',
-        maxWidth: '250px',
+        maxWidth: '300px',
+        maxHeight: '200px',
         borderRadius: '3px',
         cursor: 'pointer',   
         alignItems: 'center'

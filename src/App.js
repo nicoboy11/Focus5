@@ -47,31 +47,36 @@ class App extends Component {
     let breadCrumb = "";
 
     const currentRoute = window.location.pathname;
-    const current = menu.filter(
+    let current = menu.filter(
         obj => currentRoute.includes(obj.uri)
     )[0];    
 
-    switch(current.nombre) {
-      case "Proyectos": 
-        if(this.props.proyectoActual.proyecto.id_proyecto === undefined) {
-          title = "Proyectos";
-        } else {
-          title = this.props.proyectoActual.proyecto.txt_proyecto;
-          breadCrumb = "Proyectos";
-        }
-        break;
-      case "Chats":
-        title = "Chats"
-        break;
-      case "Personal":
-        title = "Personal";
-        break;
-      case "Ajustes":
-        title = "Ajustes";
-        break;
-      default:
-        break;
+    if(current !== undefined) {
+      switch(current.nombre) {
+        case "Proyectos": 
+          if(this.props.proyectoActual.proyecto.id_proyecto === undefined) {
+            title = "Proyectos";
+          } else {
+            title = this.props.proyectoActual.proyecto.txt_proyecto;
+            breadCrumb = "Proyectos";
+          }
+          break;
+        case "Chats":
+          title = "Chats"
+          break;
+        case "Personal":
+          title = "Personal";
+          break;
+        case "Ajustes":
+          title = "Ajustes";
+          break;
+        default:
+          break;
+      }
+    } else {
+      current = { nombre: '' }
     }
+
     
     return (
           <div className="App">
@@ -85,7 +90,14 @@ class App extends Component {
                 <Route path="/personal" component={Personal} />
                 <Route path="/ajustes" component={Ajustes} />
             </div>
-            {this.renderMenu(<MenuTop currentTitle={title} breadCrumb={breadCrumb} />)}
+            {this.renderMenu(<MenuTop 
+                                currentTitle={title} 
+                                breadCrumb={breadCrumb} 
+                                onLogout={() =>{
+                                  localStorage.removeItem("sessionData");
+                                  window.location = '/';
+                                }}
+                              />)}
             {this.renderMenu(<MenuBar currentMenu={current.nombre} />)}
           </div>
     );

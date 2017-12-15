@@ -99,6 +99,7 @@
     ALTER TABLE cat_usuario ADD color varchar(10) NULL;
     ALTER TABLE cat_usuario ADD nombre varchar(50) NULL;
     ALTER TABLE cat_usuario ADD apellidos varchar(100) NULL;
+	ALTER TABLE cat_usuario ADD tel varchar(100) DEFAULT NULL;
     #------------------------------------
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreateRoleType`$$
@@ -536,9 +537,9 @@ END$$
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS GetTarea$$
-CREATE PROCEDURE GetTarea(IN id_tarea int, IN id_usuario int)
+CREATE PROCEDURE GetTarea(IN _id_tarea int, IN _id_usuario int)
 BEGIN
-	SELECT getJsonTarea(NULL, 1560, 12, NULL) as tarea;
+	SELECT getJsonTarea(NULL, _id_tarea, _id_usuario, NULL) as tarea;
 END$$
 
 DELIMITER $$

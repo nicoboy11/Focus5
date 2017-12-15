@@ -38,22 +38,45 @@ class MenuTop extends Component{
                             </div>
                     </div>            
                 </div>
-                <div id="topBarContainer">
+                <div id="topBarContainer" style={styles.topBarStyle}>
                     <div id="titulo">
                         <div className="breadCrumbs fadeColor">
                             {this.renderBreadCrumb()}
                         </div>
                         {this.renderTitulo()}
                     </div>
-                    <div id="searchBar">
-                            <i className="material-icons fadeColor">search</i>
-                        </div>            
-                    <div id="notification">
-                        <i className="material-icons fadeColor">notifications_none</i>
+                    <div style={styles.buttonStyle} id="searchBar">
+                        <i className="material-icons fadeColor barButton">search</i>
                     </div>            
+                    <div style={styles.buttonStyle} id="notification">
+                        <i className="material-icons fadeColor barButton">notifications_none</i>
+                    </div>        
+                    <div 
+                        style={styles.buttonStyle} 
+                        id="cerrar" 
+                        onClick={() => {
+                            this.props.onLogout();
+                        }}>
+                        <i className="material-icons fadeColor barButton">power_settings_new</i>
+                    </div>    
                 </div>
             </div>            
         );
+    }
+}
+
+const styles = {
+    buttonStyle: {
+        display: 'flex',
+        alignItems: 'center',
+        cursor: 'pointer'
+    },
+    topBarStyle: {
+        display: 'flex',
+        flex: 1,
+        top: '0px',
+        bottom: '0px',
+        marginRight:'10px'
     }
 }
 
