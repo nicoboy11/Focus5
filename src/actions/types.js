@@ -60,3 +60,9 @@ export const COMMENT_LIST_UPDATE = 'comment_list_update';
 export const FILE_PROGRESS = 'file_progress';
 export const FILE_CHANGE = 'file_change';
 export const FILE_CANCEL = 'file_cancel';
+
+export const PERFIL_EDIT = 'perfil_edit';
+export const PERFIL_LOAD = 'perfil_load';
+export const PERFIL_SAVE = 'perfil_save';
+export const PERFIL_SAVE_SUCCESS = 'perfil_save';
+export const PERFIL_SAVE_FAILED = 'perfil_save_failed';

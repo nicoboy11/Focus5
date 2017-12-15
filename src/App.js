@@ -2,15 +2,22 @@ import React, { Component } from 'react';
 import './css/circle.css';
 import './css/general.css';
 import './css/w3.css';
+
+import { Chats, Personal } from './pages';
 import { MenuTop } from './components';
 import MenuBar from './components/MenuBar';
+
 import { Route, Switch } from 'react-router-dom';
-import { Chats, Personal, Ajustes } from './pages';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { cargarPerfil } from './actions'
+import { bindActionCreators } from 'redux';
+
+import Ajustes from './pages/Ajustes';
 import Proyectos from './pages/Proyectos';
 import Tareas from './pages/Tareas';
 import Login from './pages/Login';
+
 import 'react-datepicker/dist/react-datepicker.css';
 import { Config } from './configuracion';
 
@@ -29,8 +36,8 @@ class App extends Component {
     };
   }
 
-  componentDidMount(){
-    
+  componentWillMount(){
+    this.props.cargarPerfil();
   }
 
   renderMenu(jsx){
@@ -104,12 +111,17 @@ class App extends Component {
   }
 }
 
+const mapDispatchToProps = dispatch => bindActionCreators({
+  cargarPerfil
+}, dispatch)
+
 const mapStateToProps = state => {
   return { 
       proyectos: state.listaProyectos.proyectos,
       proyectoActual: state.proyectoActual,
-      tareaActual: state.tareaActual
+      tareaActual: state.tareaActual,
+      perfil: state.perfil
   }
 };
 
-export default withRouter(connect(mapStateToProps, {})(App));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));

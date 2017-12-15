@@ -2,7 +2,7 @@ import { Config } from './';
 import moment from 'moment';
 import 'moment/locale/es';
 
-const { texts, colors } = Config;
+const { texts, colors, regex } = Config;
 
 class Helper {
 
@@ -141,6 +141,10 @@ class Helper {
         // return s;
     }    
 
+    static isValidEmail(email) {
+        const re = regex.email;
+        return !re.test(email);
+    }
     
 
 }

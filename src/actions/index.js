@@ -6,3 +6,4 @@ export * from './UsuariosActions';
 export * from './LoginActions';
 export * from './CommentActions';
 export * from './SocketActions';
+export * from './PerfilActions';

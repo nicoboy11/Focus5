@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
+import { Helper, Config } from '../configuracion';
+
+const { texts, regex, colors } = Config;
 
 const types = {
     NORMAL: '',
     EMAIL: /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i ,
     TEXT: /[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s]/g ,
     EXTENDEDTEXT: /[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ(){}'`.\s]/g,
+    NUMBER:  /[0-9]/g ,
     PASSWORD: ''
 };
 
@@ -16,7 +20,41 @@ class Input extends Component{
         labelText: '',
         placeholder: '',
         value: '',
+        replace: true,
         onEnter: () => {}
+    }
+    constructor(props){
+        super(props);
+    
+        this.state = {
+          isError: false,
+          errorText: ''
+        };
+    }
+
+    validateInput(text) {
+        let newText = text;
+        switch (this.props.type) {
+            case 'EMAIL':
+                this.setState({ isError: Helper.isValidEmail(text) });
+                this.setState({ errorText: texts.invalidEmail });
+                break;
+            case 'TEXT':
+                if (!Helper.isValidText(text)) {
+                    newText = text.replace(regex.textOnly, '');
+                }
+                break;
+            case 'EXTENDEDTEXT':
+                if (!Helper.isValidText(text)) {
+                    newText = text.replace(regex.extendedText, '');
+                }
+                break;                
+            case 'number':
+                break;
+            default:
+                this.setState({ keyboardType: 'default' });
+        }
+        return newText;
     }
 
     /**
@@ -43,7 +81,14 @@ class Input extends Component{
      */
     onChangeText(text) {
         if(this.props.onChangeText !== undefined) {
-            this.props.onChangeText(text.target.value.replace(types[this.props.type],''));
+            if(this.props.replace === true) {
+                this.props.onChangeText(text.target.value.replace(types[this.props.type],''));
+            } else {
+
+                this.validateInput(text.target.value);
+                this.props.onChangeText(text.target.value)
+            }
+            
         }
         
     }
@@ -55,6 +100,13 @@ class Input extends Component{
         }
     }
 
+    renderError(){
+        if(this.state.isError) {
+            return <div style={styles.errorTextStyle}>{this.state.errorText}</div>;
+        } 
+
+        return null;
+    }
     /**
      * Renderizar el componente si es multilinea se usa textarea si no input
      */
@@ -101,9 +153,10 @@ class Input extends Component{
      */
     render(){
         return(
-            <div style={{display: 'flex', flex: 1}}>
+            <div style={{display: 'flex', flex: 1, flexDirection: 'column'}}>
             {this.renderLabel()}
             {this.renderInput()}
+            {this.renderError()}
             </div>
         );
     }
@@ -124,7 +177,12 @@ let styles = {
     labelStyle: {
         display:'flex',
         flex: 1
-    }
+    },
+    errorTextStyle: {
+        color: colors.error,
+        fontSize: 12,
+        height: 15
+    }    
 }
 
 export { Input }
