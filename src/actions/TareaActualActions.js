@@ -8,7 +8,10 @@ import {
     TAREA_ACTUAL_LIMPIAR,
     TAREA_NUEVA,
     TAREA_NUEVA_SUCCESS,
-    TAREA_NUEVA_FAILED
+    TAREA_NUEVA_FAILED,
+    TAREA_SOCKET_SUCCESS,
+    TAREA_SOCKET_CANCEL,
+    TAREA_REFRESH
 } from './types';
 
 
@@ -30,6 +33,12 @@ export const actualizarTarea = ({ prop, value, tmp_tarea }) => {
     };
 }
 
+export const refreshTarea = (tareaRefreshed) => {
+    return {
+        type: TAREA_REFRESH,
+        payload: tareaRefreshed
+    };
+}
 
 export const actualizarGente = ({ rolId, persona, tmp_tarea, usuarios }) => {
     
@@ -64,6 +73,30 @@ export const actualizarGente = ({ rolId, persona, tmp_tarea, usuarios }) => {
     return {
         type: TAREA_ACTUALIZA,
         payload: { tmp_tarea }
+    };
+}
+
+export const getTarea = (id_tarea, id_usuario) => {
+    return (dispatch) => {
+        try {
+            Database.request('GET', `tarea/${id_tarea}?id_usuario=${id_usuario}`, {}, 2, (error, response) => {
+                if(error){
+                    dispatch({ type: TAREA_SOCKET_CANCEL })
+                } else{
+                    let tareas = Helper.clrHtml(response[0].tarea);
+                    let tareaSocket = tareas ? JSON.parse(tareas)[0] : [];  
+                    dispatch({ type: TAREA_SOCKET_SUCCESS, payload: tareaSocket})
+                }
+            });    
+        } catch (err) {
+
+        }
+    }
+}
+
+export const clearTareaSocket = () => {
+    return {
+        type: TAREA_SOCKET_CANCEL
     };
 }
 

@@ -225,7 +225,7 @@
 							'"fec_creacion":"',ct.fec_creacion,'",',
 							'"fec_limite":"',IFNULL(ct.fec_limite,'2199-01-01'),'",',
 							'"id_status":',ct.id_status,',',
-                            '"avance":',ct.avance,',',
+                            '"avance":',IFNULL(ct.avance,0),',',
 							'"priority_id":"',ct.priority_id,'",',
 							'"notificaciones":',FN_ULTIMO_COMMENT(bvt.id_tarea, IFNULL(bvt.fec_actualiza, '2000-01-01')),',',                            
 							'"participantes":',getJsonUsuariosTarea(ct.id_tarea),',',
@@ -534,6 +534,12 @@ BEGIN
 	
 END$$   
 
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetTarea$$
+CREATE PROCEDURE GetTarea(IN id_tarea int, IN id_usuario int)
+BEGIN
+	SELECT getJsonTarea(NULL, 1560, 12, NULL) as tarea;
+END$$
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS CreateTarea$$

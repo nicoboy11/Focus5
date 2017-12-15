@@ -7,12 +7,16 @@ import {
     TAREA_ACTUAL_LIMPIAR,
     TAREA_NUEVA,
     TAREA_NUEVA_SUCCESS,
-    TAREA_NUEVA_FAILED
+    TAREA_NUEVA_FAILED,
+    TAREA_SOCKET_CANCEL,
+    TAREA_SOCKET_SUCCESS,
+    TAREA_REFRESH
 } from '../actions/types';
 
 const INITIAL_STATE = { 
     tarea: {},
     tmp_tarea: {},
+    tarea_socket: {},
     tareaNueva: {
         avance: 0,
         fec_creacion: '',
@@ -50,6 +54,12 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, loading: false, tareaNueva: action.payload.tarea }  
         case TAREA_NUEVA_FAILED:
             return { ...state, loading: false, error: 'Error al guardar' }
+        case TAREA_SOCKET_SUCCESS:
+            return { ...state, tarea_socket: action.payload }
+        case TAREA_SOCKET_CANCEL:
+            return { ...state, tarea_socket: {} }     
+        case TAREA_REFRESH:
+            return { ...state, tarea: action.payload, tmp_tarea: action.payload }       
         default:
             return state;
     }

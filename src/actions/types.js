@@ -15,8 +15,12 @@ export const TAREA_NUEVA = 'tarea_nueva';
 export const TAREA_NUEVA_SUCCESS = 'tarea_nueva_success';
 export const TAREA_NUEVA_FAILED = 'tarea_nueva_failed';
 export const LISTA_TAREAS_UPDATE = 'lista_tareas_update';
+export const TAREA_SOCKET_SUCCESS = 'tarea_socket_success';
+export const TAREA_SOCKET_CANCEL = 'tarea_socket_cancel';
+export const TAREA_REFRESH = 'tarea_refresh';
 
-export const SOCKET = 'socket'
+export const SOCKET = 'socket';
+export const SOCKET_CLEAR = 'socket_clear';
 
 export const USUARIOS = 'usuarios';
 export const USUARIOS_FAILED = 'usuarios_failed';

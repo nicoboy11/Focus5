@@ -6,10 +6,16 @@ import { MenuTop } from './components';
 import MenuBar from './components/MenuBar';
 import { Route, Switch } from 'react-router-dom';
 import { Chats, Personal, Ajustes } from './pages';
+import { withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
 import Proyectos from './pages/Proyectos';
 import Tareas from './pages/Tareas';
 import Login from './pages/Login';
 import 'react-datepicker/dist/react-datepicker.css';
+import { Config } from './configuracion';
+
+const { menu } = Config;
+
 
 class App extends Component {
 
@@ -36,6 +42,36 @@ class App extends Component {
   }
 
   render() {
+
+    let title = "";
+    let breadCrumb = "";
+
+    const currentRoute = window.location.pathname;
+    const current = menu.filter(
+        obj => currentRoute.includes(obj.uri)
+    )[0];    
+
+    switch(current.nombre) {
+      case "Proyectos": 
+        if(this.props.proyectoActual.proyecto.id_proyecto === undefined) {
+          title = "Proyectos";
+        } else {
+          title = this.props.proyectoActual.proyecto.txt_proyecto;
+          breadCrumb = "Proyectos";
+        }
+        break;
+      case "Chats":
+        title = "Chats"
+        break;
+      case "Personal":
+        title = "Personal";
+        break;
+      case "Ajustes":
+        title = "Ajustes";
+        break;
+      default:
+        break;
+    }
     
     return (
           <div className="App">
@@ -49,11 +85,19 @@ class App extends Component {
                 <Route path="/personal" component={Personal} />
                 <Route path="/ajustes" component={Ajustes} />
             </div>
-            {this.renderMenu(<MenuTop />)}
-            {this.renderMenu(<MenuBar />)}
+            {this.renderMenu(<MenuTop currentTitle={title} breadCrumb={breadCrumb} />)}
+            {this.renderMenu(<MenuBar currentMenu={current.nombre} />)}
           </div>
     );
   }
 }
 
-export default App
+const mapStateToProps = state => {
+  return { 
+      proyectos: state.listaProyectos.proyectos,
+      proyectoActual: state.proyectoActual,
+      tareaActual: state.tareaActual
+  }
+};
+
+export default withRouter(connect(mapStateToProps, {})(App));

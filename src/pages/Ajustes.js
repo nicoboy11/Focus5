@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Card } from '../components';
 
 class Ajustes extends Component{
 
@@ -12,6 +13,14 @@ class Ajustes extends Component{
         return(
             <div id="mainProyectos" style={{display:'block'}}>
                 <button onClick={() => { localStorage.removeItem("sessionData"); } }>Cerrar Session</button>
+                <Card 
+                    titulo="Editar Perfil"
+                    icono="person"
+                />
+                <Card 
+                    titulo="Cambiar Contraseña"
+                    icono="lock"
+                />                
             </div>
         );        
     }

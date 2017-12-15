@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
-import { Tarea, ChatItem, Input, Modal, ContextMenu, FormRow, Chat, NewTask } from '../components';
+import { Tarea, Input, Modal, ContextMenu, FormRow, Chat, NewTask } from '../components';
 import Slider from 'react-rangeslider';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
-import { Helper, Config } from '../configuracion';
+import { Helper } from '../configuracion';
 import DatePicker from 'react-datepicker';
-import { withRouter } from 'react-router-dom';
 import { push } from 'react-router-redux';
 import { bindActionCreators } from 'redux';
 import moment from 'moment';
@@ -30,7 +29,11 @@ import {
     commentListUpdate,
     fileCancel,
     fileChange,
-    enviarSocket
+    enviarSocket,
+    getTarea,
+    clearSocket,
+    clearTareaSocket,
+    refreshTarea
 } from '../actions';
 
 class Tareas extends Component{
@@ -183,11 +186,11 @@ class Tareas extends Component{
         this.props.commentGuardar(comentario, this.props.tareaActual.tmp_tarea.id_tarea);
     }
 
-    wsComment(value){
+    wsComment(accion, mensaje){
         const usuario = JSON.parse(localStorage.sessionData);
-        const mensaje = (value != "")?`${usuario.txt_usuario} está escribiendo...`:"";
+
         const obj = {
-            accion: "enviar",
+            accion,
             room: "tareas",
             id_usuario: `${usuario.id_usuario}`,
             datos: { 
@@ -196,6 +199,14 @@ class Tareas extends Component{
             }
         }
         this.ws.send(JSON.stringify(obj));        
+    }
+
+    checkIfTyping(socket){
+        if(socket.mensaje !== undefined && socket.id_tarea === this.props.tareaActual.tarea.id_tarea && socket.accion === "typing") {
+            return socket.mensaje;
+        }
+
+        return "";
     }
     /**
      * Cargo el chat una vez que seleccionan la tarea
@@ -207,7 +218,7 @@ class Tareas extends Component{
         const currentTarea = this.props.tareas.filter(tarea => tarea.id_tarea === id_tarea);
         this.props.seleccionarTarea(currentTarea[0],JSON.parse(JSON.stringify(currentTarea[0])));
         this.props.commentChanged("");
-        this.wsComment("");
+        this.wsComment("typing","");
     }
 
     /**
@@ -373,8 +384,8 @@ class Tareas extends Component{
         if(this.props.tareas !== null && this.props.tareas !== undefined) {
             const me = this;
             return this.props.tareas.map(tarea => {
-                    const selected = (tarea.id_tarea == me.props.tareaActual.tmp_tarea.id_tarea)?true:false;
-                    const typing = (tarea.id_tarea == me.props.socket.id_tarea)?me.props.socket.mensaje:"";
+                    const selected = (tarea.id_tarea === me.props.tareaActual.tmp_tarea.id_tarea)?true:false;
+                    const typing = (tarea.id_tarea === me.props.socket.id_tarea && me.props.socket.accion === "typing")?me.props.socket.mensaje:"";
                     return (
                         <Tarea 
                             key={tarea.id_tarea}
@@ -403,19 +414,39 @@ class Tareas extends Component{
      * Renderizo la pagina completa
      */
     render(){
+        const usuario = JSON.parse(localStorage.sessionData);
+
+        //Actualizar tarea avisada por socket
+        if(Object.keys(this.props.socket).length > 0) {
+            if(this.props.socket.accion === "enviar") {
+                this.props.clearSocket();            
+                this.props.getTarea(this.props.socket.id_tarea,usuario.id_usuario);
+            }
+        }
+
+        //Actualizar tarea del socket
+        if(Object.keys(this.props.tareaActual.tarea_socket).length > 0){
+            this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea_socket);
+            this.props.refreshTarea(this.props.tareaActual.tarea_socket);                    
+            this.props.clearTareaSocket();            
+        }     
+
+
 
         //Actualizar tarea editada del modal
         if(Object.keys(this.props.tareaActual.tmp_tarea).length === 0 && this.state.mostrarModal === true){
             this.setState({ mostrarModal: false });
-            this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea);
+            this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea);  
+            //this.wsComment("enviar",this.props.tareaActual.tarea);      
            // this.props.limpiarProyectoActual();
         }        
 
         //Actualizar tarea de comentarios
         if(Object.keys(this.props.comments.comment).length > 0) {
             this.props.commentListUpdate();
-            this.wsComment("");
+            this.wsComment("typing","");
             this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea, this.props.comments.comment);
+            this.wsComment("enviar",this.props.comments.comment);          
         }
 
         //Actualizar tarea nueva
@@ -451,10 +482,13 @@ class Tareas extends Component{
                         comments={this.props.comments}
                         commentChanged={(value) => {
                             this.props.commentChanged(value);
-                            this.wsComment(value);
+                            //Envío a gente para que sepan que estoy escribiendo
+                            this.wsComment("typing",(value !== "")?`${usuario.txt_usuario} está escribiendo...`:"");
                         }}
                         enviarComment={this.enviarComment.bind(this)}
                         fileChange={(file, event) => this.props.fileChange(file, event)}
+                        //Recibir webSocket cuando alguien está escribiendo
+                        typing={this.checkIfTyping(this.props.socket)}
                     />
 
                 </div>
@@ -505,6 +539,10 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     fileCancel,
     fileChange,
     enviarSocket,
+    getTarea,
+    clearSocket,
+    clearTareaSocket,
+    refreshTarea,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

@@ -4,26 +4,29 @@ import { Config } from '../configuracion';
 const { menu, network } = Config;
 
 class MenuTop extends Component{
-    renderBreadCrumbs(){
-        const currentRoute = window.location.pathname;
-        const current = menu.filter(
-            obj => currentRoute.includes(obj.uri)
-        );
+    renderBreadCrumb() {
+        if(this.props.breadCrumb !== ""){
+            return (
+                <div style={{ display: 'flex'}}>
+                    {this.props.breadCrumb}
+                    <i class="material-icons fadeColor">keyboard_arrow_right</i>
+                </div>
+            );
+        }
+ 
+    }
+    renderTitulo(){
 
-        if(current.length > 0) {
             return (
                 <div className="currentTitle">
-                    {current[0].nombre}
+                    {this.props.currentTitle}
                 </div>            
             )
-        } else {
-            return null;
-        }
 
     }
 
     render(){
-        if(localStorage.sessionData == undefined){
+        if(localStorage.sessionData === undefined){
             return null;
         }
         return(
@@ -38,8 +41,9 @@ class MenuTop extends Component{
                 <div id="topBarContainer">
                     <div id="titulo">
                         <div className="breadCrumbs fadeColor">
+                            {this.renderBreadCrumb()}
                         </div>
-                        {this.renderBreadCrumbs()}
+                        {this.renderTitulo()}
                     </div>
                     <div id="searchBar">
                             <i className="material-icons fadeColor">search</i>

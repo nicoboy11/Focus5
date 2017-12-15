@@ -179,7 +179,7 @@ const styles = {
         marginTop: '5px',
         marginBottom: '5px',
         fontWeight: 'bold',
-        maxWidth: '70%',
+        maxWidth: '130px',
         whiteSpace: 'nowrap',
         overflow:'hidden',
         textOverflow: 'ellipsis'

@@ -10,6 +10,7 @@ class Chat extends Component{
         loadingComentario: false,
         fileProgress: -1,
         url: '',
+        typing: '',
         comments: {},
         commentChanged: () => {},
         enviarComment: () => {},
@@ -105,13 +106,16 @@ class Chat extends Component{
         
                 if(this.props.loadingComentario){
                     return <ChatItem 
-                        txt_comentario={this.props.comments.commentText}
-                        loading={true}
-                        id_tipo_comentario={1}
-                        id_usuario={parseInt(this.props.comments.comment.id_usuario)}
-                        id_current_user={sessionData.id_usuario}
-                        id_usuario={sessionData.id_usuario}
-                    />            
+                            txt_comentario={this.props.comments.commentText}
+                            loading={true}
+                            id_tipo_comentario={1}
+                            id_usuario={parseInt(this.props.comments.comment.id_usuario)}
+                            id_current_user={sessionData.id_usuario}
+                        />            
+                }
+
+                if(this.props.typing !== ""){
+                    return <div style={{ color: '#535353', fontWeight: 'bold', margin: '20px', fontSize: '14px'}}>{this.props.typing}</div>
                 }
         
                 return null;        

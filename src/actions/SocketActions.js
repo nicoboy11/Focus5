@@ -1,5 +1,6 @@
 import {
-    SOCKET
+    SOCKET,
+    SOCKET_CLEAR
 } from './types';
 
 export const enviarSocket = (data) => {
@@ -7,4 +8,8 @@ export const enviarSocket = (data) => {
         type: SOCKET,
         payload: data
     }    
+}
+
+export const clearSocket = () => {
+    return { type: SOCKET_CLEAR };
 }

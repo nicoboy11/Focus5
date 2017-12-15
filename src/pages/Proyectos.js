@@ -163,7 +163,10 @@ class Proyectos extends Component{
             loading={this.props.loading}
             componenteInicial="txt_proyecto"
             onGuardar={() => { this.onGuardar(); }}
-            onCerrar={() => { this.setState({ mostrarModal: false }) }}
+            onCerrar={() => { 
+                this.setState({ mostrarModal: false });
+                this.props.limpiarProyectoActual();
+            }}
             >
                 <FormRow titulo='NOMBRE'>
                     <Input 
