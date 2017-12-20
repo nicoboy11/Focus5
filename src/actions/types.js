@@ -64,5 +64,9 @@ export const FILE_CANCEL = 'file_cancel';
 export const PERFIL_EDIT = 'perfil_edit';
 export const PERFIL_LOAD = 'perfil_load';
 export const PERFIL_SAVE = 'perfil_save';
-export const PERFIL_SAVE_SUCCESS = 'perfil_save';
+export const PERFIL_SAVE_SUCCESS = 'perfil_save_success';
 export const PERFIL_SAVE_FAILED = 'perfil_save_failed';
+
+export const MORE = 'more';
+export const MORE_SUCCESS = 'more_success';
+export const MORE_FAILED = 'more_failed';

@@ -82,14 +82,25 @@ export const actualizaListaProyectos = (proyectos, proyecto) => {
  * @param {*} proyectos 
  * @param {*} proyecto 
  */
-export const actualizaListaTareas = (proyectos, proyecto, tarea, comentario) => {
+export const actualizaListaTareas = (proyectos, proyecto, tarea, comentarios) => {
     
     const foundIndex = proyectos.findIndex(x=>x.id_proyecto === proyecto.id_proyecto);
     const tareaIndex = proyecto.tareas.findIndex(x=>x.id_tarea === tarea.id_tarea);
 
-    //Agrega nuevo comentario
-    if(comentario !== undefined) {
-        tarea.topComments.unshift(comentario);
+    //Agrega comentarios
+    if(comentarios !== undefined) {
+        //Si es mayor que 1 comentario esque son comentarios màs viejos
+        if(comentarios.length > 1) {
+            tarea.topComments = tarea.topComments.concat(comentarios);
+        } else {
+            //si es = 1 puede ser nuevo ò viejo así que checo el id
+            if(tarea.topComments[0].id_tarea_unique < comentarios[0].id_tarea_unique) {
+                tarea.topComments = comentarios.concat(tarea.topComments);
+            } else {
+                tarea.topComments = tarea.topComments.concat(comentarios);
+            }
+        }
+        
     }
 
     //Si no encuentra la tarea en la lista la inserta (nueva tarea)

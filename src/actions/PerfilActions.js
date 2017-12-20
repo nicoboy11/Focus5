@@ -10,8 +10,10 @@ import { Database } from '../configuracion';
 export const cargarPerfil = (perfil) => {
     if(perfil) {
         localStorage.sessionData = JSON.stringify(perfil);
-    } else {
+    } else if (localStorage.sessionData) {
         perfil = JSON.parse(localStorage.sessionData);
+    } else {
+        perfil = {}
     }
     
 
@@ -35,7 +37,7 @@ export const guardarPerfil = (perfil) => {
     return(dispatch) => {
         dispatch({ type: PERFIL_SAVE });
         try {
-            Database.request('POST', `perfil/${perfil.id_usuario}`, perfil, 2, (err, res) => {
+            Database.request('POST', `Perfil/${perfil.id_usuario}`, perfil, 2, (err, res) => {
                 if(err) {
                     dispatch({ type: PERFIL_SAVE_FAILED, payload: err })
                 } else {
@@ -48,3 +50,4 @@ export const guardarPerfil = (perfil) => {
         }
     }
 }
+

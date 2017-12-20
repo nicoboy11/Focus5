@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Card, Modal, FormRow, Input, Avatar } from '../components';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { editarPerfil } from '../actions';
+import { editarPerfil, guardarPerfil, cargarPerfil } from '../actions';
 
 class Ajustes extends Component{
     constructor(props){
@@ -19,6 +19,10 @@ class Ajustes extends Component{
     }
 
     render(){
+        if(this.props.perfil.tmp_perfil.id_usuario === undefined && this.state.mostrarModalPerfil === true) {
+            this.setState({ mostrarModalPerfil: false });
+            this.props.cargarPerfil();
+        }
         const tmp_perfil = this.props.perfil.tmp_perfil;
         return(
             <div id="mainProyectos" style={{display:'flex'}}>
@@ -35,9 +39,9 @@ class Ajustes extends Component{
                     type='FORM' 
                     isVisible={this.state.mostrarModalPerfil} 
                     titulo='Editar Perfil'
-                    loading={this.props.loading}
+                    loading={this.props.loadingPerfil}
                     componenteInicial="txt_usuario"
-                    onGuardar={() => { }}
+                    onGuardar={() => { this.props.guardarPerfil(tmp_perfil); }}
                     onCerrar={() => { this.setState({ mostrarModalPerfil: false }) }}
                     >
                         <FormRow titulo='IMAGEN DE PERFIL'>                            
@@ -102,11 +106,11 @@ class Ajustes extends Component{
                             <Input 
                                 type="NUMBER"
                                 placeholder='Teléfono ó celular' 
-                                value={tmp_perfil.txt_tel}
+                                value={tmp_perfil.tel}
                                 replace={false}
                                 onChangeText={
                                     (value,error) => {
-                                        this.props.editarPerfil({ prop: 'txt_tel', value, tmp_perfil });
+                                        this.props.editarPerfil({ prop: 'tel', value, tmp_perfil });
                                     }
                                 }
                             />                              
@@ -120,12 +124,15 @@ class Ajustes extends Component{
 
 const mapStateToProps = (state) => {
     return {
-        perfil: state.perfil
+        perfil: state.perfil,
+        loadingPerfil: state.perfil.loading
     }
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-    editarPerfil
+    editarPerfil,
+    guardarPerfil,
+    cargarPerfil
 }, dispatch)
 
 export default connect(mapStateToProps,mapDispatchToProps)(Ajustes);

@@ -7,16 +7,20 @@ import {
     COMMENT_LIST_UPDATE,
     FILE_PROGRESS,
     FILE_CHANGE,
-    FILE_CANCEL
+    FILE_CANCEL,
+    MORE,
+    MORE_SUCCESS,
+    MORE_FAILED
 } from '../actions/types'
 
 const INITIAL_STATE = {
-    comment: {},
+    comments: [],
     commentText: '',
     loading: false,
     error: '',
     progress: -1,
     loadingFile: false,
+    loadingMore: false,
     archivo: null,
     url: ''
 }
@@ -28,17 +32,23 @@ export default (state = INITIAL_STATE, action) => {
         case COMMENT:
             return { ...state, loading: true, error: '' }
         case COMMENT_SUCCESS:
-            return { ...state, comment: action.payload.comentario, commentText: '', loading: false, loadingFile: false, archivo: null, url: '' }
+            return { ...state, comments: action.payload.comentario, commentText: '', loading: false, loadingFile: false, archivo: null, url: '' }
         case COMMENT_FAILED:
             return { ...state, loading: false, error: action.payload, loadingFile: false }
         case COMMENT_LIST_UPDATE:
-            return { ...state, loading: false, error: '', comment: {}}
+            return { ...state, loading: false, error: '', comments: []}
         case FILE_PROGRESS:
             return { ...state, progress: action.payload, loadingFile: true }     
         case FILE_CHANGE:
             return { ...state, archivo: action.payload.file, url: action.payload.url } 
         case FILE_CANCEL:
-            return { ...state, archivo: null, url: '' }                   
+            return { ...state, archivo: null, url: '' }      
+        case MORE:
+            return { ...state, loadingMore: true}
+        case MORE_SUCCESS:
+            return { ...state, loadingMore: false, comments: action.payload }           
+        case MORE_FAILED:
+            return { ...state, loadingMore: false, error: action.payload }  
         default:
             return state;
     }

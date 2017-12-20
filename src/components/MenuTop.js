@@ -9,7 +9,7 @@ class MenuTop extends Component{
             return (
                 <div style={{ display: 'flex'}}>
                     {this.props.breadCrumb}
-                    <i class="material-icons fadeColor">keyboard_arrow_right</i>
+                    <i className="material-icons fadeColor">keyboard_arrow_right</i>
                 </div>
             );
         }

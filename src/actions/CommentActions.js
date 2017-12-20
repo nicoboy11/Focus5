@@ -7,7 +7,10 @@ import {
     COMMENT_LIST_UPDATE,
     FILE_PROGRESS,
     FILE_CHANGE,
-    FILE_CANCEL
+    FILE_CANCEL,
+    MORE,
+    MORE_FAILED,
+    MORE_SUCCESS
 } from './types';
 import { Database, Helper } from '../configuracion';
 
@@ -36,7 +39,7 @@ export const commentGuardar = (comentario, id_tarea) => {
                             commentSaveFailed(dispatch, res);
                             break;
                         case "complete":
-                            let commentEditado = res.data[0] ? JSON.parse(res.data[0].comentario)[0] : [];
+                            let commentEditado = res.data[0] ? JSON.parse(res.data[0].comentario) : [];
                             commentSaveSuccess(dispatch, { comentario: commentEditado });
                             break
                         default:
@@ -81,6 +84,23 @@ export const fileCancel = () => {
     return({
         type: FILE_CANCEL
     });
+}
+
+export const loadMore = (id_tarea, fecha) => {
+    return(dispatch) => {
+        try {
+            Database.request('GET', `GetMoreComments/${id_tarea}?fecha=${fecha}`, {}, 2, (error, response) => {
+                if(error) {
+                    dispatch({type: MORE_FAILED, payload: error})
+                } else {
+                    let comentarios = response[0] ? JSON.parse(response[0].comentarios) : [];
+                    dispatch({type: MORE_SUCCESS, payload: comentarios});
+                }
+            });            
+        } catch(err) {
+            dispatch({ type: MORE_FAILED, payload: err })
+        }
+    }
 }
 
 const fileUploadProgress = (dispatch, progress) => {

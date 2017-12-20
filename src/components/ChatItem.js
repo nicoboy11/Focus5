@@ -54,8 +54,8 @@ class ChatItem extends Component {
                 <div className="bitacora">{Helper.decode_utf8(Helper.htmlPaso(txt_comentario))}</div>
             );
         }
-
-        if(id_current_user === id_usuario){
+        //Se usa == en vez de === para que compara el valor y no el tipo
+        if(id_current_user == id_usuario){
             const loadingStyle = (loading && !progress)?styles.loadingStyle:null;
             return (
                     <div className="chatMessage" style={{...loadingStyle, ...styles.chatItemStyle, ...styles.rightItemStyle}}>

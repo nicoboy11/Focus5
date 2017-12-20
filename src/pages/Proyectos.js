@@ -17,6 +17,7 @@ import {
     guardarProyectoNuevo,
     actualizaListaProyectos,
     limpiarProyectoActual,
+    limpiarTareaActual,
     listaUsuarios
 } from '../actions';
 
@@ -276,7 +277,7 @@ class Proyectos extends Component{
      * Renderiza la tarjeta de "Nuevo proyecto " y posteriormente la lista de proyectos
      */
     render(){
-
+        
         // Si el tmp_proyecto está vacío significa que no se ha inicializado ó que se le acaba de dar guardar
         // Si el mostralModal es "true" significa que se estaba editando el proyecto
         // Si se cumplen ambos significa que le acaban de dar guardar por tanto aquí modifico el state
@@ -338,6 +339,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     guardarProyectoNuevo,
     actualizaListaProyectos,
     limpiarProyectoActual,
+    limpiarTareaActual,
     listaUsuarios,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)

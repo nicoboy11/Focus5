@@ -10,7 +10,7 @@ import MenuBar from './components/MenuBar';
 import { Route, Switch } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { cargarPerfil } from './actions'
+import { cargarPerfil, limpiarTareaActual } from './actions'
 import { bindActionCreators } from 'redux';
 
 import Ajustes from './pages/Ajustes';
@@ -67,6 +67,9 @@ class App extends Component {
             title = this.props.proyectoActual.proyecto.txt_proyecto;
             breadCrumb = "Proyectos";
           }
+          if(this.props.tareaActual.tarea.id_tarea !== undefined && currentRoute.split('/').length < 3) {
+            this.props.limpiarTareaActual();
+          }
           break;
         case "Chats":
           title = "Chats"
@@ -112,7 +115,8 @@ class App extends Component {
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  cargarPerfil
+  cargarPerfil,
+  limpiarTareaActual
 }, dispatch)
 
 const mapStateToProps = state => {

@@ -1,5 +1,5 @@
-    ALTER TABLE ctrl_tareas ADD isCalendarSync int DEFAULT NULL;
-    ALTER TABLE ctrl_tareas ADD fec_limiteCal datetime DEFAULT NULL;
+    #ALTER TABLE ctrl_tareas ADD isCalendarSync int DEFAULT NULL;
+    #ALTER TABLE ctrl_tareas ADD fec_limiteCal datetime DEFAULT NULL;
     #---------------------------------------
     DROP TABLE IF EXISTS roleType;
 	CREATE TABLE roleType(
@@ -20,8 +20,7 @@
 	CALL CreateRoleType('Participante');
 	CALL CreateRoleType('Administrador');       
 	#--------------------------------------
-    ALTER TABLE bit_view_tarea
-    ADD role_id int NULL;
+    #ALTER TABLE bit_view_tarea ADD role_id int NULL;
     #--------------------------------------
     ALTER TABLE cat_proyecto MODIFY id_proyecto INT AUTO_INCREMENT;
     #--------------------------------------
@@ -94,7 +93,7 @@
     ALTER TABLE ctrl_tareas ADD avance int NULL;
     #------------------------------------
     UPDATE ctrl_tareas SET priority_id = 1;
-    UPDATE ctrl_tareas SET avance = id_tarea;
+    UPDATE ctrl_tareas SET avance = 50;
     #------------------------------------
     ALTER TABLE cat_usuario ADD color varchar(10) NULL;
     ALTER TABLE cat_usuario ADD nombre varchar(50) NULL;
@@ -143,7 +142,7 @@
 		DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
 		
-			GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+			#GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
 				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
 			ROLLBACK;
 			
@@ -175,7 +174,7 @@
 		DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
 		
-			GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+			#GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
 				SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
 			ROLLBACK;
 			
@@ -228,9 +227,10 @@
 							'"id_status":',ct.id_status,',',
                             '"avance":',IFNULL(ct.avance,0),',',
 							'"priority_id":"',ct.priority_id,'",',
+                            '"commentCount":"',getCommentCount(ct.id_tarea),'",',
 							'"notificaciones":',FN_ULTIMO_COMMENT(bvt.id_tarea, IFNULL(bvt.fec_actualiza, '2000-01-01')),',',                            
 							'"participantes":',getJsonUsuariosTarea(ct.id_tarea),',',
-							'"topComments":',getJsonTopComments(ct.id_tarea,null),'',
+							'"topComments":',getJsonTopComments(ct.id_tarea,null,NOW()),'',
 						'}') separator ','),
 					  ']') INTO _tareas
 		FROM ctrl_tareas as ct
@@ -284,9 +284,10 @@
 	END$$
 
 
+
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTopComments$$
-	CREATE FUNCTION getJsonTopComments(_id_tarea int, _id_tarea_detalle int) RETURNS text
+	CREATE FUNCTION getJsonTopComments(_id_tarea int, _id_tarea_detalle int, _fec_comentario datetime) RETURNS text
 	BEGIN
 
 		DECLARE _commentarios text;
@@ -320,7 +321,10 @@
 			FROM ctrl_tareas as ct
 			INNER JOIN ctrl_tareas_detalle as ctd on ctd.id_tarea = ct.id_tarea
 			INNER JOIN cat_usuario as cu on cu.id_usuario = ctd.id_usuario
-			WHERE 	ct.id_tarea = _id_tarea AND ctd.id_tarea_detalle = coalesce(_id_tarea_detalle, ctd.id_tarea_detalle)
+			WHERE 	ct.id_tarea = _id_tarea 
+					AND ctd.id_tarea_detalle = coalesce(_id_tarea_detalle, ctd.id_tarea_detalle)
+                    AND ctd.fec_comentario <= _fec_comentario
+                    
 			ORDER BY ctd.fec_comentario desc LIMIT 20
 		) sc
         ORDER BY sc.fec_comentario asc;
@@ -328,9 +332,20 @@
 		RETURN ifnull(_commentarios, '[]');
 
 	END$$    
+   
+	DELIMITER $$
+	DROP FUNCTION IF EXISTS getCommentCount$$
+	CREATE FUNCTION getCommentCount(_id_tarea int) RETURNS int
+	BEGIN
+    
+		DECLARE count int;
+		SELECT count(*) INTO count FROM ctrl_tareas_detalle WHERE id_tarea = _id_tarea;
+        RETURN ifnull(count, 0);
+        
+    END$$
     
 	DELIMITER $$
-	DROP FUNCTION IF EXISTS vbit_view_tarea$$
+	DROP VIEW IF EXISTS vbit_view_tarea$$
 	CREATE VIEW vbit_view_tarea AS                
 	 SELECT id_tarea,id_usuario,max(ifnull(fec_actualiza,'1900-01-01')) as fec_actualiza, min(role_id) as role_id 
 	 FROM bit_view_tarea
@@ -345,15 +360,18 @@
        
     
 	DELIMITER $$
-	DROP FUNCTION IF EXISTS GetUsuario$$
+	DROP PROCEDURE IF EXISTS GetUsuario$$
 	CREATE PROCEDURE `GetUsuario`(IN _id_usuario int)
 	BEGIN
 		
 		SELECT	p.id_usuario,
 				p.txt_login,	
 				p.txt_usuario,
+                p.nombre,
+                p.apellidos,
 				#formatDate(p.dateOfBirth) as dateOfBirth,
 				p.txt_email,
+                p.tel,
 				#p.mobile,
 				#ifnull(p.phone,'') as phone,
 				#ifnull(p.ext,'') as ext,
@@ -372,7 +390,7 @@
 		FROM cat_usuario as p
 		WHERE p.id_usuario = _id_usuario;
 		
-	END    
+	END$$
         
 	DELIMITER $$
 	DROP PROCEDURE IF EXISTS GetLogin$$        
@@ -391,7 +409,7 @@
 			CALL GetUsuario(_id_usuario);
 		END IF;
 		
-	END    
+	END$$    
 
 
 
@@ -423,6 +441,16 @@ BEGIN
 		GROUP BY cp.id_proyecto, cp.txt_proyecto, cp.id_status
     ) AS SC
     ORDER BY txt_proyecto;
+
+END$$
+
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetMoreComments$$
+CREATE PROCEDURE GetMoreComments(_id_tarea int,fec_comentario datetime)
+BEGIN
+    
+	SELECT getJsonTopComments(_id_tarea,NULL,fec_comentario) as comentarios;
 
 END$$
 
@@ -477,7 +505,7 @@ BEGIN
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 	BEGIN
 	
-		GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+		#GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
 			SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
 		ROLLBACK;
 		
@@ -551,7 +579,7 @@ BEGIN
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 	BEGIN
 	
-		GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+		#GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
 			SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
 		ROLLBACK;
 		
@@ -616,12 +644,50 @@ BEGIN
 
 	UPDATE bit_view_tarea SET fec_actualiza = NOW() where id_usuario = _id_usuario and id_tarea = _id_tarea;
     
-    SELECT getJsonTopComments(_id_tarea, _id_tarea_detalle) as comentario;
+    SELECT getJsonTopComments(_id_tarea, _id_tarea_detalle, NOW()) as comentario;
+
+END$$
+
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS EditPerfil$$
+CREATE PROCEDURE EditPerfil(IN _id_usuario INT, IN _nombre varchar(50), IN _apellidos varchar(100), IN _tel varchar(100), 
+		IN _nombre_corto varchar(200), IN _txt_email varchar(50))
+BEGIN
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+	
+		#GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+			SET @full_error = CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text); 
+		ROLLBACK;
+		
+		INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
+		VALUES (@full_error, NOW(), _id_usuario );
+		
+		SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
+			
+	END;
+
+	START TRANSACTION;
+    
+		UPDATE cat_usuario
+		SET nombre = _nombre,
+			apellidos = _apellidos,
+			tel = _tel,
+			txt_usuario = _nombre_corto,
+			txt_email = _txt_email
+		WHERE id_usuario = _id_usuario;
+		
+		CALL GetUsuario(_id_usuario);
+    
+	COMMIT;  
 
 END$$
 
 /*
 select id_usuario from cat_usuario
+select * from ctrl_Tareas
 
     UPDATE cat_usuario SET color = '#00BFA5' WHERE id_usuario = 50;
     UPDATE cat_usuario SET color = '#00C853' WHERE id_usuario = 12;

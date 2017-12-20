@@ -33,7 +33,8 @@ import {
     getTarea,
     clearSocket,
     clearTareaSocket,
-    refreshTarea
+    refreshTarea,
+    loadMore
 } from '../actions';
 
 class Tareas extends Component{
@@ -171,7 +172,15 @@ class Tareas extends Component{
             this.props.guardarTareaNueva(tareaNueva);
         }
         
-    }       
+    }   
+
+    /**
+     * Load more comments
+     */
+    onLoadMore() {
+        const { tarea } = this.props.tareaActual;
+        this.props.loadMore(tarea.id_tarea,tarea.topComments[tarea.topComments.length - 1].fec_comentario);
+    }
 
     /**
      * Commentar
@@ -442,11 +451,12 @@ class Tareas extends Component{
         }        
 
         //Actualizar tarea de comentarios
-        if(Object.keys(this.props.comments.comment).length > 0) {
+        if(this.props.comments.comments !== undefined && Object.keys(this.props.comments.comments).length > 0) {
             this.props.commentListUpdate();
             this.wsComment("typing","");
-            this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea, this.props.comments.comment);
-            this.wsComment("enviar",this.props.comments.comment);          
+            this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea, this.props.comments.comments);
+
+            this.wsComment("enviar",this.props.comments.comments);          
         }
 
         //Actualizar tarea nueva
@@ -487,6 +497,7 @@ class Tareas extends Component{
                         }}
                         enviarComment={this.enviarComment.bind(this)}
                         fileChange={(file, event) => this.props.fileChange(file, event)}
+                        onLoadMore={this.onLoadMore.bind(this)}
                         //Recibir webSocket cuando alguien está escribiendo
                         typing={this.checkIfTyping(this.props.socket)}
                     />
@@ -543,6 +554,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     clearSocket,
     clearTareaSocket,
     refreshTarea,
+    loadMore,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

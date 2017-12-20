@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ChatItem, Input } from './';
-import { Config } from '../configuracion';
+import { Config, Helper } from '../configuracion';
 
 
 class Chat extends Component{
@@ -23,7 +23,9 @@ class Chat extends Component{
      * @param {*} prevState 
      */
     componentDidUpdate(prevProps, prevState){
-        this.scrollToBottom();
+        if(JSON.stringify(prevProps.tareaActual.tarea.topComments) !== JSON.stringify(this.props.tareaActual.tarea.topComments)){
+            this.scrollToBottom();
+        }
     }    
     /**
      * Escrolleo al final de la lista del chat
@@ -60,6 +62,23 @@ class Chat extends Component{
         this.props.enviarComment();        
     }
 
+    renderMore() {
+        if(this.props.tareaActual.tarea.id_tarea === undefined) {
+            return null;
+        }
+
+        if(this.props.tareaActual.tarea.commentCount > this.props.tareaActual.tarea.topComments.length) {
+            return (<button 
+                        onClick={this.props.onLoadMore}
+                        style={styles.loadMore}
+                    >
+                        Cargar más...
+                    </button>
+                    );
+        }
+
+        return <div style={styles.topLog}>{`Tarea creada el ${Helper.prettyfyDate(this.props.tareaActual.tarea.fec_creacion).date}`}</div>;
+    }
     /**
      * Renderizar los comentarios
      */    
@@ -109,13 +128,13 @@ class Chat extends Component{
                             txt_comentario={this.props.comments.commentText}
                             loading={true}
                             id_tipo_comentario={1}
-                            id_usuario={parseInt(this.props.comments.comment.id_usuario)}
+                            id_usuario={sessionData.id_usuario}
                             id_current_user={sessionData.id_usuario}
                         />            
                 }
 
                 if(this.props.typing !== ""){
-                    return <div style={{ color: '#535353', fontWeight: 'bold', margin: '20px', fontSize: '14px'}}>{this.props.typing}</div>
+                    return <div style={{ color: '#1ABC9C', fontWeight: 'bold', margin: '20px', fontSize: '14px'}}>{this.props.typing}</div>
                 }
         
                 return null;        
@@ -163,8 +182,9 @@ class Chat extends Component{
             <div style={{ display: 'flex', flex: '1', flexDirection: 'column'}}>
                 <div ref={'chatScroll'} style={{height: '100%', overflow:'auto'}}>
                     <div id="chatMessageContainer" className="chatMessages">
-                    {this.renderMessages()}
-                    {this.renderLoadingMessage()}
+                        {this.renderMore()}
+                        {this.renderMessages()}
+                        {this.renderLoadingMessage()}
                     </div>
                 </div>
                 {this.renderChatFooter()}                
@@ -172,6 +192,26 @@ class Chat extends Component{
         );
     }
 
+}
+
+const styles = {
+    topLog: {
+        display: 'flex',
+        alignSelf: 'center',
+        backgroundColor: '#6C9BD4',
+        color: 'white',
+        maxWidth: '300px',
+        fontSize: '11px',
+        borderRadius: '15px',
+        padding: '5px',
+        paddingRight: '10px',
+        paddingLeft: '10px',
+        margin: '10px'
+    },
+    loadMore: {
+        padding: '5px',
+        marginBottom: '10px'
+    }
 }
 
 export { Chat };
