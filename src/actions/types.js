@@ -11,6 +11,9 @@ export const TAREA_ACTUAL_GUARDAR_FAILED = 'tarea_actual_guardar_failed';
 export const TAREA_ACTUAL_GUARDAR_SUCESS = 'tarea_actual_guardar_success';
 export const TAREA_ACTUAL_LIMPIAR = 'tarea_actual_limpiar';
 export const TAREAS = 'tareas';
+export const TAREA_RENDER_START = 'tarea_render_start';
+export const TAREA_RENDER_END = 'tarea_render_end';
+
 export const TAREA_NUEVA = 'tarea_nueva';
 export const TAREA_NUEVA_SUCCESS = 'tarea_nueva_success';
 export const TAREA_NUEVA_FAILED = 'tarea_nueva_failed';
@@ -42,6 +45,7 @@ export const PROYECTO_ACTUAL_GUARDAR = 'proyecto_actual_guardar';
 export const PROYECTO_ACTUAL_GUARDAR_SUCESS = 'proyecto_actual_guardar_sucess';
 export const PROYECTO_ACTUAL_GUARDAR_FAILED = 'proyecto_actual_guardar_failed';
 export const PROYECTO_ACTUAL_LIMPIAR = 'proyecto_actual_limpiar';
+export const PROYECT_REFRESH = 'proyect_refresh';
 
 export const EMAIL_CHANGED = 'email_changed';
 export const PASSWORD_CHANGED = 'password_changed';
@@ -70,3 +74,28 @@ export const PERFIL_SAVE_FAILED = 'perfil_save_failed';
 export const MORE = 'more';
 export const MORE_SUCCESS = 'more_success';
 export const MORE_FAILED = 'more_failed';
+export const MORE_END = 'more_end';
+
+//---------------------------------------------------------
+export const PY_LIST = 'py_list';
+export const PY_SELECT = 'py_select';
+export const PY_EDIT = 'py_edit';
+export const PY_GUARDAR = 'py_guardar';
+export const PY_SUCCESS = 'py_success';
+export const PY_FAIL = 'py_fail';
+export const PY_UNSELECT = 'py_unselect';
+
+export const TR_SELECT = 'tr_select';
+export const TR_UNSELECT = 'tr_unselect';
+export const TR_EDIT = 'tr_edit';
+export const TR_GUARDAR = 'tr_guardar';
+export const TR_SUCCESS = 'tr_success';
+export const TR_CANCEL = 'tr_fail';
+export const TR_NEW_TXT = 'tr_new_txt';
+
+export const CM_EDIT = 'cm_edit';
+export const CM_GUARDAR = 'cm_guardar';
+export const CM_PROGRESS = 'cm_progress';
+export const CM_SUCCESS = 'cm_success';
+export const CM_FILE_CHANGE = 'cm_file_change';
+export const CM_FILE_CANCEL = 'cm_file_cancel';

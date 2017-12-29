@@ -10,17 +10,18 @@ import {
     FILE_CANCEL,
     MORE,
     MORE_FAILED,
-    MORE_SUCCESS
+    MORE_SUCCESS,
+    MORE_END
 } from './types';
 import { Database, Helper } from '../configuracion';
-
+/*
 export const commentChanged = (text) => {
     return {
         type: COMMENT_CHANGED,
         payload: text
     };
 };
-
+*/
 export const commentGuardar = (comentario, id_tarea) => {
     return (dispatch) => {
         dispatch({ type: COMMENT });
@@ -72,7 +73,7 @@ export const commentListUpdate = (comentario, tarea, proyecto) => {
         type: COMMENT_LIST_UPDATE
     })
 }
-
+/*
 export const fileChange = (file, url) => {
     return({
         type: FILE_CHANGE,
@@ -85,9 +86,16 @@ export const fileCancel = () => {
         type: FILE_CANCEL
     });
 }
+*/
+export const moreEnd = () => {
+    return({
+        type: MORE_END
+    });
+}
 
 export const loadMore = (id_tarea, fecha) => {
     return(dispatch) => {
+        dispatch({type: MORE});
         try {
             Database.request('GET', `GetMoreComments/${id_tarea}?fecha=${fecha}`, {}, 2, (error, response) => {
                 if(error) {

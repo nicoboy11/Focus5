@@ -132,7 +132,7 @@
 		WHERE id = _id;
 		
 	END$$
-    
+
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreateProyecto`$$
 	CREATE PROCEDURE `CreateProyecto` (IN _txt_proyecto varchar(100), IN _id_usuario int, IN _fec_inicio date, IN _fec_limite date)
@@ -230,7 +230,7 @@
                             '"commentCount":"',getCommentCount(ct.id_tarea),'",',
 							'"notificaciones":',FN_ULTIMO_COMMENT(bvt.id_tarea, IFNULL(bvt.fec_actualiza, '2000-01-01')),',',                            
 							'"participantes":',getJsonUsuariosTarea(ct.id_tarea),',',
-							'"topComments":',getJsonTopComments(ct.id_tarea,null,NOW()),'',
+							'"topComments":',getJsonTopComments(ct.id_tarea,null,NOW()+1),'',
 						'}') separator ','),
 					  ']') INTO _tareas
 		FROM ctrl_tareas as ct
@@ -323,7 +323,7 @@
 			INNER JOIN cat_usuario as cu on cu.id_usuario = ctd.id_usuario
 			WHERE 	ct.id_tarea = _id_tarea 
 					AND ctd.id_tarea_detalle = coalesce(_id_tarea_detalle, ctd.id_tarea_detalle)
-                    AND ctd.fec_comentario <= _fec_comentario
+                    AND ctd.fec_comentario < _fec_comentario
                     
 			ORDER BY ctd.fec_comentario desc LIMIT 20
 		) sc
@@ -644,7 +644,7 @@ BEGIN
 
 	UPDATE bit_view_tarea SET fec_actualiza = NOW() where id_usuario = _id_usuario and id_tarea = _id_tarea;
     
-    SELECT getJsonTopComments(_id_tarea, _id_tarea_detalle, NOW()) as comentario;
+    SELECT getJsonTopComments(_id_tarea, _id_tarea_detalle, NOW() + 1) as comentario;
 
 END$$
 

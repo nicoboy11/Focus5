@@ -12,12 +12,9 @@ import { connect } from 'react-redux';
 import { 
     listaProyectos, 
     seleccionarProyecto, 
-    actualizarProyecto, 
+    editarProyecto, 
     guardarProyecto, 
-    guardarProyectoNuevo,
-    actualizaListaProyectos,
-    limpiarProyectoActual,
-    limpiarTareaActual,
+    desseleccionarProyecto,
     listaUsuarios
 } from '../actions';
 
@@ -56,7 +53,7 @@ class Proyectos extends Component{
         const proyectoActual = this.props.proyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto);
         
         //Guardar proyecto en el estate (Accion seleccionar)
-        this.props.seleccionarProyecto(proyectoActual[0], JSON.parse(JSON.stringify(proyectoActual[0])));
+        this.props.seleccionarProyecto(JSON.parse(JSON.stringify(proyectoActual[0])));
 
         //Cambiar de página
         this.props.changePage("proyectos",proyectoActual[0].id_proyecto);
@@ -67,10 +64,10 @@ class Proyectos extends Component{
      */
     onGuardar(){
         //Cuando el proyecto es nuevo el id_status es null
-        if(this.props.proyectoActual.tmp_proyecto.id_status !== null) {
-            this.props.guardarProyecto(this.props.proyectoActual.tmp_proyecto);
+        if(this.props.proyectoActual.id_status !== null) {
+            this.props.guardarProyecto(this.props.proyectos, this.props.proyectoActual, false);
         } else {
-            this.props.guardarProyectoNuevo(this.props.proyectoActual.tmp_proyecto);
+            this.props.guardarProyecto(this.props.proyectos, this.props.proyectoActual, true);
         }
         
     }   
@@ -152,9 +149,9 @@ class Proyectos extends Component{
             fec_limite,
             fec_limite_disabled,
             id_status
-        } = this.props.proyectoActual.tmp_proyecto;
+        } = this.props.proyectoActual;
 
-        const tmp_proyecto = this.props.proyectoActual.tmp_proyecto
+        const tmpProyecto = this.props.proyectoActual;
 
         return (
             <Modal 
@@ -166,7 +163,7 @@ class Proyectos extends Component{
             onGuardar={() => { this.onGuardar(); }}
             onCerrar={() => { 
                 this.setState({ mostrarModal: false });
-                this.props.limpiarProyectoActual();
+                this.props.desseleccionarProyecto();
             }}
             >
                 <FormRow titulo='NOMBRE'>
@@ -176,10 +173,10 @@ class Proyectos extends Component{
                         placeholder='Nombre del proyecto' 
                         value={txt_proyecto}
                         onChangeText={
-                            value => this.props.actualizarProyecto({ 
+                            value => this.props.editarProyecto({ 
                                         prop: 'txt_proyecto', 
                                         value, 
-                                        tmp_proyecto
+                                        tmpProyecto
                                     })
                         }
                     />  
@@ -194,10 +191,10 @@ class Proyectos extends Component{
                             selectsStart
                             onChange={
                                 (date) => {
-                                    this.props.actualizarProyecto({ 
+                                    this.props.editarProyecto({ 
                                         prop: 'fec_inicio', 
                                         value:date.format('YYYY-MM-DD'),
-                                        tmp_proyecto
+                                        tmpProyecto
                                     })
                                 }
                             }
@@ -219,10 +216,10 @@ class Proyectos extends Component{
                             disabled={(fec_limite_disabled !== undefined)?fec_limite_disabled:!fec_limite}
                             onChange={
                                 (date) => {
-                                    this.props.actualizarProyecto({ 
+                                    this.props.editarProyecto({ 
                                         prop: 'fec_limite', 
                                         value:date.format('YYYY-MM-DD'),
-                                        tmp_proyecto
+                                        tmpProyecto
                                     })
                                 }
                             }
@@ -243,8 +240,8 @@ class Proyectos extends Component{
                             checked={(fec_limite_disabled !== undefined )?fec_limite_disabled:!fec_limite}
                             onChange={
                                 (value) => {
-                                    this.props.actualizarProyecto({ prop: 'fec_limite_disabled', value,tmp_proyecto });
-                                    this.props.actualizarProyecto({ prop: 'fec_limite', value: null,tmp_proyecto });
+                                    this.props.editarProyecto({ prop: 'fec_limite',             value: null,    tmpProyecto });                                    
+                                    this.props.editarProyecto({ prop: 'fec_limite_disabled',    value,          tmpProyecto });
                                 }
                             }
                         /> 
@@ -258,10 +255,10 @@ class Proyectos extends Component{
                             checked={(id_status !== 2)?true:false}
                             onChange={
                                 (value) => {
-                                    this.props.actualizarProyecto({ 
+                                    this.props.editarProyecto({ 
                                         prop: 'id_status', 
                                         value: (value)?1:2,
-                                        tmp_proyecto
+                                        tmpProyecto
                                     })
                                 }
                             }
@@ -281,10 +278,8 @@ class Proyectos extends Component{
         // Si el tmp_proyecto está vacío significa que no se ha inicializado ó que se le acaba de dar guardar
         // Si el mostralModal es "true" significa que se estaba editando el proyecto
         // Si se cumplen ambos significa que le acaban de dar guardar por tanto aquí modifico el state
-        if(Object.keys(this.props.proyectoActual.tmp_proyecto).length === 0 && this.state.mostrarModal === true){
+        if(Object.keys(this.props.proyectoActual).length === 0 && this.state.mostrarModal === true){
             this.setState({ mostrarModal: false });
-            this.props.actualizaListaProyectos(this.props.proyectos, this.props.proyectoActual.proyecto);
-            this.props.limpiarProyectoActual();
         }
         
         return(
@@ -321,7 +316,7 @@ class Proyectos extends Component{
 const mapStateToProps = state => {
     return { 
         proyectos: state.listaProyectos.proyectos, 
-        proyectoActual: state.proyectoActual,
+        proyectoActual: state.listaProyectos.tmpProyecto,
         loading: state.proyectoActual.loading,
         id_proyecto: state.listaProyectos.current_id_proyecto 
     }
@@ -334,12 +329,9 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => bindActionCreators({
     listaProyectos,
     seleccionarProyecto,
-    actualizarProyecto,
+    editarProyecto,
     guardarProyecto,
-    guardarProyectoNuevo,
-    actualizaListaProyectos,
-    limpiarProyectoActual,
-    limpiarTareaActual,
+    desseleccionarProyecto,
     listaUsuarios,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)

@@ -12,6 +12,7 @@ import {
  * Carga lista de proyectos
  * @param {*} id_usuario 
  */
+/*
 export const listaProyectos = (id_usuario) => {
     return (dispatch) => {
         dispatch({ type: LISTA_PROYECTOS });
@@ -54,12 +55,13 @@ export const listaProyectos = (id_usuario) => {
         });            
     }
 };
-
+*/
 /**
  * Recibe la lista de proyectos y el proyecto modificado y actualiza la lista
  * @param {*} proyectos 
  * @param {*} proyecto 
  */
+/*
 export const actualizaListaProyectos = (proyectos, proyecto) => {
     
     const foundIndex = proyectos.findIndex(x=>x.id_proyecto === proyecto.id_proyecto);
@@ -75,15 +77,21 @@ export const actualizaListaProyectos = (proyectos, proyecto) => {
         type: LISTA_PROYECTOS_UPDATE,
         payload: proyectos
     }
-}
+}*/
 
 /**
  * Recibe la lista de proyectos y la tarea modificada y actualiza la lista
  * @param {*} proyectos 
  * @param {*} proyecto 
  */
-export const actualizaListaTareas = (proyectos, proyecto, tarea, comentarios) => {
-    
+/*
+export const actualizaListaTareas = (proyectos_old, proyecto_old, tarea_old, comentarios_old) => {
+      
+    let proyectos = proyectos_old?JSON.parse(JSON.stringify(proyectos_old)):[];
+    let proyecto = proyecto_old?JSON.parse(JSON.stringify(proyecto_old)):{};
+    let tarea = tarea_old?JSON.parse(JSON.stringify(tarea_old)):{};
+    let comentarios = comentarios_old?JSON.parse(JSON.stringify(comentarios_old)):[];
+
     const foundIndex = proyectos.findIndex(x=>x.id_proyecto === proyecto.id_proyecto);
     const tareaIndex = proyecto.tareas.findIndex(x=>x.id_tarea === tarea.id_tarea);
 
@@ -92,7 +100,7 @@ export const actualizaListaTareas = (proyectos, proyecto, tarea, comentarios) =>
         //Si es mayor que 1 comentario esque son comentarios màs viejos
         if(comentarios.length > 1) {
             tarea.topComments = tarea.topComments.concat(comentarios);
-        } else {
+        } else if (comentarios.length === 1){
             //si es = 1 puede ser nuevo ò viejo así que checo el id
             if(tarea.topComments[0].id_tarea_unique < comentarios[0].id_tarea_unique) {
                 tarea.topComments = comentarios.concat(tarea.topComments);
@@ -118,18 +126,18 @@ export const actualizaListaTareas = (proyectos, proyecto, tarea, comentarios) =>
     }
 
     return {
-        type: LISTA_TAREAS_UPDATE,
+        type: LISTA_PROYECTOS_UPDATE,
         payload: proyectos
     }
-}
-
+}*/
+/*
 export const selectProyecto = (id_proyecto) => {
     return {
         type: PROYECTO_SELECT,
         payload: { id_proyecto }
     };
 }
-
+*/
 const listaProyectosFailed = (dispatch) => {
     dispatch({ type: LISTA_PROYECTOS_FAILED });
 }

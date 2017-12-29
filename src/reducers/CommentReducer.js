@@ -10,7 +10,8 @@ import {
     FILE_CANCEL,
     MORE,
     MORE_SUCCESS,
-    MORE_FAILED
+    MORE_FAILED,
+    MORE_END
 } from '../actions/types'
 
 const INITIAL_STATE = {
@@ -21,6 +22,7 @@ const INITIAL_STATE = {
     progress: -1,
     loadingFile: false,
     loadingMore: false,
+    moreButtonPressed: false,
     archivo: null,
     url: ''
 }

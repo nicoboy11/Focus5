@@ -11,10 +11,12 @@ import {
     TAREA_NUEVA_FAILED,
     TAREA_SOCKET_SUCCESS,
     TAREA_SOCKET_CANCEL,
-    TAREA_REFRESH
+    TAREA_REFRESH,
+    TAREA_RENDER_START,
+    TAREA_RENDER_END
 } from './types';
 
-
+/*
 export const seleccionarTarea = (tarea, tmp_tarea) => {
     return {
         type: TAREA_ACTUAL,
@@ -38,6 +40,13 @@ export const refreshTarea = (tareaRefreshed) => {
         type: TAREA_REFRESH,
         payload: tareaRefreshed
     };
+}
+
+export const tareaRenderStart = () => {
+    return { type: TAREA_RENDER_START }
+}
+export const tareaRenderEnd = () => {
+    return { type: TAREA_RENDER_END }
 }
 
 export const actualizarGente = ({ rolId, persona, tmp_tarea, usuarios }) => {
@@ -99,7 +108,8 @@ export const clearTareaSocket = () => {
         type: TAREA_SOCKET_CANCEL
     };
 }
-
+*/
+/*
 export const guardarTareaNueva = (tarea) => {
     return (dispatch) => {
         dispatch({ type: TAREA_NUEVA });
@@ -166,15 +176,15 @@ export const guardarTarea = (tmpTarea) => {
             tareaSaveFailed(dispatch);
         }                 
     }    
-}
-
+}*/
+/*
 export const limpiarTareaActual = () => {
     return {
         type: TAREA_ACTUAL_LIMPIAR,
         payload: {}
     }    
 }
-
+*/
 const tareaSaveFailed = (dispatch) => {
     dispatch({ type: TAREA_ACTUAL_GUARDAR_FAILED });
 }

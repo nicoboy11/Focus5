@@ -7,7 +7,12 @@ class MenuTop extends Component{
     renderBreadCrumb() {
         if(this.props.breadCrumb !== ""){
             return (
-                <div style={{ display: 'flex'}}>
+                <div 
+                    style={{ display: 'flex'}}
+                    onClick={() => {
+                        this.props.onClick();
+                    }}
+                >                    
                     {this.props.breadCrumb}
                     <i className="material-icons fadeColor">keyboard_arrow_right</i>
                 </div>

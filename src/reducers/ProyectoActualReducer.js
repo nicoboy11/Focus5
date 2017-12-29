@@ -4,7 +4,8 @@ import {
     PROYECTO_ACTUAL_GUARDAR,
     PROYECTO_ACTUAL_GUARDAR_FAILED,
     PROYECTO_ACTUAL_GUARDAR_SUCESS,
-    PROYECTO_ACTUAL_LIMPIAR
+    PROYECTO_ACTUAL_LIMPIAR,
+    PROYECT_REFRESH
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -28,6 +29,8 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, proyecto: action.payload.proyecto, tmp_proyecto: {}, loading: false }  
         case PROYECTO_ACTUAL_LIMPIAR:
             return { ...state, proyecto: {}, tmp_proyecto: {} }          
+        case PROYECT_REFRESH:
+            return { ...state, proyecto: action.payload, tmp_proyecto: action.payload }
         default:
             return state;
     }

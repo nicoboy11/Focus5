@@ -10,7 +10,9 @@ import {
     TAREA_NUEVA_FAILED,
     TAREA_SOCKET_CANCEL,
     TAREA_SOCKET_SUCCESS,
-    TAREA_REFRESH
+    TAREA_REFRESH,
+    TAREA_RENDER_END,
+    TAREA_RENDER_START
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -31,7 +33,8 @@ const INITIAL_STATE = {
         txt_tarea: ''
     },
     error: '',
-    loading: false
+    loading: false,
+    tareaRender: null
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -60,6 +63,10 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, tarea_socket: {} }     
         case TAREA_REFRESH:
             return { ...state, tarea: action.payload, tmp_tarea: action.payload }       
+        case TAREA_RENDER_START:
+            return { ...state, tareaRender: true }
+        case TAREA_RENDER_END:
+            return { ...state, tareaRender: false }            
         default:
             return state;
     }

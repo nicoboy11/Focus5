@@ -10,7 +10,7 @@ import MenuBar from './components/MenuBar';
 import { Route, Switch } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { cargarPerfil, limpiarTareaActual } from './actions'
+import { cargarPerfil } from './actions'
 import { bindActionCreators } from 'redux';
 
 import Ajustes from './pages/Ajustes';
@@ -61,14 +61,11 @@ class App extends Component {
     if(current !== undefined) {
       switch(current.nombre) {
         case "Proyectos": 
-          if(this.props.proyectoActual.proyecto.id_proyecto === undefined) {
+          if(this.props.proyectoActual.id_proyecto === undefined) {
             title = "Proyectos";
           } else {
-            title = this.props.proyectoActual.proyecto.txt_proyecto;
+            title = this.props.proyectoActual.txt_proyecto;
             breadCrumb = "Proyectos";
-          }
-          if(this.props.tareaActual.tarea.id_tarea !== undefined && currentRoute.split('/').length < 3) {
-            this.props.limpiarTareaActual();
           }
           break;
         case "Chats":
@@ -107,6 +104,9 @@ class App extends Component {
                                   localStorage.removeItem("sessionData");
                                   window.location = '/';
                                 }}
+                                onClick={() =>{
+                                    window.history.forward();
+                                }}
                               />)}
             {this.renderMenu(<MenuBar currentMenu={current.nombre} />)}
           </div>
@@ -115,15 +115,14 @@ class App extends Component {
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  cargarPerfil,
-  limpiarTareaActual
+  cargarPerfil
 }, dispatch)
 
 const mapStateToProps = state => {
   return { 
       proyectos: state.listaProyectos.proyectos,
-      proyectoActual: state.proyectoActual,
-      tareaActual: state.tareaActual,
+      proyectoActual: state.listaProyectos.tmpProyecto,
+      //tareaActual: state.tareaActual,
       perfil: state.perfil
   }
 };

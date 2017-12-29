@@ -49,9 +49,14 @@ class ChatItem extends Component {
             userColor
         } = this.props;
 
+        let text = txt_comentario;
+        text = Helper.decode_utf8(text);
+        text = Helper.htmlPaso(text);
+
+
         if(id_tipo_comentario === 2 ) {
             return (
-                <div className="bitacora">{Helper.decode_utf8(Helper.htmlPaso(txt_comentario))}</div>
+                <div className="bitacora">{Helper.htmlPaso(Helper.decode_utf8(txt_comentario))}</div>
             );
         }
         //Se usa == en vez de === para que compara el valor y no el tipo
@@ -62,7 +67,7 @@ class ChatItem extends Component {
                         <div style={styles.messageSelf}>
                             <div style={{ margin: '10px', position:'relative' }}>
                                   {this.renderImage()}
-                                {Helper.htmlDecode(Helper.decode_utf8(txt_comentario))}
+                                {Helper.decode_utf8(txt_comentario)}
                                 {(progress !== undefined)?
                                 <div style={styles.barra}>
                                     <div style={{...styles.progress,width: `${progress}%`}}>{progress}%</div>
@@ -82,7 +87,7 @@ class ChatItem extends Component {
                         <div style={{...styles.chatTitle, color: userColor}}>{Helper.htmlDecode(Helper.decode_utf8(userName))}</div>  
                         <div style={{ marginLeft: '10px', position:'relative' }}>                     
                             {this.renderImage()}
-                            {Helper.decode_utf8(Helper.htmlPaso(txt_comentario))}
+                            {Helper.decode_utf8(txt_comentario)}
                         </div>
                     </div>
                     <div style={styles.datetimeStyle}>

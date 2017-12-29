@@ -5,16 +5,17 @@ import { Config, Helper } from '../configuracion';
 
 class Chat extends Component{
     static defaultProps = {
-        tareaActual: {},
         loadingFile: false,
         loadingComentario: false,
         fileProgress: -1,
         url: '',
         typing: '',
-        comments: {},
+        comments: [],
         commentChanged: () => {},
         enviarComment: () => {},
-        fileChange: () => {}
+        fileChange: () => {},
+        onScroll: () => {},
+        scrollTop: 0
     }
 
     /**
@@ -23,7 +24,7 @@ class Chat extends Component{
      * @param {*} prevState 
      */
     componentDidUpdate(prevProps, prevState){
-        if(JSON.stringify(prevProps.tareaActual.tarea.topComments) !== JSON.stringify(this.props.tareaActual.tarea.topComments)){
+        if(JSON.stringify(prevProps.comments) !== JSON.stringify(this.props.comments)){
             this.scrollToBottom();
         }
     }    
@@ -33,6 +34,20 @@ class Chat extends Component{
     scrollToBottom() {
         const {chatScroll} = this.refs;
         chatScroll.scrollTop = chatScroll.scrollHeight - chatScroll.clientHeight;
+    }
+
+    setScrollTop(value) {
+        const {chatScroll} = this.refs;
+        chatScroll.scrollTop = value;
+    }
+
+    getScrollData(){
+        const {chatScroll} = this.refs;
+        this.props.scrollData(chatScroll);        
+    }
+
+    onScroll(evt){
+        this.props.onScroll(evt.target.scrollTop);
     }
 
     mostrarImagen(evt){
@@ -63,11 +78,15 @@ class Chat extends Component{
     }
 
     renderMore() {
-        if(this.props.tareaActual.tarea.id_tarea === undefined) {
+        if(this.props.loadingMore) {
+            return <div>Cargando...</div>;
+        }
+
+        if(this.props.fec_creacion === undefined) {
             return null;
         }
 
-        if(this.props.tareaActual.tarea.commentCount > this.props.tareaActual.tarea.topComments.length) {
+        if(this.props.commentCount > this.props.comments.length) {
             return (<button 
                         onClick={this.props.onLoadMore}
                         style={styles.loadMore}
@@ -77,17 +96,17 @@ class Chat extends Component{
                     );
         }
 
-        return <div style={styles.topLog}>{`Tarea creada el ${Helper.prettyfyDate(this.props.tareaActual.tarea.fec_creacion).date}`}</div>;
+        return <div style={styles.topLog}>{`Tarea creada el ${Helper.prettyfyDate(this.props.fec_creacion).date}`}</div>;
     }
     /**
      * Renderizar los comentarios
      */    
     renderMessages(){
-        if(this.props.tareaActual.tarea.topComments === undefined){
+        if(this.props.comments === undefined || this.props.comments.length === 0){
             return null;
         }
         //obtener tarea actual
-        return this.props.tareaActual.tarea.topComments.map(comment => {
+        return this.props.comments.map(comment => {
             let ruta = "";
             if(comment.imagen !== ""){
                 ruta = `${Config.network.server}archivos/${comment.imagen}`                
@@ -125,7 +144,7 @@ class Chat extends Component{
         
                 if(this.props.loadingComentario){
                     return <ChatItem 
-                            txt_comentario={this.props.comments.commentText}
+                            txt_comentario={this.props.text}
                             loading={true}
                             id_tipo_comentario={1}
                             id_usuario={sessionData.id_usuario}
@@ -145,7 +164,7 @@ class Chat extends Component{
      */    
     renderChatFooter() {
         
-        if(this.props.tareaActual.tarea.id_tarea === undefined) {
+        if(this.props.fec_creacion === undefined) {
             return null;
         }
             
@@ -155,7 +174,7 @@ class Chat extends Component{
                     <Input 
                         multiline={true} 
                         placeholder="Escribe un mensaje..." 
-                        value={this.props.comments.commentText}
+                        value={this.props.text}
                         onChangeText={(value) => this.props.commentChanged(value)} 
                     />
                 </div>
@@ -180,7 +199,7 @@ class Chat extends Component{
     render(){
         return (
             <div style={{ display: 'flex', flex: '1', flexDirection: 'column'}}>
-                <div ref={'chatScroll'} style={{height: '100%', overflow:'auto'}}>
+                <div ref={'chatScroll'} onScroll={this.onScroll.bind(this)} style={{height: '100%', overflow:'auto'}}>
                     <div id="chatMessageContainer" className="chatMessages">
                         {this.renderMore()}
                         {this.renderMessages()}

@@ -6,10 +6,11 @@ import {
     PROYECTO_ACTUAL_GUARDAR_FAILED,
     PROYECTO_ACTUAL_GUARDAR_SUCESS,
     PROYECTO_ACTUAL_LIMPIAR,
-    PROYECT_UPDATE
+    PROYECT_UPDATE,
+    PROYECT_REFRESH
 } from './types';
 
-
+/*
 export const seleccionarProyecto = (proyecto, tmp_proyecto) => {
     return {
         type: PROYECTO_ACTUAL,
@@ -33,6 +34,13 @@ export const proyect_update = ({ prop, value }) => {
         type: PROYECT_UPDATE,
         payload: { prop, value }
     };
+}
+
+export const proyect_refresh = (proyectoRefreshed) => {
+    return {
+        type: PROYECT_REFRESH,
+        payload: proyectoRefreshed
+    }
 }
 
 export const guardarProyecto = (proyecto) => {
@@ -76,7 +84,7 @@ export const guardarProyectoNuevo = (proyecto) => {
             }                 
         }    
 }
-
+*/
 export const limpiarProyectoActual = () => {
     return {
         type: PROYECTO_ACTUAL_LIMPIAR,
