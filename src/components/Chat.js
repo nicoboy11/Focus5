@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ChatItem, Input } from './';
+import { ChatItem, Input, Avatar } from './';
 import { Config, Helper } from '../configuracion';
 
 
@@ -24,7 +24,10 @@ class Chat extends Component{
      * @param {*} prevState 
      */
     componentDidUpdate(prevProps, prevState){
-        if(JSON.stringify(prevProps.comments) !== JSON.stringify(this.props.comments)){
+        if(JSON.stringify(prevProps.comments) !== JSON.stringify(this.props.comments) || 
+            (this.props.typing.mensaje !== undefined && this.props.typing.mensaje !== "" && this.props.scrollTop === prevProps.scrollTop)
+        )
+        {
             this.scrollToBottom();
         }
     }    
@@ -152,8 +155,16 @@ class Chat extends Component{
                         />            
                 }
 
-                if(this.props.typing !== ""){
-                    return <div style={{ color: '#1ABC9C', fontWeight: 'bold', margin: '20px', fontSize: '14px'}}>{this.props.typing}</div>
+                if(this.props.typing.mensaje !== undefined && this.props.typing.mensaje !== ""){
+                    return (
+                        <div style={{ display: 'flex', alignItems: 'center', margin: '20px' }}>
+                            <Avatar 
+                                avatar={`${this.props.typing.id_usuario}.jpg`}
+                                size="small"
+                            />  
+                            <img style={{ height: '10px', marginLeft: '10px', marginTop: '-5px' }} src={Config.network.server + 'img/800.gif'} />;
+                        </div>
+                    );
                 }
         
                 return null;        

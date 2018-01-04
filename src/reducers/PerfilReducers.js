@@ -1,5 +1,4 @@
 import {
-    PERFIL_EDIT,
     PERFIL_LOAD,
     PERFIL_SAVE,
     PERFIL_SAVE_SUCCESS,

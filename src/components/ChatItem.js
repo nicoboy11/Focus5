@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Helper, Config } from '../configuracion';
+import { Helper } from '../configuracion';
 
 class ChatItem extends Component {
 
@@ -44,15 +44,9 @@ class ChatItem extends Component {
             fec_comentario,
             loading,
             progress,
-            imagen,
             userName,
             userColor
         } = this.props;
-
-        let text = txt_comentario;
-        text = Helper.decode_utf8(text);
-        text = Helper.htmlPaso(text);
-
 
         if(id_tipo_comentario === 2 ) {
             return (

@@ -2,10 +2,10 @@ import {
     PY_LIST,    PY_SUCCESS,     PY_FAIL,
     PY_SELECT,  PY_UNSELECT,    PY_EDIT,
     PY_GUARDAR, TR_SELECT,      TR_UNSELECT,
-    TR_EDIT,    TR_GUARDAR,     TR_NEW_TXT,
+    TR_GUARDAR, TR_NEW_TXT,
     CM_EDIT,    CM_GUARDAR,     CM_PROGRESS,
-    CM_SUCCESS, CM_FILE_CHANGE, CM_FILE_CANCEL,
-    TR_SUCCESS, TR_CANCEL
+    CM_SUCCESS, CM_FILE_CHANGE, 
+    TR_SUCCESS, TR_CANCEL,      CM_MORE
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -17,6 +17,8 @@ const INITIAL_STATE = {
     archivoNuevo: {file: {}, url: ''},
     tareaActual: { id_tarea: null, editing: false, selected: false },
     loading: false,
+    loadingFile: false,
+    loadingMore: false,
     progress: null,
     error: ''
 };
@@ -28,7 +30,7 @@ export default (state = INITIAL_STATE, action) => {
         case PY_SUCCESS:
             return { ...state, ...INITIAL_STATE, proyectos: action.payload }
         case PY_FAIL:
-            return { ...state, loading: false, progress: null }
+            return { ...state, loading: false, loadingFile: false, loadingMore: false, progress: null }
         case PY_SELECT:
             return { ...state, tmpProyecto: action.payload }
         case PY_UNSELECT:
@@ -47,7 +49,7 @@ export default (state = INITIAL_STATE, action) => {
         case TR_NEW_TXT:
             return { ...state, tareaNuevaTxt: action.payload }
         case TR_SUCCESS:
-            return { ...state, proyectos: action.payload }
+            return { ...state, proyectos: action.payload.proyectos, tareaActual: action.payload.tareaActual, tmpProyecto: action.payload.tmpProyecto }
         case TR_CANCEL:
             return { ...state }
         /** COMENTARIOS */
@@ -55,8 +57,10 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, comentarioNuevo: action.payload }
         case CM_GUARDAR:
             return { ...state, loading: true }
+        case CM_MORE:
+            return { ...state, loadingMore: true}            
         case CM_PROGRESS:
-            return { ...state, progress: action.payload }
+            return { ...state, progress: action.payload, loadingFile: true }
         case CM_SUCCESS:
             return { ...state, ...INITIAL_STATE, proyectos: action.payload.proyectos, tareaActual: action.payload.tareaActual, tmpProyecto: action.payload.tmpProyecto}
         case CM_FILE_CHANGE:

@@ -37,15 +37,15 @@ import {
     //fileCancel,
     //fileChange,
     enviarSocket,
-    //getTarea,
-    //clearSocket,
-    //clearTareaSocket,
+    getTarea,
+    clearSocket,
+    clearTareaSocket,
     refreshTarea,
     loadMore,
     //tareaRenderStart,
     //tareaRenderEnd,
     //proyect_refresh,
-    moreEnd
+    //moreEnd
 } from '../actions';
 
 class Tareas extends Component{
@@ -143,9 +143,6 @@ class Tareas extends Component{
             const tarea = proyecto[0].tareas.filter(tarea => tarea.id_tarea === this.props.tareaActual.id_tarea);
             
             this.props.refreshTarea(tarea[0]);     
-            //this.props.proyect_refresh(proyecto[0]);
-   
-            
         }
 
         if(this.state.lastTop === 0 && ChatComponent.refs.chatScroll.scrollHeight !== this.state.lastHeight) {
@@ -200,7 +197,6 @@ class Tareas extends Component{
                     avance: 0,
                     fec_creacion: '',
                     fec_limite: '',
-                    id_proyecto: null,
                     id_status: 1,
                     id_tarea: null,
                     notificaciones: 0,
@@ -222,8 +218,8 @@ class Tareas extends Component{
      * Load more comments
      */
     onLoadMore() {
-        const { tarea } = this.props.tareaActual;
-        this.props.loadMore(tarea.id_tarea,tarea.topComments[tarea.topComments.length - 1].fec_comentario);
+        const { id_tarea, topComments, id_proyecto } = this.props.tareaActual;
+        this.props.loadMore(this.props.proyectos,id_proyecto,id_tarea,topComments[topComments.length - 1].fec_comentario);
 
         const {ChatComponent} = this.refs;
         this.setState({ lastHeight: ChatComponent.refs.chatScroll.scrollHeight, lastTop: 0 });
@@ -243,7 +239,11 @@ class Tareas extends Component{
         const {ChatComponent} = this.refs;
         this.setState({ lastHeight: ChatComponent.refs.chatScroll.scrollHeight, lastTop: ChatComponent.refs.chatScroll.scrollTop });        
 
-        this.props.guardarComentario(this.props.proyectos,this.props.proyectoActual.id_proyecto,this.props.tareaActual.id_tarea,comentario);
+        this.props.guardarComentario(this.props.proyectos,this.props.proyectoActual.id_proyecto,this.props.tareaActual.id_tarea,comentario, (id_tarea) => {
+            //Cuando guarde el comentario que envíe el socket            
+            this.wsComment("typing","");
+            this.wsComment("enviar",{ id_tarea });              
+        });
     }
 
     wsComment(accion, mensaje){
@@ -255,6 +255,7 @@ class Tareas extends Component{
             id_usuario: `${usuario.id_usuario}`,
             datos: { 
                 id_tarea: this.props.tareaActual.id_tarea,
+                id_usuario: `${usuario.id_usuario}`,
                 mensaje: mensaje
             }
         }
@@ -263,7 +264,7 @@ class Tareas extends Component{
 
     checkIfTyping(socket){
         if(socket.mensaje !== undefined && socket.id_tarea === this.props.tareaActual.id_tarea && socket.accion === "typing") {
-            return socket.mensaje;
+            return { id_usuario: socket.id_usuario, mensaje: socket.mensaje };
         }
 
         return "";
@@ -490,13 +491,12 @@ class Tareas extends Component{
         if(Object.keys(this.props.socket).length > 0) {
             if(this.props.socket.accion === "enviar") {
                 this.props.clearSocket();            
-                this.props.getTarea(this.props.socket.id_tarea,usuario.id_usuario);
+                this.props.getTarea(this.props.proyectos,this.props.socket.id_tarea,usuario.id_usuario);
             }
         }
 
         //Actualizar tarea del socket
         if(Object.keys(this.props.tareaSocket).length > 0){
-            //this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea_socket);
             this.props.refreshTarea(this.props.tareaSocket);                    
             this.props.clearTareaSocket();            
         }     
@@ -505,21 +505,9 @@ class Tareas extends Component{
         //Actualizar tarea editada del modal
         if(Object.keys(this.props.tareaActual).length === 0 && this.state.mostrarModal === true){
             this.setState({ mostrarModal: false });
-            //this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea);  
-            //this.wsComment("enviar",this.props.tareaActual.tarea);      
-           // this.props.limpiarProyectoActual();
         }        
 
-        //Actualizar tarea de comentarios
-        /*if(this.props.comments !== undefined && this.props.comments !=='') {
-            this.props.commentListUpdate();
-            this.wsComment("typing","");
-            //this.props.actualizaListaTareas(this.props.proyectos, this.props.proyectoActual.proyecto, this.props.tareaActual.tarea, this.props.comments.comments);   
-            this.wsComment("enviar",this.props.comments);      
-            //this.props.tareaRenderStart();
-            this.props.moreEnd();
-        }      
-*/
+
         return(
             <div className="detallesContainer divideTop">
                 <div id="listaTareas" className="w3-third chatPanel lightBackground">
@@ -542,7 +530,7 @@ class Tareas extends Component{
                     <Chat 
                         ref={'ChatComponent'}
                         loadingFile={this.props.loadingFile}
-                        loadingComentario={this.props.loadingComentario}
+                        loadingComentario={this.props.loading}
                         loadingMore={this.props.loadingMore}
                         fileProgress={this.props.fileProgress}
                         url={this.props.archivo.url}
@@ -560,7 +548,8 @@ class Tareas extends Component{
                         onLoadMore={this.onLoadMore.bind(this)}
                         //Recibir webSocket cuando alguien está escribiendo
                         typing={this.checkIfTyping(this.props.socket)}
-                        onScroll={(value) => { this.setState({ lastTop: value }); console.log(this.state.lastTop) }}
+                        scrollTop={this.state.lastTop}
+                        onScroll={(value) => { this.setState({ lastTop: value }); }}
                     />
 
                 </div>
@@ -600,11 +589,10 @@ const mapStateToProps = state => {
 
         tareaSocket: state.listaProyectos.tareaSocket,
         usuarios: state.usuarios,
-        loadingComentario: state.comments.loading,
-        loadingFile: state.comments.loadingFile,
+        loadingFile: state.listaProyectos.loadingFile,
         //url: state.comments.url,
         socket: state.socket.socket,
-        loadingMore: state.comments.loadingMore
+        loadingMore: state.listaProyectos.loadingMore
     }
 };
 
@@ -637,15 +625,15 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     //fileCancel,
     //fileChange,
     enviarSocket,
-    //getTarea,
-    //clearSocket,
-    //clearTareaSocket,
+    getTarea,
+    clearSocket,
+    clearTareaSocket,
     //refreshTarea,
     loadMore,
     //tareaRenderEnd,
     //tareaRenderStart,
    // proyect_refresh,
-    moreEnd,
+    //moreEnd,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

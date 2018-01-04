@@ -99,3 +99,4 @@ export const CM_PROGRESS = 'cm_progress';
 export const CM_SUCCESS = 'cm_success';
 export const CM_FILE_CHANGE = 'cm_file_change';
 export const CM_FILE_CANCEL = 'cm_file_cancel';
+export const CM_MORE = 'cm_more';

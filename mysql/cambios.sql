@@ -385,7 +385,9 @@
 				#p.description,
 				#p.job,
 				#p.roleId,
-				getLevelKey(_id_usuario) as levelKey
+                ifnull(p.sn_imagen,0) as sn_imagen,
+				getLevelKey(_id_usuario) as levelKey,
+                ifnull(p.color,'black') as color
 				#ifnull(p.theme,'') as theme
 		FROM cat_usuario as p
 		WHERE p.id_usuario = _id_usuario;

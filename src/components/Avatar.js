@@ -42,19 +42,40 @@ const Avatar = ({ avatar, color, name, size, nameColor, flexDirection = 'row', t
             fontSize: (sizes[size] / 2) - 2  
         }
     };
+    const srcImg = `${network.server}usr/thumbs/small/${avatar}`;
 
-    const avt = (avatar.length < 3) ?
-                (<div style={{ ...styles.avtStyle, backgroundColor: color }}>
+    let avt = null;
+    if(avatar.length < 3) {
+        avt = (<div style={{ ...styles.avtStyle, backgroundColor: color }}>
                     <div style={styles.abbrStyle}>{avatar}</div>
-                </div>) :
-                <img style={styles.avtStyle} src={network.server + 'usr/thumbs/small/' + avatar} />;
+                </div>);
+    } else {
+        checkImage(srcImg,() => {
+            //Si cargó bien
+            avt = <img style={styles.avtStyle} src={srcImg} />;
+        }, () => {
+            //si no se cargó bien
+            avt = (<div style={{ ...styles.avtStyle, backgroundColor: color }}>
+                        <div style={styles.abbrStyle}>{avatar}</div>
+                    </div>);
+        })        
+    }
 
     return (
         <div style={styles.containerStyle}>
-            {avt}
+            <div style={{ ...styles.avtStyle, backgroundColor: color }}>
+                <div style={styles.abbrStyle}>{avatar}</div>
+            </div>
             <div style={{...styles.nameStyle, ...textStyle}} >{name}</div>
         </div>
     );
 };
+
+function checkImage(imageSrc, good, bad) {
+    var img = new Image();
+    img.onload = good; 
+    img.onerror = bad;
+    img.src = imageSrc;
+}
 
 export { Avatar };

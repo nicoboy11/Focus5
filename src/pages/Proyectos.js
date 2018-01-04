@@ -317,7 +317,7 @@ const mapStateToProps = state => {
     return { 
         proyectos: state.listaProyectos.proyectos, 
         proyectoActual: state.listaProyectos.tmpProyecto,
-        loading: state.proyectoActual.loading,
+        loading: state.listaProyectos.loading,
         id_proyecto: state.listaProyectos.current_id_proyecto 
     }
 };

@@ -7,7 +7,7 @@ import { Chats, Personal } from './pages';
 import { MenuTop } from './components';
 import MenuBar from './components/MenuBar';
 
-import { Route, Switch } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { cargarPerfil } from './actions'

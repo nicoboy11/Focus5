@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import { Config } from '../configuracion';
 
-const { menu, network } = Config;
+const { network } = Config;
 
 class MenuTop extends Component{
     renderBreadCrumb() {

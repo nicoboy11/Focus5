@@ -24,6 +24,8 @@ class Ajustes extends Component{
             this.props.cargarPerfil();
         }
         const tmp_perfil = this.props.perfil.tmp_perfil;
+        const sessionData = JSON.parse(localStorage.sessionData)
+
         return(
             <div id="mainProyectos" style={{display:'flex'}}>
                 <Card 
@@ -46,8 +48,9 @@ class Ajustes extends Component{
                     >
                         <FormRow titulo='IMAGEN DE PERFIL'>                            
                                 <Avatar 
-                                    avatar="12.jpg"
+                                    avatar={sessionData.sn_imagen===1?`${sessionData.id_usuario}.jpg`:sessionData.txt_abbr}
                                     size="big"
+                                    color={sessionData.color}
                                 />                        
                         </FormRow>                        
                         <FormRow titulo='NOMBRE'>                            

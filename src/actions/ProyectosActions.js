@@ -5,7 +5,8 @@ import {
     PY_FAIL,        TR_SELECT,      TR_UNSELECT,
     TR_EDIT,        TR_GUARDAR,     CM_EDIT,
     CM_GUARDAR,     CM_PROGRESS,    CM_SUCCESS,
-    CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    TR_SUCCESS
+    CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    
+    TR_SUCCESS,     CM_MORE
 } from './types';
 
 /**
@@ -126,7 +127,7 @@ export const actualizarGente = ({ rolId, persona, tmpProyecto, tmpTarea }) => {
     if(rolId === 2){
         // Borrar el responsable actual
         tarea.participantes = tarea.participantes.filter(participante => { 
-            return participante.role_id != 2 && participante.id_usuario != persona.id_usuario 
+            return participante.role_id !== 2 && participante.id_usuario !== persona.id_usuario 
         });
 
         //pongo la persona como responsable
@@ -144,7 +145,7 @@ export const actualizarGente = ({ rolId, persona, tmpProyecto, tmpTarea }) => {
 
         // Borrar el participantes actuales actual
         tarea.participantes = tarea.participantes.filter(participante => { 
-            return participante.role_id != 3 
+            return participante.role_id !== 3 
         });
 
         tarea.participantes = tarea.participantes.concat(persona);
@@ -208,10 +209,18 @@ export const getTarea = (listaProyectos, id_tarea, id_usuario) => {
                     let tareas = Helper.clrHtml(response[0].tarea);
                     let tareaSocket = tareas ? JSON.parse(tareas)[0] : [];  
 
-                    const proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === tareaSocket.id_proyecto)[0];
+                    let proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === tareaSocket.id_proyecto)[0];
                     const proyectos = pyMerge(listaProyectos, proyectoActual, tareaSocket);
-
-                    dispatch({ type: TR_SUCCESS, payload: proyectos})
+                    //Vuelvo a sacar proyecto y tarea ya con datos actualizados
+                    proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === tareaSocket.id_proyecto)[0];
+                    dispatch({ 
+                        type: TR_SUCCESS, 
+                        payload: { 
+                            proyectos, 
+                            tmpProyecto: proyectoActual, 
+                            tareaActual: { id_tarea: id_tarea, editing: false, selected: true }
+                        } 
+                    });
                 }
             });    
         } catch (err) {
@@ -233,7 +242,7 @@ export const editarComentario = (txt_comentario) => {
     return { type: CM_EDIT, payload: txt_comentario }
 }
 
-export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comentario) => {
+export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comentario, callback) => {
     return (dispatch) => {
         dispatch({ type: CM_GUARDAR });
         try {
@@ -258,7 +267,7 @@ export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comenta
                             const proyectos = pyMerge(listaProyectos, proyectoActual, tareaActual, commentEditado);
                             //Vuelvo a sacar proyecto y tarea ya con datos actualizados
                             proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0];
-                            
+                            callback(id_tarea);
                             dispatch({ 
                                 type: CM_SUCCESS, 
                                 payload: { 
@@ -267,7 +276,7 @@ export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comenta
                                     tareaActual: { id_tarea: id_tarea, editing: false, selected: true }
                                 } 
                             });
-                            break
+                            break;
                         default:
                             dispatch({ type: PY_FAIL, payload: error })
                             return;
@@ -292,6 +301,38 @@ export const cancelarArchivo = () => {
     return({
         type: CM_FILE_CANCEL
     });
+}
+
+export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
+    return(dispatch) => {
+        dispatch({type: CM_MORE});
+        try {
+            Database.request('GET', `GetMoreComments/${id_tarea}?fecha=${fecha}`, {}, 2, (error, response) => {
+                if(error) {
+                    dispatch({type: PY_FAIL, payload: error})
+                } else {
+                    let comentarios = response[0] ? JSON.parse(response[0].comentarios) : [];
+                    let proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0];
+                    let tareaActual = proyectoActual.tareas.filter(tarea => tarea.id_tarea === id_tarea)[0];
+                    //Actualizo la lista de proyectos
+                    const proyectos = pyMerge(listaProyectos, proyectoActual, tareaActual, comentarios);
+                    //Vuelvo a sacar proyecto y tarea ya con datos actualizados
+                    proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0];
+
+                    dispatch({ 
+                        type: CM_SUCCESS, 
+                        payload: { 
+                            proyectos, 
+                            tmpProyecto: proyectoActual, 
+                            tareaActual: { id_tarea: id_tarea, editing: false, selected: true }
+                        } 
+                    });                    
+                }
+            });            
+        } catch(err) {
+            dispatch({ type: PY_FAIL, payload: err })
+        }
+    }
 }
 
 /** Limpiar respuesta de PY (hacer legible)
@@ -384,7 +425,7 @@ export const cancelarArchivo = () => {
 
         //En caso de que cambió de proyecto borro tarea del proyecto y selecciono el nuevo proyecto
         if(tarea_old !== undefined){
-            if(tarea.id_proyecto != proyecto.id_proyecto) {
+            if(tarea.id_proyecto !== proyecto.id_proyecto) {
                 //Elimino tarea de proyecto actual y actualizo la lista general
                 proyecto.tareas.splice(tareaIndex,1);
                 proyectos[foundIndex] = proyecto;
@@ -403,7 +444,7 @@ export const cancelarArchivo = () => {
                 tarea.topComments = tarea.topComments.concat(comentarios);
             } else if (comentarios.length === 1){
                 //si es = 1 puede ser nuevo ò viejo así que checo el id
-                if(tarea.topComments[0].id_tarea_unique < comentarios[0].id_tarea_unique) {
+                if(tarea.topComments.length > 0 && tarea.topComments[0].id_tarea_unique < comentarios[0].id_tarea_unique) {
                     tarea.topComments = comentarios.concat(tarea.topComments);
                 } else {
                     tarea.topComments = tarea.topComments.concat(comentarios);

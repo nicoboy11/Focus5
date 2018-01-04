@@ -1,8 +1,6 @@
 import { Database, Helper } from '../configuracion';
 import {
     USUARIOS,
-    USUARIO_RESPONSABLE,
-    USUARIOS_PARTICIPANTES,
     USUARIOS_FAILED,
     USUARIOS_SUCCESS
 } from './types';
