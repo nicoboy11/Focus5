@@ -159,10 +159,11 @@ class Chat extends Component{
                     return (
                         <div style={{ display: 'flex', alignItems: 'center', margin: '20px' }}>
                             <Avatar 
-                                avatar={`${this.props.typing.id_usuario}.jpg`}
+                                avatar={this.props.typing.sn_imagen===1?`${this.props.typing.id_usuario}.jpg`:this.props.typing.txt_abbr}
                                 size="small"
+                                color={this.props.typing.color}
                             />  
-                            <img style={{ height: '10px', marginLeft: '10px', marginTop: '-5px' }} src={Config.network.server + 'img/800.gif'} />;
+                            <img style={{ height: '10px', marginLeft: '10px', marginTop: '-5px' }} src={Config.network.server + 'img/800.gif'} />
                         </div>
                     );
                 }

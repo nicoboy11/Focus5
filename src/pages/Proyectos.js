@@ -65,9 +65,13 @@ class Proyectos extends Component{
     onGuardar(){
         //Cuando el proyecto es nuevo el id_status es null
         if(this.props.proyectoActual.id_status !== null) {
-            this.props.guardarProyecto(this.props.proyectos, this.props.proyectoActual, false);
+            this.props.guardarProyecto(this.props.proyectos, this.props.proyectoActual, false, () => {
+                this.setState({ mostrarModal: false });
+            });
         } else {
-            this.props.guardarProyecto(this.props.proyectos, this.props.proyectoActual, true);
+            this.props.guardarProyecto(this.props.proyectos, this.props.proyectoActual, true, () => {
+                this.setState({ mostrarModal: false });
+            });
         }
         
     }   
@@ -240,8 +244,10 @@ class Proyectos extends Component{
                             checked={(fec_limite_disabled !== undefined )?fec_limite_disabled:!fec_limite}
                             onChange={
                                 (value) => {
-                                    this.props.editarProyecto({ prop: 'fec_limite',             value: null,    tmpProyecto });                                    
-                                    this.props.editarProyecto({ prop: 'fec_limite_disabled',    value,          tmpProyecto });
+                                    this.props.editarProyecto([
+                                        { prop: 'fec_limite',             value: null,    tmpProyecto },
+                                        { prop: 'fec_limite_disabled',    value,          tmpProyecto }
+                                    ]);
                                 }
                             }
                         /> 
@@ -274,14 +280,7 @@ class Proyectos extends Component{
      * Renderiza la tarjeta de "Nuevo proyecto " y posteriormente la lista de proyectos
      */
     render(){
-        
-        // Si el tmp_proyecto está vacío significa que no se ha inicializado ó que se le acaba de dar guardar
-        // Si el mostralModal es "true" significa que se estaba editando el proyecto
-        // Si se cumplen ambos significa que le acaban de dar guardar por tanto aquí modifico el state
-        if(Object.keys(this.props.proyectoActual).length === 0 && this.state.mostrarModal === true){
-            this.setState({ mostrarModal: false });
-        }
-        
+                
         return(
             <div id="mainProyectos" style={{display:'block'}}>
                 <div id="list" style={styles.listWrap}>

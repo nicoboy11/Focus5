@@ -6,7 +6,7 @@ import {
     TR_EDIT,        TR_GUARDAR,     CM_EDIT,
     CM_GUARDAR,     CM_PROGRESS,    CM_SUCCESS,
     CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    
-    TR_SUCCESS,     CM_MORE
+    TR_SUCCESS,     CM_MORE,        TR_LEIDA
 } from './types';
 
 /**
@@ -41,18 +41,29 @@ export const desseleccionarProyecto = (proyecto) => {
     };
 }
 
-export const editarProyecto = ({ prop, value, tmpProyecto }) => {
-    
-    let proyecto = { ...tmpProyecto };
-    proyecto[prop] = value;
+export const editarProyecto = (ediciones) => {
+    let proyecto = {};
+    if(ediciones.constructor === Array){
+
+        proyecto = { ...ediciones[0].tmpProyecto };
+        ediciones.forEach(item => {
+            const { prop, value } = item;       
+            proyecto[prop] = value;             
+        });
+
+    } else {
+        const { prop, value, tmpProyecto } = ediciones;       
+        proyecto = { ...tmpProyecto };
+        proyecto[prop] = value;      
+    }
 
     return {
         type: PY_EDIT,
         payload: proyecto
-    };
+    };   
 }
 
-export const guardarProyecto = (listaProyectos, proyecto, snNuevo) => {
+export const guardarProyecto = (listaProyectos, proyecto, snNuevo, callback = () =>{}) => {
     
     //Dependiendo si es nuevo o edición usa diferentes rutas
     const ruta = snNuevo?'crearProyecto':`editarProyecto/${proyecto.id_proyecto}`;
@@ -70,6 +81,7 @@ export const guardarProyecto = (listaProyectos, proyecto, snNuevo) => {
                     const newResponse = handleReponsePY(response);
                     //Agregar datos a la lista original
                     const newList = pyMerge([...listaProyectos], newResponse[0]);
+                    callback();
                     //Actualizar State
                     dispatch({ type: PY_SUCCESS, payload: newList });
                 }
@@ -103,7 +115,7 @@ export const desseleccionarTarea = (listaProyectos, proyecto) => {
     };
 }
 
-export const editarTarea = ({ prop, value, tmpProyecto, tmpTarea }) => {
+export const editarTarea = ({ prop, value, tmpProyecto, tmpTarea }, callback = () =>{}) => {
     let proyecto = { ...tmpProyecto };
     const foundIndex = proyecto.tareas.findIndex(x=>x.id_tarea === tmpTarea.id_tarea);
     
@@ -111,6 +123,8 @@ export const editarTarea = ({ prop, value, tmpProyecto, tmpTarea }) => {
     tarea[prop] = value;
 
     proyecto.tareas[foundIndex] = tarea;
+
+    callback(proyecto, tarea);
 
     return {
         type: TR_EDIT,
@@ -199,7 +213,38 @@ export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva) => 
     }    
 }
 
-export const getTarea = (listaProyectos, id_tarea, id_usuario) => {
+export const marcarLeida = (listaProyectos, id_proyecto, id_tarea, id_usuario) => {
+    
+        return (dispatch) => {
+            try {
+                Database.request('POST', `MarcarLeida/${id_tarea}`, { id_usuario }, 2, (error, response) => {
+                    if(error){
+                        dispatch({ type: PY_FAIL, payload: error })
+                    } else{
+                        const proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0];
+                        let tareaObj = Helper.clrHtml(response[0].tarea);
+                        let tareaEditada = tareaObj ? JSON.parse(tareaObj)[0] : []; 
+                        tareaEditada.notificaciones = 0;                        
+                        //Agregar a proyectos principales
+                        const proyectos = pyMerge(listaProyectos, proyectoActual, tareaEditada);
+                        dispatch({ 
+                            type: TR_SUCCESS, 
+                            payload: { 
+                                proyectos, 
+                                tmpProyecto: proyectoActual, 
+                                tareaActual: { id_tarea: id_tarea, editing: false, selected: true }    
+                            }                        
+                        });
+                    }
+                });          
+            }
+            catch(err) {
+                dispatch({ type: PY_FAIL, payload: err })
+            }                 
+        }    
+    }
+
+export const getTarea = (listaProyectos, id_tarea, id_usuario, selected = false) => {
     return (dispatch) => {
         try {
             Database.request('GET', `tarea/${id_tarea}?id_usuario=${id_usuario}`, {}, 2, (error, response) => {
@@ -218,7 +263,7 @@ export const getTarea = (listaProyectos, id_tarea, id_usuario) => {
                         payload: { 
                             proyectos, 
                             tmpProyecto: proyectoActual, 
-                            tareaActual: { id_tarea: id_tarea, editing: false, selected: true }
+                            tareaActual: { id_tarea: id_tarea, editing: false, selected }
                         } 
                     });
                 }

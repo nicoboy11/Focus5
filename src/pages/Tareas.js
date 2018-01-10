@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Tarea, Input, Modal, ContextMenu, FormRow, Chat, NewTask } from '../components';
+import { Tarea, Input, Modal, ContextMenu, FormRow, Chat, NewTask, Segmented } from '../components';
 import Slider from 'react-rangeslider';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
@@ -19,8 +19,6 @@ import {
     seleccionarTarea, 
     desseleccionarTarea,
     editarTarea,
-
-    //actualizarTarea, 
     listaUsuarios, 
     actualizarGente, 
     guardarTarea,
@@ -28,24 +26,13 @@ import {
     guardarComentario,
     editarArchivo,
     cancelarArchivo,
-    //guardarTareaNueva,
-    //limpiarTareaActuallimpiarTareaActual,
-    //actualizaListaTareas,
-    //commentChanged,
-    //commentGuardar,
-    //commentListUpdate,
-    //fileCancel,
-    //fileChange,
     enviarSocket,
     getTarea,
     clearSocket,
     clearTareaSocket,
     refreshTarea,
     loadMore,
-    //tareaRenderStart,
-    //tareaRenderEnd,
-    //proyect_refresh,
-    //moreEnd
+    marcarLeida
 } from '../actions';
 
 class Tareas extends Component{
@@ -156,16 +143,62 @@ class Tareas extends Component{
      */
     onContextOpen(e, id_tarea){
         //Validar situación de la tarea (que menú se va a mostrar)
-        //.....
+        const sessionData = JSON.parse(localStorage.sessionData);
+        const tareaActual = this.props.proyectoActual.tareas.filter(tarea => tarea.id_tarea === id_tarea)[0];
+        const roleId = parseInt(tareaActual.role_id);
+
+        if(tareaActual === undefined){
+            return;
+        }
+
+        //Generar lista
+        const lista = [];        
+
+        if(tareaActual.id_status === 1){
+            switch(roleId){
+                case 1:
+                    lista.push({ nombre: 'Editar tarea', icono: null, evento: 'editar', enabled: true });
+                    lista.push({ nombre: 'Marcar como atendida', icono: 'done', evento: 'atender', enabled: true });
+                    lista.push({ nombre: 'Marcar como terminada', icono: 'done_all', evento: 'terminar', enabled: true });
+                    break;
+                case 2:
+                    lista.push({ nombre: 'Editar tarea', icono: null, evento: 'editar', enabled: true });
+                    lista.push({ nombre: 'Marcar como atendida', icono: 'done', evento: 'atender', enabled: true });
+                    break;                
+                case 3:
+                    break;                
+            }
+        } else if(tareaActual.id_status === 2){
+            switch(roleId){
+                case 1:
+                    lista.push({ nombre: 'Editar tarea', icono: null, evento: 'editar', enabled: true });
+                    lista.push({ nombre: 'Marcar como atendida', icono: 'done', evento: 'atender', enabled: true });
+                    lista.push({ nombre: 'Marcar como activa', icono: null, evento: 'activar', enabled: true });
+                    break;
+                case 2:
+                    lista.push({ nombre: 'Editar tarea', icono: null, evento: 'editar', enabled: true });
+                    lista.push({ nombre: 'Marcar como activa', icono: null, evento: 'activar', enabled: true });
+                    break;                
+                case 3:
+                    break;                
+            }            
+        } else if(tareaActual.id_status === 3){
+            switch(roleId){
+                case 1:
+                    lista.push({ nombre: 'Editar tarea', icono: null, evento: 'editar', enabled: true });
+                    lista.push({ nombre: 'Reactivar tarea', icono: null, evento: 'activar', enabled: true });
+                    break;
+                case 2:
+                    lista.push({ nombre: 'Reactivar', icono: null, evento: 'activar', enabled: true });
+                    break;                
+                case 3:
+                    break;                
+            }               
+        }
 
         //Seleccionar Tarea
         this.props.seleccionarTarea(id_tarea, true, false);
-
-        //Generar lista
-        const lista = [];
-        lista.push({ nombre: 'Editar tarea', icono: null, evento: 'onEditClick', enabled: true });
-        lista.push({ nombre: 'Marcar como atendida', icono: null, evento: 'onEditClick', enabled: true });
-        lista.push({ nombre: 'Marcar como terminada', icono: null, evento: 'onEditClick', enabled: true });
+        this.props.marcarLeida(this.props.proyectos,this.props.proyectoActual.id_proyecto, id_tarea,sessionData.id_usuario);
 
         //Mostrar menú
         this.setState({ mostrarContextMenu: true, listaContext: lista, posicion: {x: e.clientX, y: e.clientY} });
@@ -174,15 +207,33 @@ class Tareas extends Component{
 
     onContextClick(item) {
 
-        switch(item.nombre){
-            case 'Editar tarea':
+        switch(item.evento){
+            case 'editar':
                 this.setState({ mostrarModal: true });
                 break;
+            case 'atender':
+                this.editarEstatus(3);
+                break;
+            case 'activar':
+                this.editarEstatus(1);
+                break;
+            case 'terminar':
+                this.editarEstatus(2);
+                break;                
             default:
                 break;
         }
 
         this.setState({ mostrarContextMenu: false });
+    }
+
+    editarEstatus(id_status){
+        const tmpProyecto = this.props.proyectoActual;
+        const tmpTarea = this.props.tareaActual;
+
+        this.props.editarTarea({ prop: 'id_status', value: id_status, tmpProyecto, tmpTarea  }, (proyecto, tarea) => {
+            this.props.guardarTarea(this.props.proyectos, proyecto.id_proyecto, tarea);
+        });
     }
 
     /**
@@ -256,15 +307,22 @@ class Tareas extends Component{
             datos: { 
                 id_tarea: this.props.tareaActual.id_tarea,
                 id_usuario: `${usuario.id_usuario}`,
-                mensaje: mensaje
+                sn_imagen: usuario.sn_imagen,
+                txt_abbr: usuario.txt_abbr,
+                mensaje,
+                color: usuario.color
             }
         }
-        this.ws.send(JSON.stringify(obj));        
+
+        if(this.ws.readyState === this.ws.OPEN) {
+            this.ws.send(JSON.stringify(obj));        
+        }
+        
     }
 
     checkIfTyping(socket){
         if(socket.mensaje !== undefined && socket.id_tarea === this.props.tareaActual.id_tarea && socket.accion === "typing") {
-            return { id_usuario: socket.id_usuario, mensaje: socket.mensaje };
+            return { id_usuario: socket.id_usuario, mensaje: socket.mensaje, sn_imagen: socket.sn_imagen, txt_abbr: socket.txt_abbr, color: socket.color };
         }
 
         return "";
@@ -276,7 +334,9 @@ class Tareas extends Component{
     tareaClick(id_tarea){
 
         //Seleccionar Tarea
+        const sessionData = JSON.parse(localStorage.sessionData);
         this.props.seleccionarTarea(id_tarea, false, true);
+        this.props.marcarLeida(this.props.proyectos,this.props.proyectoActual.id_proyecto, id_tarea,sessionData.id_usuario);
         this.props.editarComentario("", {});
         this.wsComment("typing","");
     }
@@ -308,6 +368,13 @@ class Tareas extends Component{
             participaTarea = participantes.filter(participante => participante.role_id === 3);
         }
         
+        let usuarios = [];
+        let usuariosPart = [];
+
+        if(this.props.usuarios.usuarios !== undefined && this.props.usuarios.usuarios.length > 0) {
+            usuarios = [ ...this.props.usuarios.usuarios ];
+            usuariosPart = usuarios.filter(usuario => usuario.id_usuario !== responsable[0].id_usuario)
+        }
 
         return (
             <Modal 
@@ -356,6 +423,24 @@ class Tareas extends Component{
                         }
                     />  
                 </FormRow>  
+                <FormRow titulo='ESTATUS'>
+                    <Segmented 
+                        value={id_status}
+                        items={[
+                            {value: 1, title:'Activa', icon:''},
+                            {value: 3, title:'Atendida', icon:'done'},
+                            {value: 2, title:'Terminada', icon:'done_all'}
+                        ]}
+                        onSelect={
+                            value => this.props.editarTarea({ 
+                                prop: 'id_status', 
+                                value,
+                                tmpProyecto,
+                                tmpTarea
+                            })
+                        }
+                    />
+                </FormRow>                  
                 <FormRow titulo='RESPONSABLE'>                    
                     <Select 
                         name='selResponsable'
@@ -371,7 +456,7 @@ class Tareas extends Component{
                                 }
                         valueKey="id_usuario"
                         labelKey="txt_usuario"
-                        options={this.props.usuarios.usuarios}
+                        options={usuarios}
                     />                    
                 </FormRow>     
                 <FormRow titulo='PARTICIPANTES'>                    
@@ -386,7 +471,7 @@ class Tareas extends Component{
                                     })}
                         valueKey="id_usuario"
                         labelKey="txt_usuario"
-                        options={this.props.usuarios.usuarios}
+                        options={usuariosPart}
                         multi={true}
                     />                    
                 </FormRow>                      
@@ -469,6 +554,7 @@ class Tareas extends Component{
                             avance={tarea.avance}
                             selected={selected}
                             typing={typing}
+                            status={tarea.id_status}
                             onClick={this.tareaClick.bind(this)}
                             onMenuOpen={(e) => this.onContextOpen(e,tarea.id_tarea)}
                         />
@@ -586,11 +672,9 @@ const mapStateToProps = state => {
         fileProgress: state.listaProyectos.progress,
         loading: state.listaProyectos.loading,
         archivo: state.listaProyectos.archivoNuevo,
-
         tareaSocket: state.listaProyectos.tareaSocket,
         usuarios: state.usuarios,
         loadingFile: state.listaProyectos.loadingFile,
-        //url: state.comments.url,
         socket: state.socket.socket,
         loadingMore: state.listaProyectos.loadingMore
     }
@@ -601,14 +685,11 @@ const mapStateToProps = state => {
  * @param {*} dispatch 
  */
 const mapDispatchToProps = dispatch => bindActionCreators({
-    //cargarTareas, 
     listaProyectos, 
     seleccionarProyecto, 
     seleccionarTarea, 
     desseleccionarTarea,
     editarTarea,
-
-    //actualizarTarea, 
     listaUsuarios, 
     actualizarGente, 
     guardarTarea, 
@@ -616,24 +697,12 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     guardarComentario,
     editarArchivo,
     cancelarArchivo,
-    //guardarTareaNueva,
-    //limpiarTareaActual,
-   // actualizaListaTareas,
-    //commentChanged,
-    //commentGuardar,
-    //commentListUpdate,
-    //fileCancel,
-    //fileChange,
     enviarSocket,
     getTarea,
     clearSocket,
     clearTareaSocket,
-    //refreshTarea,
     loadMore,
-    //tareaRenderEnd,
-    //tareaRenderStart,
-   // proyect_refresh,
-    //moreEnd,
+    marcarLeida,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

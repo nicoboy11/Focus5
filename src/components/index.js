@@ -13,3 +13,4 @@ export * from './Chat';
 export * from './NewTask';
 export * from './Card';
 export * from './Avatar';
+export * from './Segmented';

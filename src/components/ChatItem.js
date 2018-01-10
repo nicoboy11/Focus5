@@ -53,13 +53,17 @@ class ChatItem extends Component {
                 <div className="bitacora">{Helper.htmlPaso(Helper.decode_utf8(txt_comentario))}</div>
             );
         }
+        let wimageStyle = {};
+        if(this.props.imagen !== ""){
+            wimageStyle = { marginBottom: '0px' };
+        }
         //Se usa == en vez de === para que compara el valor y no el tipo
         if(id_current_user == id_usuario){
             const loadingStyle = (loading && !progress)?styles.loadingStyle:null;
             return (
                     <div className="chatMessage" style={{...loadingStyle, ...styles.chatItemStyle, ...styles.rightItemStyle}}>
                         <div style={styles.messageSelf}>
-                            <div style={{ margin: '10px', position:'relative' }}>
+                            <div style={{ margin: '10px', ...wimageStyle, position:'relative' }}>
                                   {this.renderImage()}
                                 {Helper.decode_utf8(txt_comentario)}
                                 {(progress !== undefined)?
@@ -130,11 +134,11 @@ const styles = {
         borderRadius: '10px',   
         borderTopRightRadius: '0px',
         minWidth: '120px',
-        /*maxWidth: '80%',*/
+        /*maxWidth: '80%',
         paddingRight: '10px',
         paddingTop: '0px',
         paddingLeft: '0px',
-        paddingBottom: '3px',
+        paddingBottom: '3px',*/
         color: '#FFF',
         float: 'right',
         margin: '10px'

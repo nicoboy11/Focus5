@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './css/circle.css';
 import './css/general.css';
 import './css/w3.css';
+import './css/animate.css';
 
 import { Chats, Personal } from './pages';
 import { MenuTop } from './components';

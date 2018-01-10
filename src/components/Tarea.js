@@ -31,9 +31,19 @@ class Tarea extends Component{
 
         return null;
     }
+    renderStatus(status){
+        if(status == 2){
+            return <i title="Terminada" className="material-icons clickableColor" style={{position:'absolute', right: '10px'}}>done_all</i>;
+        } 
 
+        if(status == 3){
+            return <i title="Atendida" className="material-icons clickableColor" style={{position:'absolute', right: '10px'}}>done</i>;
+        }
+
+        return null;
+    }
     render(){
-        const { participantes, txt_tarea, fec_limite, txt_proyecto, avance, selected, typing } = this.props;
+        const { participantes, txt_tarea, fec_limite, txt_proyecto, avance, selected, typing, status } = this.props;
 
         return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} style={(selected)?styles.selectedStyle:null} className="tareaCard divideBottom">
                     <div className={`c100 p${avance} tiny blue`}>
@@ -55,6 +65,7 @@ class Tarea extends Component{
                             </div>
                         </div>
                     </div>
+                    {this.renderStatus(status)}                    
                 <div className="taskBottom chatContentBottom">
                     <UserList participantes={participantes} limit={3} />
                     <div style={styles.typingStyle}>{typing}</div>

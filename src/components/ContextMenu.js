@@ -17,6 +17,7 @@ class ContextMenu extends Component{
     renderList(){
         return this.props.lista.map(item => {
             return (<li key={item.nombre} style={styles.liList} onClick={() => this.onListClick(item)}>
+                        {(item.icono !== undefined)?<i title="Atendida" style={{ marginRight: '5px' }} className='material-icons clickableColor'>{item.icono}</i>:null}            
                         {item.nombre}
                     </li>);
         });
@@ -60,7 +61,9 @@ const styles = {
         paddingTop: '15px',
         marginLeft: '20px',
         marginRight: '20px',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center'
     },
     modal: {
         position:'fixed',

@@ -5,7 +5,8 @@ import {
     TR_GUARDAR, TR_NEW_TXT,
     CM_EDIT,    CM_GUARDAR,     CM_PROGRESS,
     CM_SUCCESS, CM_FILE_CHANGE, 
-    TR_SUCCESS, TR_CANCEL,      CM_MORE
+    TR_SUCCESS, TR_CANCEL,      CM_MORE,
+    TR_LEIDA
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -49,7 +50,11 @@ export default (state = INITIAL_STATE, action) => {
         case TR_NEW_TXT:
             return { ...state, tareaNuevaTxt: action.payload }
         case TR_SUCCESS:
-            return { ...state, proyectos: action.payload.proyectos, tareaActual: action.payload.tareaActual, tmpProyecto: action.payload.tmpProyecto }
+            let tareaActual = {};
+            if(action.payload.selected){
+                tareaActual = { tareaActual: action.payload.tareaActual }
+            }
+            return { ...state, proyectos: action.payload.proyectos, ...tareaActual, tmpProyecto: action.payload.tmpProyecto }
         case TR_CANCEL:
             return { ...state }
         /** COMENTARIOS */

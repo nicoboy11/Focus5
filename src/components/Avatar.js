@@ -39,37 +39,43 @@ const Avatar = ({ avatar, color, name, size, nameColor, flexDirection = 'row', t
         },
         abbrStyle: {
             color: colors.mainText,
-            fontSize: (sizes[size] / 2) - 2  
+            fontSize: `${(sizes[size] / 2) - 2}px`,
+            lineHeight: `${((sizes[size] / 2) - 2)*2}px`,
+            textAlign: 'center'
         }
     };
     const srcImg = `${network.server}usr/thumbs/small/${avatar}`;
 
     let avt = null;
     if(avatar.length < 3) {
-        avt = (<div style={{ ...styles.avtStyle, backgroundColor: color }}>
-                    <div style={styles.abbrStyle}>{avatar}</div>
-                </div>);
+        avatar = (<div style={{ ...styles.avtStyle, backgroundColor: color }}>
+                            <div style={styles.abbrStyle}>{avatar}</div>
+                        </div>);
     } else {
-        checkImage(srcImg,() => {
-            //Si cargó bien
-            avt = <img style={styles.avtStyle} src={srcImg} />;
-        }, () => {
-            //si no se cargó bien
-            avt = (<div style={{ ...styles.avtStyle, backgroundColor: color }}>
-                        <div style={styles.abbrStyle}>{avatar}</div>
-                    </div>);
-        })        
+
+            avatar = <img style={styles.avtStyle} src={srcImg} />;
+
     }
 
+    return (<div style={styles.containerStyle}>
+                <div style={{ ...styles.avtStyle, backgroundColor: color }}>
+                    <div style={styles.abbrStyle}>{avatar}</div>
+                </div>
+                <div style={{...styles.nameStyle, ...textStyle}} >{name}</div>
+            </div>);
+
+};
+
+function compRender(avatar, styles, props) {
     return (
         <div style={styles.containerStyle}>
-            <div style={{ ...styles.avtStyle, backgroundColor: color }}>
-                <div style={styles.abbrStyle}>{avatar}</div>
+            <div style={{ ...styles.avtStyle, backgroundColor: props.color }}>
+                <div style={styles.abbrStyle}>{props.avatar}</div>
             </div>
-            <div style={{...styles.nameStyle, ...textStyle}} >{name}</div>
+            <div style={{...styles.nameStyle, ...props.textStyle}} >{props.name}</div>
         </div>
     );
-};
+}
 
 function checkImage(imageSrc, good, bad) {
     var img = new Image();

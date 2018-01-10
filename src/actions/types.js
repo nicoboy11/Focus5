@@ -92,6 +92,7 @@ export const TR_GUARDAR = 'tr_guardar';
 export const TR_SUCCESS = 'tr_success';
 export const TR_CANCEL = 'tr_fail';
 export const TR_NEW_TXT = 'tr_new_txt';
+export const TR_LEIDA = 'tr_leida';
 
 export const CM_EDIT = 'cm_edit';
 export const CM_GUARDAR = 'cm_guardar';

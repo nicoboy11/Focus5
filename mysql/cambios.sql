@@ -204,7 +204,7 @@
 
 
 	#-------------------------------------------------------------------
-    
+
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTarea$$
 	CREATE FUNCTION getJsonTarea(_id_proyecto int, _id_tarea int, _id_usuario int, _bitStatus int) RETURNS MEDIUMTEXT
@@ -227,7 +227,8 @@
 							'"id_status":',ct.id_status,',',
                             '"avance":',IFNULL(ct.avance,0),',',
 							'"priority_id":"',ct.priority_id,'",',
-                            '"commentCount":"',getCommentCount(ct.id_tarea),'",',
+                            '"commentCount":',getCommentCount(ct.id_tarea),',',
+                            '"role_id":"',case when ct.id_usuario = _id_usuario then 1 else bvt.role_id end,'",',
 							'"notificaciones":',FN_ULTIMO_COMMENT(bvt.id_tarea, IFNULL(bvt.fec_actualiza, '2000-01-01')),',',                            
 							'"participantes":',getJsonUsuariosTarea(ct.id_tarea),',',
 							'"topComments":',getJsonTopComments(ct.id_tarea,null,NOW()+1),'',
@@ -263,7 +264,7 @@
 							'"id_usuario":',cu.id_usuario,',',
                             '"id_usuario_superior":',cu.id_usuario_superior,',',
                             '"clave":"',FN_NIVEL(cu.id_usuario),'",',
-                            '"role_id":',bvt.role_id,',',
+                            '"role_id":',case when ct.id_usuario = bvt.id_usuario then 1 else bvt.role_id end,',',
                             '"txt_login":"',cu.txt_login,'",',
 							'"txt_usuario":"',cu.txt_usuario,'",',
 							'"txt_abbr":"',ifnull(cu.txt_abbr,''),'",',
@@ -497,6 +498,15 @@ BEGIN
     
 END$$
 
+DELIMITER $$
+DROP PROCEDURE IF EXISTS MarcarLeida$$
+CREATE PROCEDURE MarcarLeida(IN _id_tarea int, IN _id_usuario int)
+BEGIN
+
+	UPDATE bit_view_tarea SET fec_actualiza = NOW() where id_usuario = _id_usuario and id_tarea = _id_tarea;
+    SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL) as tarea;
+
+END;
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS EditTarea$$
@@ -523,15 +533,15 @@ BEGIN
     #-----------Falta validar los cambios para el log
 
 		UPDATE ctrl_tareas
-		SET txt_tarea = _txt_tarea,
-			txt_descripcion = _txt_descripcion,
-            fec_limite = _fec_limite,
-            id_usuario = _id_usuario,
-            id_responsable = _id_responsable,
-            id_proyecto = _id_proyecto,
-            id_status = _id_status,
-            priority_id = _priority_id,
-            avance = _avance,
+		SET txt_tarea = coalesce(_txt_tarea,txt_tarea),
+			txt_descripcion = coalesce(_txt_descripcion,txt_descripcion),
+            fec_limite = coalesce(_fec_limite,fec_limite),
+            id_usuario = coalesce(_id_usuario,id_usuario),
+            id_responsable = coalesce(_id_responsable,id_responsable),
+            id_proyecto = coalesce(_id_proyecto,id_proyecto),
+            id_status = coalesce(_id_status,id_status),
+            priority_id = coalesce(_priority_id,priority_id),
+            avance = coalesce(_avance,avance),
             fec_actualiza = NOW()
 		WHERE id_tarea = _id_tarea;
         
