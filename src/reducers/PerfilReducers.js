@@ -21,7 +21,7 @@ export default (state = INITIAL_STATE, action) => {
         case PERFIL_SAVE:
             return { ...state, loading: true }
         case PERFIL_SAVE_FAILED:
-            return { ...state, loading: false, error: action.payload}
+            return { ...state, loading: false, error: true}
         default:
             return { ...state }
     }

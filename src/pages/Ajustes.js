@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { Card, Modal, FormRow, Input, Avatar } from '../components';
+import { Card, Modal, FormRow, Input, Avatar, ImagePicker } from '../components';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { editarPerfil, guardarPerfil, cargarPerfil } from '../actions';
+import { editarPerfil, guardarPerfil, cargarPerfil, editarArchivo } from '../actions';
+import swal from 'sweetalert';
 
 class Ajustes extends Component{
     constructor(props){
@@ -18,7 +19,14 @@ class Ajustes extends Component{
     componentWillReceiveProps(nextProps){
     }
 
+   
+
     render(){
+
+        if(this.props.perfil.error){
+            swal(":(", "No fué posible guardar, intente más tarde", "error");
+        }
+
         if(this.props.perfil.tmp_perfil.id_usuario === undefined && this.state.mostrarModalPerfil === true) {
             this.setState({ mostrarModalPerfil: false });
             this.props.cargarPerfil();
@@ -46,12 +54,16 @@ class Ajustes extends Component{
                     onGuardar={() => { this.props.guardarPerfil(tmp_perfil); }}
                     onCerrar={() => { this.setState({ mostrarModalPerfil: false }) }}
                     >
-                        <FormRow titulo='IMAGEN DE PERFIL'>                            
+                        <FormRow titulo='IMAGEN DE PERFIL' style={{ alignItems: 'center' }}>                            
                                 <Avatar 
                                     avatar={sessionData.sn_imagen===1?`${sessionData.id_usuario}.jpg`:sessionData.txt_abbr}
-                                    size="big"
+                                    size="huge"
                                     color={sessionData.color}
-                                />                        
+                                />  
+                                <ImagePicker 
+                                    archivo={this.props.archivo}
+                                    fileChange={(file, event) => this.props.editarArchivo(file, event)}
+                                />
                         </FormRow>                        
                         <FormRow titulo='NOMBRE'>                            
                                 <Input 
@@ -128,14 +140,18 @@ class Ajustes extends Component{
 const mapStateToProps = (state) => {
     return {
         perfil: state.perfil,
-        loadingPerfil: state.perfil.loading
+        loadingPerfil: state.perfil.loading,
+        fileProgress: state.listaProyectos.progress,
+        loading: state.listaProyectos.loading,
+        archivo: state.listaProyectos.archivoNuevo
     }
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators({
     editarPerfil,
     guardarPerfil,
-    cargarPerfil
+    cargarPerfil,
+    editarArchivo
 }, dispatch)
 
 export default connect(mapStateToProps,mapDispatchToProps)(Ajustes);

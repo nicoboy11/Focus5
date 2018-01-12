@@ -6,6 +6,7 @@ class Modal extends Component {
         type: 'FORM',//o MENSAJE
         isVisible: false,
         titulo: '',
+        style: {},
         mensaje: '',
         onGuardar: () => {},
         onCancelar: () => {},
@@ -48,7 +49,7 @@ class Modal extends Component {
                         }
                         
                     </div>
-                    <div style={{ flex: 1, padding: '20px', overflowY: 'auto'}}>
+                    <div style={{ flex: 1, padding: '20px', overflowY: 'auto', ...this.props.style}}>
                         {this.props.children}
                     </div>
                 </div>

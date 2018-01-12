@@ -17,7 +17,8 @@
     "react-scripts": "1.0.17",
     "react-select": "^1.1.0",
     "redux": "^3.7.2",
-    "redux-thunk": "^2.2.0"
+    "redux-thunk": "^2.2.0",
+    "sweetalert": "^2.1.0"
   },
   "scripts": {
     "start": "react-scripts start",

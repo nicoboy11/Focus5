@@ -38,9 +38,11 @@ export const guardarPerfil = (perfil) => {
         dispatch({ type: PERFIL_SAVE });
         try {
             Database.request('POST', `Perfil/${perfil.id_usuario}`, perfil, 2, (err, res) => {
-                if(err) {
+                if(err || res.status > 299) {
+                    console.log("%c" + res.message, "color:orange")
                     dispatch({ type: PERFIL_SAVE_FAILED, payload: err })
                 } else {
+                    localStorage.sessionData = JSON.stringify(res[0]);
                     dispatch({ type: PERFIL_SAVE_SUCCESS, payload: res[0] })
                 }
             });

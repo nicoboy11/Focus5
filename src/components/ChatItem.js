@@ -16,22 +16,108 @@ class ChatItem extends Component {
         userColor: '#333'
     }
 
+    constructor(props){
+        super(props);
+        this.state = {
+            display: { display: 'none' }
+        }
+    }
+
+    obtieneNombreArchivo(archivo){
+        //quitar la extensión
+        const woExt = archivo.split("-2")[0];
+        //separo la url
+        const wurl = woExt.split("/");
+        //regreso el nombre del archivo
+        return wurl[wurl.length - 1] + "." + this.obtieneExtensionArchivo(archivo);
+    }
+
+    obtieneExtensionArchivo(archivo){
+        //quitar la extensión
+        const woExt = archivo.split(".");
+        //regreso la extension
+        return woExt[woExt.length - 1];
+    }    
+
     renderImage() {
         if(this.props.imagen !== "") {
             let loading = {};
             if(this.props.loading){
                 loading = styles.loadingStyle;
             }
+
+            if((/\.(gif|jpg|jpeg|tiff|png)$/i).test(this.props.imagen)){
+                return (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <img 
+                            onClick={() => this.setState({ display: { display: 'flex' } })}
+                            src={`${this.props.imagen}`} 
+                            style={{ ...loading, marginBottom: '10px', borderRadius: '10px', objectFit: 'cover', width: '230px', height: '230px'}} 
+                        />
+                        <br />
+                        <br />
+                        <div
+                            style={{ 
+                                ...this.state.display, 
+                                position: 'fixed', 
+                                width: '100%', 
+                                height: '100%',
+                                background: 'rgba(50,50,50,0.5)',
+                                top: '0',
+                                left: '0',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                zIndex: '99'
+                            }}
+                        >
+                            <div style={{ 
+                                            maxWidth: '900px', 
+                                            top: '0', 
+                                            left: '0'
+                                        }}
+                            >
+                                <div style={{display:'flex', flexDirection: 'row', justifyContent: 'flex-end'}}>
+                                    <a href={this.props.imagen} download>
+                                        <div
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <i className="material-icons" style={{marginLeft: '5px', color: 'white'}}>file_download</i>
+                                        </div>                                    
+                                    </a>
+                                    <div
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => { this.setState({ display: {display: 'none'} }); }}                                    
+                                    >
+                                        <i className="material-icons" style={{marginLeft: '5px', color: 'white'}}>close</i>
+                                    </div>
+                                </div>                          
+                                <img 
+                                    style={{width: '100%'}}
+                                    src={`${this.props.imagen}`} 
+                                />                             
+                            </div>                        
+                        </div>
+
+                    </div>
+                );
+            }
+
             return (
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <img 
-                        src={`${this.props.imagen}`} 
-                        style={{ ...loading, marginBottom: '10px', borderRadius: '10px', objectFit: 'cover', width: '230px', height: '230px'}} 
-                    />
+                    <div 
+                        style={{background: 'rgba(100,100,100,.5)', padding: '10px', marginBottom: '10px', borderRadius:'5px'}}
+                    > 
+                        <a style={{ display: 'flex', color: 'white', alignItems: 'center', textDecoration: 'none' }} href={this.props.imagen} download>
+                            <div>{this.obtieneNombreArchivo(this.props.imagen)}</div>
+                            <i className="material-icons" style={{marginLeft: '5px'}}>file_download</i>
+                        </a>
+                    </div>
                     <br />
                     <br />
                 </div>
             );
+
+
         }
     }
 
@@ -64,7 +150,7 @@ class ChatItem extends Component {
                     <div className="chatMessage" style={{...loadingStyle, ...styles.chatItemStyle, ...styles.rightItemStyle}}>
                         <div style={styles.messageSelf}>
                             <div style={{ margin: '10px', ...wimageStyle, position:'relative' }}>
-                                  {this.renderImage()}
+                                {this.renderImage()}
                                 {Helper.decode_utf8(txt_comentario)}
                                 {(progress !== undefined)?
                                 <div style={styles.barra}>

@@ -5,7 +5,7 @@ class FormRow extends Component {
         return (
             <div className="wrapperForma">
                 <div className="tituloForma fadeColor">{this.props.titulo}:</div>
-                <div className="contentForma">
+                <div className="contentForma" style={{ ...this.props.style }}>
                     {this.props.children}
                 </div>
             </div>
