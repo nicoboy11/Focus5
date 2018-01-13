@@ -3,7 +3,7 @@ import { Config } from '../configuracion';
 
 const { colors, network } = Config;
 
-const Avatar = ({ avatar, color, name, size, nameColor, flexDirection = 'row', textStyle }) => {
+const Avatar = ({ avatar, color, name, size, nameColor, flexDirection = 'row', textStyle, avatarURL }) => {
 
     if (avatar === undefined) {
         return null;
@@ -44,7 +44,15 @@ const Avatar = ({ avatar, color, name, size, nameColor, flexDirection = 'row', t
             textAlign: 'center'
         }
     };
-    const srcImg = `${network.server}usr/thumbs/small/${avatar}`;
+
+    let srcImg = '';
+
+    if(avatarURL !== undefined){
+        srcImg = avatar;
+    } else {
+        srcImg = `${avatar}`;
+    }
+    
 
     let avt = null;
     if(avatar.length < 3) {

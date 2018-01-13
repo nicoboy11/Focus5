@@ -4,7 +4,7 @@ import './css/general.css';
 import './css/w3.css';
 import './css/animate.css';
 
-import { Chats, Personal } from './pages';
+import { Chats } from './pages';
 import { MenuTop } from './components';
 import MenuBar from './components/MenuBar';
 
@@ -18,6 +18,7 @@ import Ajustes from './pages/Ajustes';
 import Proyectos from './pages/Proyectos';
 import Tareas from './pages/Tareas';
 import Login from './pages/Login';
+import Personal from './pages/Personal';
 
 import 'react-datepicker/dist/react-datepicker.css';
 import { Config } from './configuracion';

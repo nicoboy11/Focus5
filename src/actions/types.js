@@ -67,6 +67,8 @@ export const FILE_CANCEL = 'file_cancel';
 
 export const PERFIL_EDIT = 'perfil_edit';
 export const PERFIL_LOAD = 'perfil_load';
+export const PERFIL_LOAD_FAILED = 'perfil_load_failed';
+export const PERFIL_PROGRESS = 'perfil_progress';
 export const PERFIL_SAVE = 'perfil_save';
 export const PERFIL_SAVE_SUCCESS = 'perfil_save_success';
 export const PERFIL_SAVE_FAILED = 'perfil_save_failed';

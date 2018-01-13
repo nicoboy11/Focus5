@@ -45,8 +45,8 @@ class ImagePicker extends Component {
     getCroppedImg(image, pixelCrop, size, fileName) {
         
           const canvas = document.createElement('canvas');
-          canvas.width = size;
-          canvas.height = size;
+          canvas.width = 120;
+          canvas.height = 120;
           const ctx = canvas.getContext('2d');
         
           ctx.drawImage(
@@ -57,8 +57,8 @@ class ImagePicker extends Component {
             size,
             0,
             0,
-            size,
-            size
+            120,
+            120
           );
         
           // As Base64 string
@@ -76,6 +76,8 @@ class ImagePicker extends Component {
     async test() {
         let actualImage = this.refs.currImg;
         var img = new Image();
+        var urlCreator = window.URL || window.webkitURL;
+
         img.src = this.props.archivo.url;
 
         //Obtener porcentajes del punto inicial
@@ -89,13 +91,13 @@ class ImagePicker extends Component {
         //croppear imagen
         const croppedImg = await this.getCroppedImg(img, pos, size, "cropped.jpeg");
 
-        //convertir a blob
-        var urlCreator = window.URL || window.webkitURL;
+        //convertir de blob a imagen
         var imageUrl = urlCreator.createObjectURL(croppedImg);
 
         //actualizar
         this.props.fileChange(croppedImg, imageUrl);
-        this.setState({ pos: { left: -60, top: -60 }, zoom: 10 })
+        this.setState({ pos: { left: -60, top: -60 }, zoom: 10, mostrar: false });
+        this.props.endCrop();
     }    
 
     onImgLoad({target:img}){
@@ -118,7 +120,7 @@ class ImagePicker extends Component {
                     loading={this.props.loading}
                     style={{ display:'flex', flexDirection: 'column', alignItems: 'center' }}
                     onGuardar={() => { this.test(); }}
-                    onCerrar={() => { me.setState({ mostrar: false }) }}
+                    onCerrar={() => { me.setState({ mostrar: false }); this.props.cancelCrop() }}
                 >
                     <div
                         onMouseDown={(e) => { this.setState({ moving: true, startPos: { X: e.screenX + this.state.pos.left, Y: e.screenY+this.state.pos.top } })}} 

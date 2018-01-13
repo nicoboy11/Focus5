@@ -2,8 +2,11 @@ import React, { Component } from 'react';
 import { Card, Modal, FormRow, Input, Avatar, ImagePicker } from '../components';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { editarPerfil, guardarPerfil, cargarPerfil, editarArchivo } from '../actions';
+import { editarPerfil, guardarPerfil, cargarPerfil, editarArchivo, cancelarArchivo } from '../actions';
 import swal from 'sweetalert';
+import { Config } from '../configuracion';
+
+const { network } = Config;
 
 class Ajustes extends Component{
     constructor(props){
@@ -19,7 +22,14 @@ class Ajustes extends Component{
     componentWillReceiveProps(nextProps){
     }
 
-   
+    onGuardar(tmp_perfil){
+        const perfil = {
+            ...tmp_perfil,
+            imagen: this.props.archivo.file
+        };
+
+        this.props.guardarPerfil(perfil);
+    }   
 
     render(){
 
@@ -33,6 +43,15 @@ class Ajustes extends Component{
         }
         const tmp_perfil = this.props.perfil.tmp_perfil;
         const sessionData = JSON.parse(localStorage.sessionData)
+        let image = "";
+
+        if(this.props.archivo.url === ''){
+            image = sessionData.sn_imagen===1?
+                        `${network.server}usr/thumbs/small/${sessionData.id_usuario}.jpg?v=${new Date().getTime()}`:
+                        sessionData.txt_abbr
+        } else {
+            image = this.props.archivo.url;
+        }
 
         return(
             <div id="mainProyectos" style={{display:'flex'}}>
@@ -51,18 +70,20 @@ class Ajustes extends Component{
                     titulo='Editar Perfil'
                     loading={this.props.loadingPerfil}
                     componenteInicial="txt_usuario"
-                    onGuardar={() => { this.props.guardarPerfil(tmp_perfil); }}
+                    onGuardar={() => { this.onGuardar(tmp_perfil) }}
                     onCerrar={() => { this.setState({ mostrarModalPerfil: false }) }}
                     >
                         <FormRow titulo='IMAGEN DE PERFIL' style={{ alignItems: 'center' }}>                            
                                 <Avatar 
-                                    avatar={sessionData.sn_imagen===1?`${sessionData.id_usuario}.jpg`:sessionData.txt_abbr}
+                                    avatar={image}
                                     size="huge"
                                     color={sessionData.color}
                                 />  
                                 <ImagePicker 
                                     archivo={this.props.archivo}
                                     fileChange={(file, event) => this.props.editarArchivo(file, event)}
+                                    endCrop={() => {  }}
+                                    cancelCrop={() => { this.props.cancelarArchivo() }}
                                 />
                         </FormRow>                        
                         <FormRow titulo='NOMBRE'>                            
@@ -151,7 +172,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     editarPerfil,
     guardarPerfil,
     cargarPerfil,
-    editarArchivo
+    editarArchivo,
+    cancelarArchivo
 }, dispatch)
 
 export default connect(mapStateToProps,mapDispatchToProps)(Ajustes);

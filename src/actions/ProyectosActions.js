@@ -293,7 +293,7 @@ export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comenta
         try {
             comentario.txt_comentario = Helper.htmlEncode(comentario.txt_comentario);
             
-            Database.requestWithFile(`CreaComentario/${id_tarea}`, comentario, (error, res) => {
+            Database.requestWithFile(`CreaComentario/${id_tarea}`, comentario, "archivos", (error, res) => {
                 if(error) {
                     dispatch({ type: PY_FAIL, payload: error })
                 } else {

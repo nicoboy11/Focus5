@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { ChatItem, Input, Avatar } from './';
 import { Config, Helper } from '../configuracion';
 
+const { network } = Config;
+
 
 class Chat extends Component{
     static defaultProps = {
@@ -154,12 +156,15 @@ class Chat extends Component{
                             id_current_user={sessionData.id_usuario}
                         />            
                 }
+                const imagen = this.props.typing.sn_imagen===1?
+                                `${network.server}usr/thumbs/small/${this.props.typing.id_usuario}.jpg?v=${new Date().getTime()}`:
+                                this.props.typing.txt_abbr
 
                 if(this.props.typing.mensaje !== undefined && this.props.typing.mensaje !== ""){
                     return (
                         <div style={{ display: 'flex', alignItems: 'center', margin: '20px' }}>
                             <Avatar 
-                                avatar={this.props.typing.sn_imagen===1?`${this.props.typing.id_usuario}.jpg`:this.props.typing.txt_abbr}
+                                avatar={imagen}
                                 size="small"
                                 color={this.props.typing.color}
                             />  

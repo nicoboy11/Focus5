@@ -70,7 +70,7 @@ class Database {
         .catch((error) => callback(true,error));                  
     }    
 
-    static requestWithFile(ruta, body, callback){
+    static requestWithFile(ruta, body, rutaImagen, callback){
 
         let form = new FormData();
 
@@ -82,6 +82,8 @@ class Database {
                 form.append(key, body[key]);
             }
         }
+
+        form.append("ruta", rutaImagen);
 
         const req = new XMLHttpRequest();
 

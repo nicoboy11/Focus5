@@ -395,6 +395,7 @@
 		
 	END$$
         
+        
 	DELIMITER $$
 	DROP PROCEDURE IF EXISTS GetLogin$$        
 	CREATE PROCEDURE GetLogin(IN _email varchar(255), IN _password varchar(255))
@@ -664,7 +665,7 @@ END$$
 DELIMITER $$
 DROP PROCEDURE IF EXISTS EditPerfil$$
 CREATE PROCEDURE EditPerfil(IN _id_usuario INT, IN _nombre varchar(50), IN _apellidos varchar(100), IN _tel varchar(100), 
-		IN _nombre_corto varchar(200), IN _txt_email varchar(50))
+		IN _nombre_corto varchar(200), IN _txt_email varchar(50), IN _sn_imagen int)
 BEGIN
 
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -688,7 +689,8 @@ BEGIN
 			apellidos = _apellidos,
 			tel = _tel,
 			txt_usuario = _nombre_corto,
-			txt_email = _txt_email
+			txt_email = _txt_email,
+            sn_imagen = coalesce(_sn_imagen, sn_imagen)
 		WHERE id_usuario = _id_usuario;
 		
 		CALL GetUsuario(_id_usuario);
@@ -696,6 +698,31 @@ BEGIN
 	COMMIT;  
 
 END$$
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS SP_USERS$$
+CREATE PROCEDURE `SP_USERS`(IN Ivid_usuario int,vtxt varchar(50))
+BEGIN
+SELECT 	id_usuario,
+		id_usuario_superior,
+        FN_NIVEL(id_usuario) as clave,
+        LENGTH(FN_NIVEL(id_usuario)) - LENGTH(REPLACE(FN_NIVEL(id_usuario), '-', '')) as nivel,
+        txt_login,
+        txt_usuario,
+        txt_email,
+        txt_abbr,
+        sn_imagen,
+        FN_ESPADRE(id_usuario) as sn_espadre,
+        color,
+        getLevelKey(id_usuario) as levelKey
+FROM cat_usuario as cu
+WHERE /*FN_NIVEL(id_usuario) like CONCAT('%',lpad(Ivid_usuario,4,'0'),'%') 
+		and*/ cu.id_status = 1
+        and txt_usuario  like CONCAT('%',vtxt,'%') 
+ORDER BY cu.id_usuario in (Ivid_usuario) desc,FN_NIVEL(id_usuario);
+END$$
+
+
 
 /*
 select id_usuario from cat_usuario

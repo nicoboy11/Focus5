@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import { Config } from '../configuracion';
+import swal from 'sweetalert';
 
 const { network } = Config;
 
@@ -31,7 +32,7 @@ class MenuTop extends Component{
     }
 
     render(){
-        if(localStorage.sessionData === undefined){
+        if(localStorage.sessionData === undefined || localStorage.sessionData === 'undefined'){
             return null;
         }
         return(

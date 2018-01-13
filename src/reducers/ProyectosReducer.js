@@ -6,7 +6,7 @@ import {
     CM_EDIT,    CM_GUARDAR,     CM_PROGRESS,
     CM_SUCCESS, CM_FILE_CHANGE, 
     TR_SUCCESS, TR_CANCEL,      CM_MORE,
-    TR_LEIDA
+    TR_LEIDA,   CM_FILE_CANCEL
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -70,6 +70,8 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, ...INITIAL_STATE, proyectos: action.payload.proyectos, tareaActual: action.payload.tareaActual, tmpProyecto: action.payload.tmpProyecto}
         case CM_FILE_CHANGE:
             return { ...state, archivoNuevo: action.payload }
+        case CM_FILE_CANCEL:
+            return { ...state, archivoNuevo: { file: {}, url: '' }}            
         default:
             return state;
     }
