@@ -5,7 +5,7 @@ class Segmented extends Component{
 
     static defaultProps = {
         value: null,
-        items: [],
+        items: [], //{ value, icon, title }
         onSelect: () => {}
     }    
 
@@ -20,11 +20,15 @@ class Segmented extends Component{
             //Si está seleccionado ó no
             if(value === item.value) {
                 selectionStyle = {
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center'
                 };
             } else {
                 selectionStyle = {
-                    opacity: '0.3'
+                    opacity: '0.3',
+                    display: 'flex',
+                    alignItems: 'center'
                 };
                 iconClass = "secondaryColor";
             }
@@ -48,7 +52,7 @@ class Segmented extends Component{
                     >
                     
                         <div style={{ ...selectionStyle}}>
-                            {(item.icon !== undefined)?<i title="Atendida" className={`material-icons ${iconClass}`} style={{}}>{item.icon}</i>:null}
+                            {(item.icon !== undefined)?<i title="Atendida" className={`material-icons ${iconClass}`} style={{ marginRight: '7px'}}>{item.icon}</i>:null}
                             {item.title}                        
                         </div>
                     </div>

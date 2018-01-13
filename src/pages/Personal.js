@@ -2,12 +2,15 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { listaUsuarios } from '../actions';
-import { Avatar } from '../components';
+import { Avatar, Segmented } from '../components';
 import { Config } from '../configuracion';
 
 const { network } = Config;
 
 class Personal extends Component{
+    state = {
+        tipoLista: 0
+    }
 
     componentWillMount(){
         let sessionData = {};
@@ -70,6 +73,13 @@ class Personal extends Component{
     render(){
         return(
             <div id="mainProyectos" style={{display:'flex', flexDirection: 'column'}}>
+                <div style={{ display: 'flex', width: '100%', justifyContent: 'center', marginTop: '20px' }}>
+                    <Segmented 
+                        value={this.state.tipoLista} 
+                        items={[{ value: 0, title: 'Lista', icon: 'reorder' },{ value: 1, title: 'Jerarquía', icon: 'device_hub' }]} 
+                        onSelect={(value) => this.setState({ tipoLista: value })}
+                    />
+                </div>
                 <h2 style={{ display: 'flex', margin: '20px'}}>Mi Red</h2>
                 <div style={{ display: 'flex', alignItems: 'center', flexFlow: 'row wrap', minHeight: '100px'  }}>
                     {this.renderUsuarios(true)}
