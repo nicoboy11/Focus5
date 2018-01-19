@@ -5,7 +5,9 @@ import {
     PERFIL_SAVE_SUCCESS,
     PERFIL_SAVE_FAILED,
     PERFIL_LOAD_FAILED,
-    PERFIL_PROGRESS
+    PERFIL_PROGRESS,
+    PSW_CHANGED,
+    PSW_GUARDAR
 } from './types';
 import { Database } from '../configuracion';
 
@@ -42,6 +44,31 @@ export const editarPerfil = ({ prop, value, tmp_perfil }) => {
         payload: perfil
     }
 }
+
+export const cambioPassword = ({ prop, value }) => {
+    return {
+        type: PSW_CHANGED,
+        payload: { prop, value }
+    };
+}
+
+export const guardarPassword = (id_usuario, password, callback) => {
+    return (dispatch) => {
+        try {
+            Database.request('POST', `EditarPassword/${id_usuario}`, { password }, 2, (error, response) => {
+                if(error || response.status > 299){
+                    console.log(response);
+                    callback(false);
+                } else {
+                    callback(true);
+                    dispatch({ type: PSW_GUARDAR })
+                }
+            })
+        } catch (err) {
+
+        }
+    }
+ }
 
 export const guardarPerfil = (perfil) => {
     return(dispatch) => {

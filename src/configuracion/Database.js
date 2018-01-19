@@ -2,8 +2,22 @@ import { Config } from './';
 import axios from 'axios';
 const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImV2ZW4uc29zYUBnbWFpbC5jb20iLCJwYXNzd29yZCI6InNvc2EifQ.e5gaUw2apXJnH747Wp2EBCdUzktMratJV3Fq48DmHBc';
 
+const rxOne = /^[\],:{}\s]*$/;
+const rxTwo = /\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g;
+const rxThree = /"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g;
+const rxFour = /(?:^|:|,)(?:\s*\[)+/g;
+const isJSON = (input) => (
+  input.length && rxOne.test(
+    input.replace(rxTwo, '@')
+      .replace(rxThree, ']')
+      .replace(rxFour, '')
+  )
+);
+
 class Database {
 
+
+    
     static getHeader(headerType) {
         switch (headerType) {
             case 0:
@@ -61,10 +75,20 @@ class Database {
         .then((response) => {
             responseStatus = response.status;
 
-            return response.json();
+            return response.text();
         })
-        .then((responseJson) => {
-            responseJson.status = responseStatus;
+        .then((text) => {
+            
+            let responseJson = isJSON(text) ? JSON.parse(text) : {};
+
+            if(Object.keys(responseJson).length > 0){
+                responseJson.status = responseStatus;
+            } else {
+                responseJson.status = 409;
+                responseJson.message = text;
+            }
+            
+
             callback(false, responseJson);
         })
         .catch((error) => callback(true,error));                  

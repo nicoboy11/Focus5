@@ -1,15 +1,19 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { listaUsuarios } from '../actions';
-import { Avatar, Segmented } from '../components';
+import { listaUsuarios, mostrarHijos, seleccionarUsuario, editaUsuario, guardarUsuario } from '../actions';
+import { Avatar, Segmented, Modal, FormRow, Radio } from '../components';
+import Select from 'react-select';
+import swal from 'sweetalert';
 import { Config } from '../configuracion';
 
 const { network } = Config;
 
 class Personal extends Component{
     state = {
-        tipoLista: 0
+        tipoLista: 0,
+        verEdit: false,
+        mostrarModal: false
     }
 
     componentWillMount(){
@@ -29,6 +33,10 @@ class Personal extends Component{
     componentWillReceiveProps(nextProps){
     }
 
+    renderChildren(usuario){
+        this.props.mostrarHijos(this.props.usuarios.usuarios, usuario);
+    }
+
     renderUsuarios(red){
 
         try {
@@ -45,24 +53,93 @@ class Personal extends Component{
             } else {
                 usuarios = this.props.usuarios.usuarios.filter(usuario => !usuario.levelKey.includes(sessionData.levelKey));
             }
-    
-            return usuarios.map(usuario => {
-                const image = usuario.sn_imagen===1?
-                                `${network.server}usr/thumbs/small/${usuario.id_usuario}.jpg?v=${new Date().getTime()}`:
-                                usuario.txt_abbr
-    
-                return (
-                    <div style={{ display: 'flex', minWidth: '150px', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', margin: '20px'}}>
-                        <Avatar 
-                            avatar={image}
-                            size="veryBig"
-                            color={usuario.color}
-                        />
-                        <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{usuario.txt_usuario}</div>
-                        <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#A2ABB2', fontSize: '10px'}}>{usuario.txt_email}</div>
-                    </div>
-                );
-            })
+
+                return usuarios.map(usuario => {
+                    const image = usuario.sn_imagen===1?
+                                    `${network.server}usr/thumbs/small/${usuario.id_usuario}.jpg?v=${new Date().getTime()}`:
+                                    usuario.txt_abbr
+                    if(this.state.tipoLista === 0){
+                        return (
+                            <div 
+                                key={usuario.id_usuario} 
+                                className="userItem" 
+                                style={{ display: 'flex', minWidth: '150px', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', position: 'relative'}}
+                                onMouseOver={() => this.setState({ verEdit: usuario.id_usuario })}
+                                onMouseLeave={() => this.setState({ verEdit: null })}
+                                onClick={(e) =>{ 
+                                            e.preventDefault; 
+                                            if(red){
+                                                this.props.seleccionarUsuario(usuario);
+                                                this.setState({ mostrarModal: true })
+                                            }
+                                        }}                                
+                            >
+                                <Avatar 
+                                    avatar={image}
+                                    size="veryBig"
+                                    color={usuario.color}
+                                />
+                                <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{usuario.txt_usuario}</div>
+                                <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#A2ABB2', fontSize: '10px'}}>{usuario.txt_email}</div>
+                                {(this.state.verEdit === usuario.id_usuario && red=== true)?<i className="material-icons" style={{ fontSize: '18px', position: 'absolute', top: '5px', right: '5px' }}>edit</i>:null}
+                            </div>
+                        );
+                    }
+
+                    const nivelStyle = { marginLeft: `${usuario.nivel * 40}px` }
+                    const editStyle = { right: `10px` }
+                    const icon = (usuario.isOpen)?'keyboard_arrow_down':'chevron_right';
+
+                    if(usuario.isVisible){
+                        return (
+                            <div 
+                                key={usuario.id_usuario} 
+                                className='userItem'
+                                style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'flex-start',
+                                    padding: '5px',
+                                    width:'600px',
+                                    position: 'relative',
+                                    ...nivelStyle
+                                }}
+                                onClick={() => this.renderChildren(usuario)}
+                                onMouseOver={() => this.setState({ verEdit: usuario.id_usuario })}
+                                onMouseLeave={() => this.setState({ verEdit: null })}
+                            >
+                                {(usuario.sn_espadre ===1)?<i className="material-icons">{icon}</i>:null}
+                                <Avatar 
+                                    avatar={image}
+                                    size="medium"
+                                    color={usuario.color}
+                                />
+                                <div style={{ marginLeft: '10px' }}>{usuario.txt_usuario}</div>
+                                {(this.state.verEdit === usuario.id_usuario && red===true)?
+                                    <i 
+                                        style={{ ...editStyle, position: 'absolute', borderRadius: '12px' }} 
+                                        className="material-icons clickableColor"
+                                        onClick={(e) =>{ 
+                                            e.preventDefault; 
+                                            this.props.seleccionarUsuario(usuario);
+                                            this.setState({ mostrarModal: true })
+                                        }}
+                                    >
+                                        edit
+                                    </i>:null}
+                                
+                            </div>
+                        );
+                    }
+
+                    return null;
+
+                });
+            
+
+
+
+
         } catch(err){
             console.log(err);
             return null;
@@ -70,9 +147,117 @@ class Personal extends Component{
 
     }
 
+    onGuardar(){
+        this.props.guardarUsuario(this.props.usuarios.usuarios, this.props.usuarioActual);       
+        this.setState({ mostrarModal: false }) 
+    }
+
+    renderForma(){
+
+        const {
+            txt_usuario,
+            id_status,
+            id_usuario_superior
+        } = this.props.usuarioActual
+
+        const usuarioActual = this.props.usuarioActual;
+
+        const sessionData = JSON.parse(localStorage.sessionData)  
+        let usuariosRed = [];
+        if(this.props.usuarios.usuarios !== undefined){
+            usuariosRed = this.props.usuarios.usuarios.filter(usuario => usuario.levelKey.includes(sessionData.levelKey));
+        } 
+        
+        
+        return (
+            <Modal 
+                type='FORM' 
+                isVisible={this.state.mostrarModal} 
+                titulo={txt_usuario}
+                loading={this.props.loading}
+                componenteInicial="id_usuario_superior"
+                onGuardar={() => { this.onGuardar(); }}
+                onCerrar={() => { 
+                    this.setState({ mostrarModal: false }); 
+                    //this.props.desseleccionarUsuario(); 
+                }}
+            >
+                <FormRow titulo='JEFE INMEDIATO'>                    
+                    <Select 
+                        name='jefeInmediato'
+                        value={id_usuario_superior}
+                        onChange={  value => {
+                                        this.props.editaUsuario({ 
+                                            prop: "id_usuario_superior", 
+                                            value: value.id_usuario,
+                                            usuario: usuarioActual
+                                        });
+                                    }
+                                }
+                        valueKey="id_usuario"
+                        labelKey="txt_usuario"
+                        options={usuariosRed}
+                    />                    
+                </FormRow>     
+                <FormRow titulo='ESTADO'>
+                    <Radio 
+                        label="Activo" 
+                        id="rdbActivo" 
+                        checked={(id_status !== 2)?true:false}
+                        onChange={
+                            (value) => {
+                                this.props.editaUsuario({ 
+                                    prop: 'id_status', 
+                                    value: (value)?1:2,
+                                    usuario: usuarioActual
+                                })
+                            }
+                        }
+                    /> 
+                </FormRow>                        
+            </Modal>
+        );
+    }
+
+    renderListaUsuarios(){
+        if(this.state.tipoLista === 0){
+            return (
+                <div>
+                    <h2 style={{ display: 'flex', margin: '20px'}}>Mi Red</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', flexFlow: 'row wrap', minHeight: '100px'  }}>
+                        {this.renderUsuarios(true)}
+                    </div>
+                    <h2 style={{ margin: '20px', display: 'flex' }}>Organización</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', flexFlow: 'row wrap', height: '0px'  }}>
+                        {this.renderUsuarios()}
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div>
+                <h2 style={{ display: 'flex', margin: '20px'}}>Mi Red</h2>
+                <div style={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
+                    {this.renderUsuarios(true)}
+                </div>
+                <h2 style={{ margin: '20px', display: 'flex' }}>Organización</h2>
+                <div style={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column'  }}>
+                    {this.renderUsuarios()}
+                </div>
+            </div>
+        );        
+
+    }
+
     render(){
+
+        if(this.props.usuarios.error){
+            swal("Error", "No fué posible efectuar la operación", 'error');
+        }
+
         return(
-            <div id="mainProyectos" style={{display:'flex', flexDirection: 'column'}}>
+            <div id="mainProyectos" style={{display:'flex', flexDirection: 'column', overflow: 'auto'}}>
                 <div style={{ display: 'flex', width: '100%', justifyContent: 'center', marginTop: '20px' }}>
                     <Segmented 
                         value={this.state.tipoLista} 
@@ -80,15 +265,9 @@ class Personal extends Component{
                         onSelect={(value) => this.setState({ tipoLista: value })}
                     />
                 </div>
-                <h2 style={{ display: 'flex', margin: '20px'}}>Mi Red</h2>
-                <div style={{ display: 'flex', alignItems: 'center', flexFlow: 'row wrap', minHeight: '100px'  }}>
-                    {this.renderUsuarios(true)}
-                </div>
-                <h2 style={{ margin: '20px', display: 'flex' }}>Organización</h2>
-                <div style={{ display: 'flex', alignItems: 'center', flexFlow: 'row wrap', height: '0px'  }}>
-                    {this.renderUsuarios()}
-                </div>
-        </div>
+                {this.renderListaUsuarios()}
+                {this.renderForma()}
+            </div>
         );        
     }
 
@@ -96,12 +275,17 @@ class Personal extends Component{
 
 const mapStateToProps = (state) => {
     return {
-        usuarios: state.usuarios
+        usuarios: state.usuarios,
+        usuarioActual: state.usuarios.usuarioActual
     }
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-    listaUsuarios
+    listaUsuarios,
+    mostrarHijos,
+    seleccionarUsuario,
+    editaUsuario,
+    guardarUsuario
 }, dispatch)
 
 export default connect(mapStateToProps,mapDispatchToProps)(Personal);

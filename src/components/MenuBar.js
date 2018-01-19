@@ -46,13 +46,13 @@ class MenuBar extends Component{
 
         return(
             <div id="menuBar">
-            <div id="menuBarContainer">
-                {this.renderMenu(menu[0])}
-                {this.renderMenu(menu[1])}
-                {this.renderMenu(menu[2])}
-                {this.renderMenu(menu[3])}                
+                <div id="menuBarContainer">
+                    {this.renderMenu(menu[0])}
+                    {this.renderMenu(menu[1])}
+                    {this.renderMenu(menu[2])}
+                    {this.renderMenu(menu[3])}                
+                </div>
             </div>
-        </div>
         );
     }
 }

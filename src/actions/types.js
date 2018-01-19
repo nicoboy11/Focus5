@@ -31,6 +31,9 @@ export const USUARIOS_SUCCESS = 'usuarios_success';
 export const USUARIO_RESPONSABLE = 'USUARIO_RESPONSABLE';
 export const USUARIOS_PARTICIPANTES = 'USUARIOS_PARTICIPANTES';
 export const USUARIOS_ACTUAL_LIMPIAR = 'USUARIOS_ACTUAL_LIMPIAR';
+export const USR_EDIT = 'usr_edit';
+export const USR_SELECT = 'usr_select';
+export const USR_GUARDAR = 'usr_guardar';
 
 export const PROYECT_UPDATE = 'proyect_update';
 export const PROYECT_CREATE = 'proyect_create';
@@ -86,6 +89,7 @@ export const PY_GUARDAR = 'py_guardar';
 export const PY_SUCCESS = 'py_success';
 export const PY_FAIL = 'py_fail';
 export const PY_UNSELECT = 'py_unselect';
+export const PY_MORE_SUCCESS = 'py_more_success';
 
 export const TR_SELECT = 'tr_select';
 export const TR_UNSELECT = 'tr_unselect';
@@ -95,6 +99,7 @@ export const TR_SUCCESS = 'tr_success';
 export const TR_CANCEL = 'tr_fail';
 export const TR_NEW_TXT = 'tr_new_txt';
 export const TR_LEIDA = 'tr_leida';
+export const TR_NEW_CHK = 'tr_new_chk';
 
 export const CM_EDIT = 'cm_edit';
 export const CM_GUARDAR = 'cm_guardar';
@@ -103,3 +108,9 @@ export const CM_SUCCESS = 'cm_success';
 export const CM_FILE_CHANGE = 'cm_file_change';
 export const CM_FILE_CANCEL = 'cm_file_cancel';
 export const CM_MORE = 'cm_more';
+
+export const CK_SUCCESS = 'ck_success';
+export const CK_FAILED = 'ck_failed';
+
+export const PSW_CHANGED = 'psw_changed';
+export const PSW_GUARDAR = 'psw_guardar';

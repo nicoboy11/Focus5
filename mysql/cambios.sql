@@ -30,6 +30,14 @@
 	SET role_id = 1
 	WHERE bv.id_usuario = ct.id_usuario;
 
+	#--Quitar saltos de linea en textos de la tarea
+    #UPDATE ctrl_tareas
+    #SET txt_tarea = replace(replace(replace(txt_tarea,'\\n',''),'\\t',''),'\\r','')
+    #WHERE txt_tarea like CONCAT('%','\\n','%');
+    
+    #SELECT * FROM ctrl_tareas
+    #WHERE txt_tarea like CONCAT('%','\\n','%');
+
 	#--Marcar con rol de responsable
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
@@ -60,6 +68,18 @@
 		dateOfError datetime,
 		id_usuario int
 	);    
+    #------------------------------------
+    DROP TABLE IF EXISTS subTarea;
+	CREATE TABLE subTarea(
+		id_tarea int,
+		idSubtarea int,
+        numOrden int,
+		subtarea varchar(255),
+        id_status int,
+        avance int,
+        fec_creacion datetime,
+        id_usuario int
+	);     
     #------------------------------------
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreatePriority`$$
@@ -207,7 +227,7 @@
 
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTarea$$
-	CREATE FUNCTION getJsonTarea(_id_proyecto int, _id_tarea int, _id_usuario int, _bitStatus int) RETURNS MEDIUMTEXT
+	CREATE FUNCTION getJsonTarea(_id_proyecto int, _id_tarea int, _id_usuario int, _bitStatus int, _start int) RETURNS LONGTEXT
 	BEGIN
 		       
 		# Status NULL: trae todas las tareas
@@ -216,6 +236,8 @@
                
 		DECLARE _tareas text;
 		SET SESSION group_concat_max_len = 1000000;
+        set @i=0;
+        /*
 		SELECT concat('[',
 						group_concat( concat(
 						'{',
@@ -231,6 +253,7 @@
                             '"role_id":"',case when ct.id_usuario = _id_usuario then 1 else bvt.role_id end,'",',
 							'"notificaciones":',FN_ULTIMO_COMMENT(bvt.id_tarea, IFNULL(bvt.fec_actualiza, '2000-01-01')),',',                            
 							'"participantes":',getJsonUsuariosTarea(ct.id_tarea),',',
+                            '"subtareas":',getJsonSubTarea(ct.id_tarea),',',
 							'"topComments":',getJsonTopComments(ct.id_tarea,null,NOW()+1),'',
 						'}') separator ','),
 					  ']') INTO _tareas
@@ -244,6 +267,54 @@
 				AND (ct.id_usuario = _id_usuario
 				OR bvt.role_id in (1,2,3,4))
 		ORDER BY ct.fec_limite is null asc, ct.fec_limite desc;
+        */
+        
+        SELECT concat('[',
+						group_concat( concat(
+						'{',
+							'"id_tarea":',sc.id_tarea,',',
+                            '"id_proyecto":',sc.id_proyecto,',',
+							'"txt_tarea":"',sc.txt_tarea,'",',
+							'"fec_creacion":"',sc.fec_creacion,'",',
+							'"fec_limite":"',sc.fec_limite,'",',
+							'"id_status":',sc.id_status,',',
+                            '"avance":',sc.avance,',',
+							'"priority_id":"',sc.priority_id,'",',
+                            '"commentCount":',sc.commentCount,',',
+                            '"role_id":',sc.role_id,',',
+							'"notificaciones":',sc.notificaciones,',',                            
+							'"participantes":',sc.participantes,',',
+                            '"subtareas":',sc.subtareas,',',
+							'"topComments":',sc.topComments,'',
+						'}') ORDER BY FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
+					  ']') INTO _tareas
+        FROM (
+			SELECT ct.id_tarea,
+				   ifnull(_id_proyecto,ct.id_proyecto) as id_proyecto,
+					ct.txt_tarea,
+					ct.fec_creacion,
+					IFNULL(ct.fec_limite,'') as fec_limite,
+					ct.id_status,
+					IFNULL(ct.avance,0) as avance,
+					ct.priority_id,
+					getCommentCount(ct.id_tarea) as commentCount,
+					case when ct.id_usuario = _id_usuario then 1 else bvt.role_id end as role_id,
+					FN_ULTIMO_COMMENT(bvt.id_tarea, IFNULL(bvt.fec_actualiza, '2000-01-01')) as notificaciones,                        
+					getJsonUsuariosTarea(ct.id_tarea) as participantes,
+					getJsonSubTarea(ct.id_tarea) as subtareas,
+					getJsonTopComments(ct.id_tarea,null,NOW()+1) as topComments
+			FROM ctrl_tareas as ct
+			LEFT JOIN vbit_view_tarea as bvt on bvt.id_tarea = ct.id_tarea and bvt.id_usuario = _id_usuario
+			WHERE 	ct.id_proyecto = coalesce(_id_proyecto, ct.id_proyecto) AND
+					ct.id_tarea = coalesce(_id_tarea,ct.id_tarea) AND
+					CASE WHEN _bitStatus is NULL THEN ct.id_status in (1,2,3) 
+						 WHEN _bitStatus = 1 THEN ct.id_status in (1,3)
+						 ELSE ct.id_status = 2 END
+					AND (ct.id_usuario = _id_usuario
+					OR bvt.role_id in (1,2,3,4))
+					AND (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
+			ORDER BY FIELD(ct.id_status,1,3,2) asc, ifnull(ct.fec_limite,'1960-01-01') desc
+		) AS SC;
 		
 		RETURN ifnull(_tareas,'[]');
 
@@ -301,7 +372,7 @@
 							'"txt_abbr":"',ifnull(sc.txt_abbr,''),'",',
 							'"color":"',ifnull(sc.color,''),'",',
 							'"id_tarea_unique":"',ifnull(sc.id_tarea_unique,''),'",',
-							'"txt_comentario":"',trim(ifnull(sc.txt_comentario,'')),'",',
+							'"txt_comentario":"',replace(replace(replace(trim(ifnull(sc.txt_comentario,'')),'\n','\\n'),'\t','\\t'),'\r','\\r'),'",',
 							'"imagen":"',ifnull(sc.imagen,''),'",',
 							'"fec_comentario":"',ifnull(sc.fec_comentario,''),'",',
 							'"id_tipo_comentario":"',ifnull(sc.id_tipo_comentario,''),'",',
@@ -333,6 +404,40 @@
 		RETURN ifnull(_commentarios, '[]');
 
 	END$$    
+    
+    
+	DELIMITER $$
+	DROP FUNCTION IF EXISTS getJsonSubTarea$$
+	CREATE FUNCTION getJsonSubTarea(_id_tarea int) RETURNS text
+	BEGIN
+
+		DECLARE _subtareas text;
+		SET SESSION group_concat_max_len = 1000000;
+		SELECT concat('[',
+						group_concat( concat(
+						'{',
+							'"id_usuario":',sc.id_usuario,',',
+                            '"id_tarea":',sc.id_tarea,',',
+                            '"idSubtarea":',sc.idSubtarea,',',
+                            '"numOrden":',sc.numOrden,',',
+                            '"id_status":',sc.id_status,',',
+                            '"subtarea":"',sc.subtarea,'"',
+						'}') separator ','),
+					  ']') INTO _subtareas
+		FROM (
+			SELECT st.id_usuario,
+					st.id_tarea,
+                    st.idSubtarea,
+                    st.numOrden,
+                    st.subtarea,
+                    st.id_status
+            FROM subtarea as st
+            WHERE id_tarea = _id_tarea
+        ) as sc;
+		
+		RETURN ifnull(_subtareas,'[]');
+
+	END$$    
    
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getCommentCount$$
@@ -344,6 +449,34 @@
         RETURN ifnull(count, 0);
         
     END$$
+    
+	DELIMITER $$
+	DROP FUNCTION IF EXISTS getUserName$$
+	CREATE FUNCTION getUserName(_id_usuario int) RETURNS varchar(100)
+	BEGIN
+    
+		DECLARE nombre varchar(100);
+		SELECT txt_usuario INTO nombre FROM cat_usuario WHERE id_usuario = _id_usuario;
+        RETURN ifnull(nombre, '');
+        
+    END$$    
+
+	DELIMITER $$
+	DROP FUNCTION IF EXISTS getTaskCount$$
+	CREATE FUNCTION getTaskCount(_id_proyecto int, _id_status int, _id_usuario int) RETURNS int
+	BEGIN
+    
+		DECLARE count int;
+		SELECT count(*) INTO count 
+        FROM ctrl_tareas as ct
+		LEFT JOIN vbit_view_tarea as bvt on bvt.id_tarea = ct.id_tarea and bvt.id_usuario = _id_usuario
+        WHERE 	ct.id_proyecto = _id_proyecto AND
+				ct.id_status = _id_status
+				AND (ct.id_usuario = _id_usuario
+				OR bvt.role_id in (1,2,3,4));
+        RETURN ifnull(count, 0);
+        
+    END$$    
     
 	DELIMITER $$
 	DROP VIEW IF EXISTS vbit_view_tarea$$
@@ -388,13 +521,17 @@
 				#p.roleId,
                 ifnull(p.sn_imagen,0) as sn_imagen,
 				getLevelKey(_id_usuario) as levelKey,
-                ifnull(p.color,'black') as color
+                ifnull(p.color,'black') as color,
+				FN_NIVEL(id_usuario) as clave,
+				LENGTH(FN_NIVEL(id_usuario)) - LENGTH(REPLACE(FN_NIVEL(id_usuario), '-', '')) as nivel,
+				FN_ESPADRE(id_usuario) as sn_espadre,
+                id_status
 				#ifnull(p.theme,'') as theme
 		FROM cat_usuario as p
 		WHERE p.id_usuario = _id_usuario;
 		
 	END$$
-        
+
         
 	DELIMITER $$
 	DROP PROCEDURE IF EXISTS GetLogin$$        
@@ -425,9 +562,10 @@ BEGIN
 	# Status NULL: trae todas las tareas
 	# Status 1: trae tareas Activas
 	# Status 2: trae tareas Terminadas
-    
 	SELECT 	*,
-			getJsonTarea(id_proyecto,NULL,_id_usuario,_status_tareas) as tareas
+			getTaskCount(id_proyecto, 1, _id_usuario) + getTaskCount(id_proyecto, 2, _id_usuario) + getTaskCount(id_proyecto, 3, _id_usuario) as taskCount,
+            getTaskCount(id_proyecto, 2, _id_usuario) + getTaskCount(id_proyecto, 3, _id_usuario) as taskCountTerminadas,
+			getJsonTarea(id_proyecto,NULL,_id_usuario,_status_tareas,null) as tareas
     FROM (
 		SELECT 	cp.id_proyecto,
 				cp.txt_proyecto,
@@ -505,15 +643,19 @@ CREATE PROCEDURE MarcarLeida(IN _id_tarea int, IN _id_usuario int)
 BEGIN
 
 	UPDATE bit_view_tarea SET fec_actualiza = NOW() where id_usuario = _id_usuario and id_tarea = _id_tarea;
-    SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL) as tarea;
+    SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL,NULL) as tarea;
 
 END;
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS EditTarea$$
 CREATE PROCEDURE EditTarea(IN _id_tarea int, IN _txt_tarea varchar(100), IN _txt_descripcion varchar(500), IN _fec_limite date, IN _id_usuario int, IN _id_responsable int, 
-							IN _id_proyecto int, IN _id_status int, IN _priority_id int, IN _avance int, IN _participantes varchar(500))
+							IN _id_proyecto int, IN _id_status int, IN _priority_id int, IN _avance int, IN _participantes varchar(1000))
 BEGIN
+
+	DECLARE _fl date;
+	DECLARE _id_tarea_detalle int;
+    DECLARE _ir int;
 
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 	BEGIN
@@ -530,9 +672,36 @@ BEGIN
 	END;
 
 	START TRANSACTION;
+
+	#-----------Valida si es cambio de fecha
+
+    SELECT fec_limite INTO _fl FROM ctrl_tareas WHERE id_tarea = _id_tarea;
+    SELECT id_responsable INTO _ir FROM ctrl_tareas WHERE id_tarea = _id_tarea;
+	SELECT ifnull(max(id_tarea_detalle),1) + 1 INTO _id_tarea_detalle FROM ctrl_tareas_detalle;
+    
+    IF(_fec_limite <> _fl)
+    THEN
+		INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
+		VALUES(_id_tarea,_id_tarea_detalle,concat(getUserName(_id_usuario), ' modificó la fecha al ',_fec_limite  ),'',NOW(),1,_id_tarea_detalle,_id_usuario,2);
+        
+        SET _id_tarea_detalle = _id_tarea_detalle + 1;
+    END IF;
+    
+    IF(_id_responsable <> _ir)
+    THEN
+		SET @comentario = concat(getUserName(_id_usuario), ' puso como responsable a ',getUserName(_id_responsable)  );
+        
+        if(_id_responsable = _id_usuario)
+        THEN
+			SET @comentario = concat(getUserName(_id_usuario), ' se puso como responsable ' );
+        END IF;
+        
+		INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
+		VALUES(_id_tarea,_id_tarea_detalle,@comentario,'',NOW(),1,_id_tarea_detalle,_id_usuario,2);    
+    END IF;
+    
     
     #-----------Falta validar los cambios para el log
-
 		UPDATE ctrl_tareas
 		SET txt_tarea = coalesce(_txt_tarea,txt_tarea),
 			txt_descripcion = coalesce(_txt_descripcion,txt_descripcion),
@@ -545,42 +714,108 @@ BEGIN
             avance = coalesce(_avance,avance),
             fec_actualiza = NOW()
 		WHERE id_tarea = _id_tarea;
+
+		#Quitar responsable actual
+		UPDATE bit_view_tarea
+		SET role_id = 3
+		WHERE id_tarea = _id_tarea AND 
+				role_id = 2;
         
 		IF EXISTS (SELECT * FROM bit_view_tarea where id_tarea = _id_tarea and id_usuario = _id_responsable)
 		THEN
-
+			#Si ya tiene registro en esa tarea se pone como responsable
 			UPDATE bit_view_tarea
             SET role_id = 2
             WHERE id_usuario = _id_responsable AND
 					id_tarea = _id_tarea;
 
 		ELSE
-
+			#Si no tiene registro se inserta el responsable
 			INSERT bit_view_tarea (id_tarea, id_usuario, fec_actualiza, role_id)
             VALUE(_id_tarea, _id_usuario, NULL, 2);
 			
 		END IF;
 		
-        
+        #Borrar todos los participantes
 		DELETE FROM bit_view_tarea
 		WHERE id_tarea = _id_tarea and role_id = 3;
 
+		#reinsertar
 		INSERT INTO bit_view_tarea
 		SELECT _id_tarea as id_tarea, id_usuario, NULL as fec_actualiza, 3 as role_id 
 		FROM cat_usuario 
 		WHERE FIND_IN_SET(id_usuario, _participantes);
         
-        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL) as tarea;
+        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL,NULL) as tarea;
         
 	COMMIT;       
 	
 END$$   
 
 DELIMITER $$
+DROP PROCEDURE IF EXISTS CreateSubtarea$$
+CREATE PROCEDURE CreateSubtarea(IN _id_tarea int, IN _subtarea varchar(255), IN _id_usuario int)
+BEGIN
+
+	DECLARE _idSubtarea int;
+    
+    SELECT ifnull(max(idSubtarea),1) + 1 INTO _idSubtarea FROM subTarea WHERE id_tarea = _id_tarea;
+
+	INSERT INTO subTarea (id_tarea, idSubtarea, numOrden, subtarea, id_status, avance, fec_creacion, id_usuario)
+    VALUES(_id_tarea,_idSubtarea, _idSubtarea,_subtarea, 1, 0, NOW(), _id_usuario);
+
+	SELECT getJsonSubTarea(_id_tarea) as subtareas;
+
+END$$
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS EditSubtarea$$
+CREATE PROCEDURE EditSubtarea(IN _id_tarea int, IN _idSubtarea int, IN _subtarea varchar(255), IN _id_status int, IN _id_usuario int)
+BEGIN
+
+	UPDATE subTarea
+    SET subtarea = _subtarea,
+		id_status = _id_status,
+        id_usuario = _id_usuario
+	WHERE 	id_tarea = _id_tarea
+			AND idSubtarea = _idSubtarea;
+
+	SELECT getJsonSubTarea(_id_tarea) as subtareas;
+
+END$$
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS DeleteSubtarea$$
+CREATE PROCEDURE DeleteSubtarea(IN _id_tarea int, _idSubtarea int)
+BEGIN
+
+	DELETE FROM subTarea
+    WHERE id_tarea = _id_tarea AND idSubtarea = _idSubtarea;
+	
+    SELECT 'ok' as response;
+
+END$$
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetSubTarea$$
+CREATE PROCEDURE GetSubTarea(IN _id_tarea int, IN _id_usuario int)
+BEGIN
+	SELECT getJsonSubTarea(_id_tarea) as subtarea;
+END$$
+
+
+DELIMITER $$
 DROP PROCEDURE IF EXISTS GetTarea$$
 CREATE PROCEDURE GetTarea(IN _id_tarea int, IN _id_usuario int)
 BEGIN
-	SELECT getJsonTarea(NULL, _id_tarea, _id_usuario, NULL) as tarea;
+	SELECT getJsonTarea(NULL, _id_tarea, _id_usuario, NULL,NULL) as tarea;
+END$$
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetTareasProyecto$$
+CREATE PROCEDURE GetTareasProyecto(IN _id_proyecto int, IN _id_usuario int, IN _start int)
+BEGIN
+	SELECT getJsonTarea(_id_proyecto, NULL, _id_usuario, NULL,_start) as tareas;
 END$$
 
 DELIMITER $$
@@ -636,7 +871,7 @@ BEGIN
 		FROM cat_usuario 
 		WHERE FIND_IN_SET(id_usuario, _participantes);
         
-        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL) as tarea;
+        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL,NULL) as tarea;
         
 	COMMIT;       
 	
@@ -699,6 +934,71 @@ BEGIN
 
 END$$
 
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS EditUsuario$$
+CREATE PROCEDURE EditUsuario(IN _id_usuario INT, IN _id_status int, IN _id_usuario_superior int)
+BEGIN
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+	
+		#GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+			SET @full_error = ifnull(CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text), ""); 
+		ROLLBACK;
+		
+		INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
+		VALUES (@full_error, NOW(), _id_usuario );
+		
+		SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
+			
+	END;
+
+	START TRANSACTION;
+    
+		UPDATE cat_usuario
+		SET id_status = _id_status,
+			id_usuario_superior = _id_usuario_superior
+		WHERE id_usuario = _id_usuario;
+		
+		CALL GetUsuario(_id_usuario); 
+    
+	COMMIT;  
+
+END$$
+
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS EditPassword$$
+CREATE PROCEDURE EditPassword(IN _id_usuario INT, IN _txt_password varchar(500))
+BEGIN
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+	
+		#GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+			SET @full_error = ifnull(CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text), ""); 
+		ROLLBACK;
+		
+		INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
+		VALUES (@full_error, NOW(), _id_usuario );
+		
+		SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
+			
+	END;
+
+	START TRANSACTION;
+    
+		UPDATE cat_usuario
+		SET txt_password = _txt_password
+		WHERE id_usuario = _id_usuario;
+		
+		SELECT 'exito' as message;
+    
+	COMMIT;  
+
+END$$
+
 DELIMITER $$
 DROP PROCEDURE IF EXISTS SP_USERS$$
 CREATE PROCEDURE `SP_USERS`(IN Ivid_usuario int,vtxt varchar(50))
@@ -714,14 +1014,14 @@ SELECT 	id_usuario,
         sn_imagen,
         FN_ESPADRE(id_usuario) as sn_espadre,
         color,
-        getLevelKey(id_usuario) as levelKey
+        getLevelKey(id_usuario) as levelKey,
+        id_status
 FROM cat_usuario as cu
 WHERE /*FN_NIVEL(id_usuario) like CONCAT('%',lpad(Ivid_usuario,4,'0'),'%') 
 		and*/ cu.id_status = 1
         and txt_usuario  like CONCAT('%',vtxt,'%') 
 ORDER BY cu.id_usuario in (Ivid_usuario) desc,FN_NIVEL(id_usuario);
 END$$
-
 
 
 /*

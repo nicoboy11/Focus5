@@ -44,8 +44,9 @@ class Tarea extends Component{
     }
     render(){
         const { participantes, txt_tarea, fec_limite, txt_proyecto, avance, selected, typing, status } = this.props;
-
-        return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} style={(selected)?styles.selectedStyle:null} className="tareaCard divideBottom">
+        const opacidad = (status===2)?{ opacity: '0.4'}:{};
+        const selectedStyle = (selected)?styles.selectedStyle:{};
+        return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} style={{ ...opacidad,...selectedStyle }} className="tareaCard divideBottom">
                     <div className={`c100 p${avance} tiny blue`}>
                         <span>{avance}%</span>
                         <div className="slice">

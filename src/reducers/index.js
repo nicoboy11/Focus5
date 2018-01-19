@@ -4,6 +4,7 @@ import UsuariosReducer from './UsuariosReducer';
 import LoginReducer from './LoginReducer';
 import SocketReducer from './SocketReducer';
 import PerfilReducer from './PerfilReducers';
+import PasswordReducer from './PasswordReducer';
 import { routerReducer } from 'react-router-redux';
 
 export default combineReducers({
@@ -12,5 +13,6 @@ export default combineReducers({
     usuarios: UsuariosReducer,
     routing: routerReducer,
     socket: SocketReducer,
-    perfil: PerfilReducer
+    perfil: PerfilReducer,
+    password: PasswordReducer
 });

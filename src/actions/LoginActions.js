@@ -28,14 +28,16 @@ export const logoutUser = () => {
     }
 }
 
-export const loginUser = (email, password) => {
+export const loginUser = (email, password, callback = () => {}) => {
     return (dispatch) => {
         dispatch({ type: LOGIN_USER });
 
         Database.request('POST', 'loginUser', { email, password }, 2, (error, response) => {
             if(error || (response.status !== undefined && response.status > 299)) {
+                callback(false);
                 loginFailed(dispatch, response.message);
             } else {
+                callback(true);
                 loginSuccess(dispatch, response[0]);
             }
         });

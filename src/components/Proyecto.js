@@ -49,14 +49,11 @@ class Proyecto extends Component{
      * Se obtienen los totales de la prop tarea
      */
     obtenerTotales(){
-        const totalTareas = this.props.tareas.length;
-        let terminadas = 0;
+        const totalTareas = this.props.total;
+        let terminadas = this.props.terminadas;
         let notificaciones = 0;
 
         for(let tarea of this.props.tareas){
-            if(tarea.id_status === 2 || tarea.id_status === 3){
-                terminadas ++;
-            }
 
             notificaciones += tarea.notificaciones;
         }
@@ -102,7 +99,7 @@ class Proyecto extends Component{
             //tareas
         } = this.props;
 
-        const promedio = (this.state.terminadas/this.state.totalTareas)*100;
+        const promedio = Math.floor((this.state.terminadas/this.state.totalTareas)*100);
 
         if(id_status === 1 || id_status === 3){
             return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={styles.project} className="w3-card w3-col">

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { Tarea, Input, Modal, ContextMenu, FormRow, Chat, NewTask, Segmented } from '../components';
+import { Tarea, Input, Modal, ContextMenu, FormRow, Chat, NewTask, Segmented, CheckList } from '../components';
 import Slider from 'react-rangeslider';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
-import { Helper } from '../configuracion';
+import { Helper, Config } from '../configuracion';
 import DatePicker from 'react-datepicker';
 import { push } from 'react-router-redux';
 import { bindActionCreators } from 'redux';
@@ -32,7 +32,11 @@ import {
     clearTareaSocket,
     refreshTarea,
     loadMore,
-    marcarLeida
+    marcarLeida,
+    crearSubtarea,
+    borrarSubtarea,
+    editarSubtarea,
+    cargarMasTareas
 } from '../actions';
 
 class Tareas extends Component{
@@ -43,7 +47,8 @@ class Tareas extends Component{
             id_tarea_selected: null,
             currentComments: [],
             listaContext: [],
-            mostrarContextMenu: false
+            mostrarContextMenu: false,
+            tipoDetalle: 0
         }
     }
 
@@ -122,7 +127,7 @@ class Tareas extends Component{
     }
 
     componentDidUpdate(prevProps, prevState){
-        const {ChatComponent} = this.refs;
+        const {ChatComponent, CheckList} = this.refs;
 
         if(this.props.tareaActual.tareaRender === true){
             this.props.tareaRenderEnd();
@@ -132,9 +137,15 @@ class Tareas extends Component{
             this.props.refreshTarea(tarea[0]);     
         }
 
-        if(this.state.lastTop === 0 && ChatComponent.refs.chatScroll.scrollHeight !== this.state.lastHeight) {
+        if(ChatComponent !== undefined && this.state.lastTop === 0 && ChatComponent.refs.chatScroll.scrollHeight !== this.state.lastHeight) {
             ChatComponent.setScrollTop(ChatComponent.refs.chatScroll.scrollHeight - this.state.lastHeight);   
             this.setState({ lastHeight: ChatComponent.refs.chatScroll.scrollHeight });
+        }
+
+        if(CheckList !== undefined && 
+            CheckList.refs.newCheck !== undefined && 
+            prevProps.tareaActual.subtareas.length < this.props.tareaActual.subtareas.length){
+                CheckList.refs.newCheck.refs.newTaskDiv.click();
         }
     }
 
@@ -242,7 +253,9 @@ class Tareas extends Component{
     onGuardar(txt_tarea){
         //Cuando la tarea es nueva el txt_tarea es undefined
         if(!txt_tarea) {
-            this.props.guardarTarea(this.props.proyectos, this.props.proyectoActual.id_proyecto, this.props.tareaActual);
+            this.props.guardarTarea(this.props.proyectos, this.props.proyectoActual.id_proyecto, this.props.tareaActual, false, () => {
+                this.setState({ mostrarModal: false });                
+            });
         } else {
             let tareaNueva = {
                     avance: 0,
@@ -341,6 +354,17 @@ class Tareas extends Component{
         this.wsComment("typing","");
     }
 
+    /**
+     * Checar si el scroll llegó hasta abajo
+     */
+    checkScroll(e){
+        const { offsetHeight, scrollHeight, scrollTop} = e.target;
+        if(offsetHeight + scrollTop === scrollHeight){
+            if(this.props.proyectoActual.tareas.length !== this.props.proyectoActual.taskCount){
+                this.props.cargarMasTareas(this.props.proyectos,this.props.proyectoActual,JSON.parse(localStorage.sessionData).id_usuario);
+            }
+        }
+    }
     /**
      * Mostrar Modal para editar/crear tareas
      */
@@ -559,14 +583,92 @@ class Tareas extends Component{
                             onMenuOpen={(e) => this.onContextOpen(e,tarea.id_tarea)}
                         />
                     )
-            }).sort((a,b) => {
+            })/*.sort((a,b) => {
                 return (a.props.fec_limite > b.props.fec_limite)?0:1
-            });
+            })*/;
         }
 
         return <div>loading...</div>;
     }
 
+    renderTipoDetalle(usuario){
+    
+        const tmpTarea = this.props.tareaActual;
+        const tmpProyecto = this.props.proyectoActual;
+        const proyectos = this.props.proyectos;
+
+        if(this.state.tipoDetalle === 0){
+            return (
+                <Chat 
+                    ref={'ChatComponent'}
+                    loadingFile={this.props.loadingFile}
+                    loadingComentario={this.props.loading}
+                    loadingMore={this.props.loadingMore}
+                    fileProgress={this.props.fileProgress}
+                    url={this.props.archivo.url}
+                    comments={this.props.tareaActual.topComments}
+                    text={this.props.comentario}
+                    fec_creacion={this.props.tareaActual.fec_creacion}
+                    commentCount={this.props.tareaActual.commentCount}
+                    commentChanged={(value) => {
+                        this.props.editarComentario(value);
+                        //Envío a gente para que sepan que estoy escribiendo
+                        this.wsComment("typing",(value !== "")?`${usuario.txt_usuario} está escribiendo...`:"");
+                    }}
+                    enviarComment={this.enviarComment.bind(this)}
+                    fileChange={(file, event) => this.props.editarArchivo(file, event)}
+                    onLoadMore={this.onLoadMore.bind(this)}
+                    //Recibir webSocket cuando alguien está escribiendo
+                    typing={this.checkIfTyping(this.props.socket)}
+                    scrollTop={this.state.lastTop}
+                    onScroll={(value) => { this.setState({ lastTop: value }); }}
+                />            
+            );            
+        }
+
+        return (<div style={{ margin: '100px', marginTop: '20px'}}>
+                    <CheckList 
+                        ref={'CheckList'}
+                        data={tmpTarea.subtareas}
+                        loading={this.props.loadingChecklist}
+                        keyProp='idSubtarea'
+                        descProp='subtarea'
+                        checkedProp='id_status'
+                        onChange={(item,change) => {
+                            item.id_usuario = usuario.id_usuario;
+                            switch(change){
+                                case 'crear':
+                                    this.props.crearSubtarea(proyectos, tmpProyecto, tmpTarea, item);
+                                    break;
+                                case 'editar':
+                                    this.props.editarSubtarea(proyectos, tmpProyecto, tmpTarea, item);
+                                    break;
+                                case 'borrar':
+                                    this.props.borrarSubtarea(proyectos, tmpProyecto, tmpTarea, item);
+                                    break;
+                                case 'textEdit':
+                                    this.props.editarTarea({ prop: 'subtareas', value: item,tmpProyecto, tmpTarea});
+                                    break;
+                            }
+                            
+                        }}
+                    />
+                </div>);
+    }
+
+    renderLoadMore(){
+        if(this.props.tareas !== null && this.props.tareas !== undefined) {
+            if(this.props.tareas.length < this.props.proyectoActual.taskCount){
+                return (
+                    <div className="tareaCard" style={{ textAlign: 'center' }}>
+                        <img style={{width: '50px', height: '50px'}} src={`${Config.network.server}/img/Spinner.gif`} />
+                    </div>
+                );
+            } else {
+                return null;
+            }
+        }
+    }
     /**
      * Renderizo la pagina completa
      */
@@ -585,59 +687,40 @@ class Tareas extends Component{
         if(Object.keys(this.props.tareaSocket).length > 0){
             this.props.refreshTarea(this.props.tareaSocket);                    
             this.props.clearTareaSocket();            
-        }     
-
-
-        //Actualizar tarea editada del modal
-        if(Object.keys(this.props.tareaActual).length === 0 && this.state.mostrarModal === true){
-            this.setState({ mostrarModal: false });
-        }        
+        }       
 
 
         return(
             <div className="detallesContainer divideTop">
-                <div id="listaTareas" className="w3-third chatPanel lightBackground">
-                <NewTask 
-                    onEnter={(txt_tarea) => this.onGuardar(txt_tarea)}
-                />
-                {this.renderTareas()}
-                {this.renderModalTareas()}
-                <ContextMenu 
-                    lista={this.state.listaContext} 
-                    visible={this.state.mostrarContextMenu} 
-                    posicion={this.state.posicion}
-                    onListClick={(item) => this.onContextClick(item)}
-                    onClose={() => {
-                        this.setState({ mostrarContextMenu: false });
-                    }}
-                />
+                <div 
+                    onScroll={this.checkScroll.bind(this)}
+                    id="listaTareas" 
+                    className="w3-third chatPanel lightBackground"
+                >
+                    <NewTask 
+                        onEnter={(txt_tarea) => this.onGuardar(txt_tarea)}
+                    />
+                    {this.renderTareas()}
+                    {this.renderLoadMore()}
+                    {this.renderModalTareas()}
+                    <ContextMenu 
+                        lista={this.state.listaContext} 
+                        visible={this.state.mostrarContextMenu} 
+                        posicion={this.state.posicion}
+                        onListClick={(item) => this.onContextClick(item)}
+                        onClose={() => {
+                            this.setState({ mostrarContextMenu: false });
+                        }}
+                    />
                 </div>
                 <div className="w3-twothird chatPanel divideLeft" >
-                    <Chat 
-                        ref={'ChatComponent'}
-                        loadingFile={this.props.loadingFile}
-                        loadingComentario={this.props.loading}
-                        loadingMore={this.props.loadingMore}
-                        fileProgress={this.props.fileProgress}
-                        url={this.props.archivo.url}
-                        comments={this.props.tareaActual.topComments}
-                        text={this.props.comentario}
-                        fec_creacion={this.props.tareaActual.fec_creacion}
-                        commentCount={this.props.tareaActual.commentCount}
-                        commentChanged={(value) => {
-                            this.props.editarComentario(value);
-                            //Envío a gente para que sepan que estoy escribiendo
-                            this.wsComment("typing",(value !== "")?`${usuario.txt_usuario} está escribiendo...`:"");
-                        }}
-                        enviarComment={this.enviarComment.bind(this)}
-                        fileChange={(file, event) => this.props.editarArchivo(file, event)}
-                        onLoadMore={this.onLoadMore.bind(this)}
-                        //Recibir webSocket cuando alguien está escribiendo
-                        typing={this.checkIfTyping(this.props.socket)}
-                        scrollTop={this.state.lastTop}
-                        onScroll={(value) => { this.setState({ lastTop: value }); }}
-                    />
-
+                    {(this.props.tareaActual.id_tarea !== null && this.props.tareaActual.id_tarea !== undefined)?
+                    <Segmented
+                        value={this.state.tipoDetalle} 
+                        items={[{ value: 0, title: 'Chat', icon: 'chat' },{ value: 1, title: 'Subtareas', icon: 'check_box' }]} 
+                        onSelect={(value) => this.setState({ tipoDetalle: value })}                        
+                    />:null}
+                    {this.renderTipoDetalle(usuario)}
                 </div>
             </div>
         );        
@@ -676,7 +759,8 @@ const mapStateToProps = state => {
         usuarios: state.usuarios,
         loadingFile: state.listaProyectos.loadingFile,
         socket: state.socket.socket,
-        loadingMore: state.listaProyectos.loadingMore
+        loadingMore: state.listaProyectos.loadingMore,
+        loadingChecklist: state.listaProyectos.loadingChecklist
     }
 };
 
@@ -703,6 +787,10 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     clearTareaSocket,
     loadMore,
     marcarLeida,
+    crearSubtarea,
+    borrarSubtarea,
+    editarSubtarea,
+    cargarMasTareas,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

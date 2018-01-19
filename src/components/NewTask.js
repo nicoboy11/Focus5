@@ -7,9 +7,14 @@ class NewTask extends Component{
         super(props);
         this.state = {
             selected: false,
-            value: ''
+            value: '',
+            borderless: false
         }
     }
+
+    static defaultProps = {
+        titulo: 'Agregar Tarea'
+    }    
 
     guardarTarea() {
 
@@ -39,13 +44,18 @@ class NewTask extends Component{
             );
         }
 
+        let clas = ""
+        if(!this.props.borderless){
+            clas = "divideBottom"
+        } 
+
         return (
-            <div id="newTask" onClick={() => this.setState({selected: true})} className="divideBottom" style={{ ...styles.containerStyle }}>
+            <div ref="newTaskDiv" id="newTask" onClick={() => this.setState({selected: true})} className={clas} style={{ ...styles.containerStyle }}>
                 <div className="w3-circle newItemNormal">
                     <i className="material-icons fNormal">add</i>
                 </div>
                 <div style={{ marginLeft: '10px'}}>
-                    Agregar Tarea
+                    {this.props.titulo}
                 </div>
             </div>
         )

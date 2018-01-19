@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Config } from '../configuracion'
+import { Avatar } from './'
 
 class UserList extends Component{
 
@@ -13,7 +14,7 @@ class UserList extends Component{
         return participantes.map(participante => {
             i++;
 
-            const srcImg = `${Config.network.server}/avatars/${participante.id_usuario}`;
+            const srcImg = `${Config.network.server}/usr/thumbs/small/${participante.id_usuario}.jpg?v=${new Date().getTime()}`;
             let overlayVal = i*12;
 
             if( i > limit){
@@ -31,6 +32,18 @@ class UserList extends Component{
                         </div>);
             }
 
+            return (
+                <Avatar 
+                    key={participante.id_usuario}
+                    avatar={srcImg} 
+                    color={participante.color} 
+                    name={participante.txt_usuario} 
+                    size='small' 
+                    displayName={false} 
+                    style={{position: 'absolute', left: overlayVal}}
+                />
+            );
+            /*
             if(participante.txt_abbr.length > 2){
                 return <img 
                             key={participante.id_usuario} 
@@ -49,7 +62,7 @@ class UserList extends Component{
                         > 
                             {participante.txt_abbr} 
                         </div>);
-            }
+            }*/
         });
 
     }

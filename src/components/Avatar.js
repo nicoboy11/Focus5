@@ -3,7 +3,7 @@ import { Config } from '../configuracion';
 
 const { colors, network } = Config;
 
-const Avatar = ({ avatar, color, name, size, nameColor, flexDirection = 'row', textStyle, avatarURL }) => {
+const Avatar = ({ avatar, color, name, size, nameColor, displayName = true, flexDirection = 'row', textStyle, avatarURL, style = {} }) => {
 
     if (avatar === undefined) {
         return null;
@@ -53,23 +53,32 @@ const Avatar = ({ avatar, color, name, size, nameColor, flexDirection = 'row', t
         srcImg = `${avatar}`;
     }
     
+    let classColor = color.replace("#","_");
 
     let avt = null;
     if(avatar.length < 3) {
-        avatar = (<div style={{ ...styles.avtStyle, backgroundColor: color }}>
+        avatar = (<div style={{ ...styles.avtStyle }}>
                             <div style={styles.abbrStyle}>{avatar}</div>
                         </div>);
     } else {
 
-            avatar = <img style={styles.avtStyle} src={srcImg} />;
+            avatar = (<img 
+                        style={styles.avtStyle} 
+                        src={srcImg} 
+                        onError={(e) => {
+                            e.target.src=`${Config.network.server}/usr/thumbs/small/user.png`;
+                        }} 
+                    />
+            );
 
     }
 
-    return (<div style={styles.containerStyle}>
-                <div style={{ ...styles.avtStyle, backgroundColor: color }}>
+    return (<div title={name} style={{ ...styles.containerStyle, ...style}}>
+                <div className={`${classColor}`} style={{ ...styles.avtStyle }}>
                     <div style={styles.abbrStyle}>{avatar}</div>
                 </div>
-                <div style={{...styles.nameStyle, ...textStyle}} >{name}</div>
+                {(displayName)?<div style={{...styles.nameStyle, ...textStyle}} >{name}</div>:null}
+                
             </div>);
 
 };

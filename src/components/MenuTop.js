@@ -40,7 +40,7 @@ class MenuTop extends Component{
                 <div id="marca">
                     <div id="avatar">
                             <div id="sessionAvatarContainer" className="fadeColor">
-                                <img id="sessionAvatar" className="w3-circle" src={`${network.server}/avatars/${JSON.parse(localStorage.sessionData).id_usuario}.jpg`} alt="" />
+                                <img id="sessionAvatar" className="w3-circle" src={`${network.server}usr/thumbs/small/${JSON.parse(localStorage.sessionData).id_usuario}.jpg`} alt="" />
                             </div>
                     </div>            
                 </div>

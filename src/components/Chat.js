@@ -33,6 +33,10 @@ class Chat extends Component{
             this.scrollToBottom();
         }
     }    
+
+    componentDidMount(){
+        this.scrollToBottom();        
+    }
     /**
      * Escrolleo al final de la lista del chat
      */

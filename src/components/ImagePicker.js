@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { Modal } from './';
+import Slider from 'react-rangeslider';
+import swal from 'sweetalert';
 
 class ImagePicker extends Component {
 
@@ -24,6 +26,11 @@ class ImagePicker extends Component {
             const files = evt.target.files;
             const filename = files[0].name;
             const filetype = files[0].type;
+
+            if(filetype.split('/')[0] !== 'image'){
+                swal("Alerta","El archivo seleccionado no tiene el formato correcto. Seleccione una imagen.", "warning");
+                return;
+            }
 
             for (let i = 0, f; f = files[i]; i++) {
 
@@ -159,7 +166,7 @@ class ImagePicker extends Component {
                         <img ref='currImg' onLoad={this.onImgLoad} draggable={false} src={this.props.archivo.url} style={{ ...styles.imageStyle, ...zoom, ...pos }}/>
                         <div style={styles.topStyle}></div>
                         <div style={styles.bottomStyle}>
-                            <i 
+                            {/*<i 
                                 onClick={() => { this.setState({ zoom: this.state.zoom - 4 })}}
                                 className="material-icons" 
                                 style={{ color: 'white', cursor: 'pointer'}}
@@ -172,7 +179,15 @@ class ImagePicker extends Component {
                                 style={{ color: 'white', cursor: 'pointer'}}
                             >
                                 add
-                            </i>
+                            </i>*/}
+                            <Slider
+                                min={80}
+                                max={1000}
+                                tooltip={false}
+                                value={this.state.zoom}
+                                onChange={value => this.setState({zoom: value })}
+                                
+                            />
                         </div>
                         <div style={styles.leftStyle}></div>
                         <div style={styles.rightStyle}></div>
@@ -213,7 +228,7 @@ const styles ={
         height: '60px',
         background: 'rgba(50,50,50,0.8)',
         bottom: '0',
-        display: 'flex',
+        /*display: 'flex',*/
         justifyContent: 'center',
         alignItems: 'center',
         left: '60px',

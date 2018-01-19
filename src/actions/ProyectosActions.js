@@ -6,7 +6,8 @@ import {
     TR_EDIT,        TR_GUARDAR,     CM_EDIT,
     CM_GUARDAR,     CM_PROGRESS,    CM_SUCCESS,
     CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    
-    TR_SUCCESS,     CM_MORE,        TR_LEIDA
+    TR_SUCCESS,     CM_MORE,        TR_LEIDA,
+    CK_SUCCESS,     PY_MORE_SUCCESS
 } from './types';
 
 /**
@@ -17,9 +18,9 @@ export const listaProyectos = (id_usuario) => {
         dispatch({ type: PY_LIST });
 
         Database.request('GET', `contenido/${id_usuario}`, {}, 2, (error, response) => {
-            if(error || response.code > 299){
-                dispatch({ type: PY_FAIL, payload: error });
-                console.log(error);
+            if(error || response.status > 299){
+                dispatch({ type: PY_FAIL, payload: 'No se pudieron cargar los proyectos' });
+                console.log(response);
             } else{
                 const newResponse = handleReponsePY(response);
                 dispatch({ type: PY_SUCCESS, payload: newResponse });
@@ -27,6 +28,25 @@ export const listaProyectos = (id_usuario) => {
         });            
     }
 };
+
+export const cargarMasTareas = (listaProyectos, proyecto, id_usuario) => {
+    return (dispatch) => {
+        const start = proyecto.tareas.length + 1;
+        Database.request('GET', `GetMoreTareas/${proyecto.id_proyecto}?id_usuario=${id_usuario}&start=${start}`,{},2,(error,response) => {
+            if(error || response.status > 299){
+                dispatch({ type: PY_FAIL, payload: 'No se pudieron cargar más tareas' });
+                console.log(response);
+            } else{
+                const newResponse = handleReponsePY(response);
+                const proyectoEditado = {...proyecto};
+                proyectoEditado.tareas = proyectoEditado.tareas.concat(newResponse[0].tareas);
+                const proyectos = pyMerge([...listaProyectos], proyectoEditado);
+
+                dispatch({ type: PY_MORE_SUCCESS, payload: proyectos });
+            }
+        });
+    }
+}
 
 export const seleccionarProyecto = (proyecto) => {
     return {
@@ -73,7 +93,7 @@ export const guardarProyecto = (listaProyectos, proyecto, snNuevo, callback = ()
         try {
             proyecto["id_usuario"] = JSON.parse(localStorage.sessionData).id_usuario;
             Database.request('POST', ruta, proyecto, 2, (error, response) => {
-                if(error || response.code > 299){
+                if(error || response.status > 299){
                     dispatch({ type: PY_FAIL, payload: error });
                     console.log(error);
                 } else{
@@ -127,7 +147,7 @@ export const editarTarea = ({ prop, value, tmpProyecto, tmpTarea }, callback = (
     callback(proyecto, tarea);
 
     return {
-        type: TR_EDIT,
+        type: 'tr_editar',
         payload: proyecto
     }
 }
@@ -173,7 +193,7 @@ export const actualizarGente = ({ rolId, persona, tmpProyecto, tmpTarea }) => {
     };
 }
 
-export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva) => {
+export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva, callback = () =>{}) => {
 
     return (dispatch) => {
         dispatch({ type: TR_GUARDAR });
@@ -203,7 +223,15 @@ export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva) => 
                     const proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0];
                     //Agregar a proyectos principales
                     const proyectos = pyMerge(listaProyectos, proyectoActual, tareaEditada);
-                    dispatch({ type: PY_SUCCESS, payload: proyectos })
+                    callback();
+                    dispatch({ 
+                        type: TR_SUCCESS, 
+                        payload: { 
+                            proyectos, 
+                            tmpProyecto: proyectoActual, 
+                            tareaActual: { id_tarea: tarea.id_tarea, editing: false, selected: true }    
+                        }           
+                    })
                 }
             });          
         }
@@ -215,34 +243,34 @@ export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva) => 
 
 export const marcarLeida = (listaProyectos, id_proyecto, id_tarea, id_usuario) => {
     
-        return (dispatch) => {
-            try {
-                Database.request('POST', `MarcarLeida/${id_tarea}`, { id_usuario }, 2, (error, response) => {
-                    if(error){
-                        dispatch({ type: PY_FAIL, payload: error })
-                    } else{
-                        const proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0];
-                        let tareaObj = Helper.clrHtml(response[0].tarea);
-                        let tareaEditada = tareaObj ? JSON.parse(tareaObj)[0] : []; 
-                        tareaEditada.notificaciones = 0;                        
-                        //Agregar a proyectos principales
-                        const proyectos = pyMerge(listaProyectos, proyectoActual, tareaEditada);
-                        dispatch({ 
-                            type: TR_SUCCESS, 
-                            payload: { 
-                                proyectos, 
-                                tmpProyecto: proyectoActual, 
-                                tareaActual: { id_tarea: id_tarea, editing: false, selected: true }    
-                            }                        
-                        });
-                    }
-                });          
-            }
-            catch(err) {
-                dispatch({ type: PY_FAIL, payload: err })
-            }                 
-        }    
-    }
+    return (dispatch) => {
+        try {
+            Database.request('POST', `MarcarLeida/${id_tarea}`, { id_usuario }, 2, (error, response) => {
+                if(error){
+                    dispatch({ type: PY_FAIL, payload: error })
+                } else{
+                    const proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0];
+                    let tareaObj = Helper.clrHtml(response[0].tarea);
+                    let tareaEditada = tareaObj ? JSON.parse(tareaObj)[0] : []; 
+                    tareaEditada.notificaciones = 0;                        
+                    //Agregar a proyectos principales
+                    const proyectos = pyMerge(listaProyectos, proyectoActual, tareaEditada);
+                    dispatch({ 
+                        type: TR_SUCCESS, 
+                        payload: { 
+                            proyectos, 
+                            tmpProyecto: proyectoActual, 
+                            tareaActual: { id_tarea: id_tarea, editing: false, selected: true }    
+                        }                        
+                    });
+                }
+            });          
+        }
+        catch(err) {
+            dispatch({ type: PY_FAIL, payload: err })
+        }                 
+    }    
+}
 
 export const getTarea = (listaProyectos, id_tarea, id_usuario, selected = false) => {
     return (dispatch) => {
@@ -380,6 +408,102 @@ export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
     }
 }
 
+/**
+ * == CHECKLIST =====================================================================================
+ */
+
+ export const crearSubtarea = (listaProyectos, proyecto, tarea, item) => {
+    return (dispatch) => {
+        dispatch({ type: TR_EDIT });
+        try {
+            Database.request('POST', `CrearSubtarea/${tarea.id_tarea}`, item, 2, (error, response) => {
+                if(error || response.status > 299){
+                    console.log(response);
+                } else {
+
+                    let tareaEditada = { ...tarea };
+                    tareaEditada.subtareas = response[0].subtareas ? JSON.parse(response[0].subtareas) : [];
+
+                    const proyectos = pyMerge(listaProyectos, proyecto, tareaEditada);
+                    const proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === proyecto.id_proyecto)[0];
+
+                    dispatch({
+                        type: TR_SUCCESS,
+                        payload: { 
+                            proyectos, 
+                            tmpProyecto: proyectoActual, 
+                            tareaActual: { id_tarea: tarea.id_tarea, editing: false, selected: true }
+                        } 
+                    })
+                }
+            })
+        } catch (err) {
+
+        }
+    }
+ }
+
+ export const borrarSubtarea = (listaProyectos, proyecto, tarea, item) => {
+    return (dispatch) => {
+        dispatch({ type: TR_EDIT });
+        try {
+            Database.request('POST', `BorrarSubtarea/${tarea.id_tarea}`, item, 2, (error, response) => {
+                if(error || response.status > 299){
+                    console.log(response);
+                } else {
+
+                    let tareaEditada = { ...tarea };
+                    tareaEditada.subtareas = tareaEditada.subtareas.filter(subtarea => subtarea.idSubtarea !== item.idSubtarea);
+
+                    const proyectos = pyMerge(listaProyectos, proyecto, tareaEditada);
+                    const proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === proyecto.id_proyecto)[0];
+
+                    dispatch({
+                        type: TR_SUCCESS,
+                        payload: { 
+                            proyectos, 
+                            tmpProyecto: proyectoActual, 
+                            tareaActual: { id_tarea: tarea.id_tarea, editing: false, selected: true }
+                        } 
+                    })
+                }
+            })
+        } catch (err) {
+
+        }
+    }
+ }
+
+ export const editarSubtarea = (listaProyectos, proyecto, tarea, item) => {
+    return (dispatch) => {
+        dispatch({ type: TR_EDIT });
+        try {
+            Database.request('POST', `EditarSubtarea/${tarea.id_tarea}`, item, 2, (error, response) => {
+                if(error || response.status > 299){
+                    console.log(response);
+                } else {
+
+                    let tareaEditada = { ...tarea };
+                    tareaEditada.subtareas = response[0].subtareas ? JSON.parse(response[0].subtareas) : [];
+
+                    const proyectos = pyMerge(listaProyectos, proyecto, tareaEditada);
+                    const proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === proyecto.id_proyecto)[0];
+
+                    dispatch({
+                        type: TR_SUCCESS,
+                        payload: { 
+                            proyectos, 
+                            tmpProyecto: proyectoActual, 
+                            tareaActual: { id_tarea: tarea.id_tarea, editing: false, selected: true }
+                        } 
+                    })
+                }
+            })
+        } catch (err) {
+
+        }
+    }
+ }
 /** Limpiar respuesta de PY (hacer legible)
  * 
  * @param {*} response 

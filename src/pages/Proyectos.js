@@ -3,6 +3,7 @@ import Proyecto from '../components/Proyecto';
 import { Modal, Input, Radio, FormRow} from '../components';
 import { Helper} from '../configuracion';
 import DatePicker from 'react-datepicker';
+import swal from 'sweetalert';
 import moment from 'moment';
 import 'moment/locale/es'
 
@@ -34,9 +35,11 @@ class Proyectos extends Component{
      */
     componentWillMount(){
         if(localStorage.sessionData) {
-            const sessionData = JSON.parse(localStorage.sessionData);
-            this.props.listaProyectos(sessionData.id_usuario);
-            this.props.listaUsuarios(sessionData.id_usuario);
+            if(this.props.proyectos.length === 0){
+                const sessionData = JSON.parse(localStorage.sessionData);
+                this.props.listaProyectos(sessionData.id_usuario);
+                this.props.listaUsuarios(sessionData.id_usuario);
+            }
         } else {
             this.props.changePage("","");
         }
@@ -119,7 +122,7 @@ class Proyectos extends Component{
      */
     renderList(){
         
-        if(this.props.proyectos.length === 0){
+        if(this.props.loading){
             return <div>Cargando...</div>
         }
 
@@ -134,6 +137,8 @@ class Proyectos extends Component{
                     id_status={item.id_status}
                     participantes={item.participantes}
                     tareas={item.tareas}
+                    total={item.taskCount}
+                    terminadas={item.taskCountTerminadas}
                     modificable={(item.id_proyecto===0?false:true)}
                     onProyectoSelect={() => this.onProyectoSelect(item.id_proyecto)}
                     onMenuOpen={() => this.onMenuOpen(item.id_proyecto)}
@@ -280,7 +285,10 @@ class Proyectos extends Component{
      * Renderiza la tarjeta de "Nuevo proyecto " y posteriormente la lista de proyectos
      */
     render(){
-                
+        if(this.props.error !== ''){
+            swal('Aviso', this.props.error, 'error');
+        }
+
         return(
             <div id="mainProyectos" style={{display:'block'}}>
                 <div id="list" style={styles.listWrap}>
@@ -315,6 +323,7 @@ class Proyectos extends Component{
 const mapStateToProps = state => {
     return { 
         proyectos: state.listaProyectos.proyectos, 
+        error: state.listaProyectos.error,
         proyectoActual: state.listaProyectos.tmpProyecto,
         loading: state.listaProyectos.loading,
         id_proyecto: state.listaProyectos.current_id_proyecto 

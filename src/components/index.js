@@ -15,3 +15,4 @@ export * from './Card';
 export * from './Avatar';
 export * from './Segmented';
 export * from './ImagePicker';
+export * from './CheckList';
