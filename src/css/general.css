@@ -10,6 +10,13 @@ html, body {
     background-color: #EBEFF2;
 }
 
+html{
+   /* overflow-y:hidden;*/
+}
+pre {
+    font-family: 'Montserrat', sans-serif !important;
+}
+
 @font-face
 {
 	font-family: Montserrat;
@@ -76,7 +83,8 @@ html, body {
         #titulo{
             display: flex;
             flex: 15;
-            margin-left: 15px;            
+            margin-left: 15px;    
+            align-items: center;        
         }
 
         .cardTitle{
@@ -350,6 +358,7 @@ html, body {
         padding-top: 10px;
         padding-bottom: 10px;
         margin-top: 15px;
+        margin-bottom: 5px;
     }     
 
     .taskFechaLimite{

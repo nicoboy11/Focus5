@@ -36,7 +36,8 @@ import {
     crearSubtarea,
     borrarSubtarea,
     editarSubtarea,
-    cargarMasTareas
+    cargarMasTareas,
+    buscarTexto
 } from '../actions';
 
 class Tareas extends Component{
@@ -73,10 +74,19 @@ class Tareas extends Component{
             this.props.listaProyectos(sessionData.id_usuario);
         } 
 
+        const id_tarea = this.props.tareaActual.id_tarea;
         //WebSocket
         this.ws = new WebSocket('ws://localhost:9998/task');
         this.ws.onmessage = (e) => {
-            this.props.enviarSocket(JSON.parse(e.data));
+            const data = JSON.parse(e.data);
+            this.props.enviarSocket(data);
+
+            if(data.accion === "enviar" && data.id_tarea === this.props.tareaActual.id_tarea){
+                const id_tarea = this.props.tareaActual.id_tarea;
+                this.props.marcarLeida(this.props.proyectos,this.props.proyectoActual.id_proyecto, id_tarea,sessionData.id_usuario, () => {
+                    this.wsComment("enviarLeida",{ id_tarea });
+                });
+            }
         };
 
         this.ws.onopen = function(){
@@ -127,7 +137,11 @@ class Tareas extends Component{
     }
 
     componentDidUpdate(prevProps, prevState){
-        const {ChatComponent, CheckList} = this.refs;
+        const {ChatComponent, CheckList, listaTareas} = this.refs;
+
+        if(this.state.scrollTopListaTareas !== listaTareas.scrollTop){
+            listaTareas.scrollTop = this.state.scrollTopListaTareas;
+        }
 
         if(this.props.tareaActual.tareaRender === true){
             this.props.tareaRenderEnd();
@@ -137,16 +151,24 @@ class Tareas extends Component{
             this.props.refreshTarea(tarea[0]);     
         }
 
-        if(ChatComponent !== undefined && this.state.lastTop === 0 && ChatComponent.refs.chatScroll.scrollHeight !== this.state.lastHeight) {
+        if(ChatComponent !== undefined && this.state.lastTop <= 30 && ChatComponent.refs.chatScroll.scrollHeight !== this.state.lastHeight) {
             ChatComponent.setScrollTop(ChatComponent.refs.chatScroll.scrollHeight - this.state.lastHeight);   
             this.setState({ lastHeight: ChatComponent.refs.chatScroll.scrollHeight });
         }
 
-        if(CheckList !== undefined && 
-            CheckList.refs.newCheck !== undefined && 
-            prevProps.tareaActual.subtareas.length < this.props.tareaActual.subtareas.length){
-                CheckList.refs.newCheck.refs.newTaskDiv.click();
+        //Poner el text cuando acaban de agregar subtarea para hacerlo más agil
+        try{
+            if(CheckList !== undefined && 
+                this.props.tareaActual.subtareas !== undefined &&
+                prevProps.tareaActual.subtareas !== undefined &&
+                CheckList.refs.newCheck !== undefined && 
+                JSON.stringify(prevProps.tareaActual) !== JSON.stringify(this.props.tareaActual)){
+                    CheckList.refs.newCheck.refs.newTaskDiv.click();
+            }
+        } catch(err){
+            this.setState({ tipoDetalle: 0 });
         }
+
     }
 
     /**
@@ -349,9 +371,11 @@ class Tareas extends Component{
         //Seleccionar Tarea
         const sessionData = JSON.parse(localStorage.sessionData);
         this.props.seleccionarTarea(id_tarea, false, true);
-        this.props.marcarLeida(this.props.proyectos,this.props.proyectoActual.id_proyecto, id_tarea,sessionData.id_usuario);
+        this.props.marcarLeida(this.props.proyectos,this.props.proyectoActual.id_proyecto, id_tarea,sessionData.id_usuario, () => {
+            this.wsComment("enviar",{ id_tarea });
+        });
         this.props.editarComentario("", {});
-        this.wsComment("typing","");
+        
     }
 
     /**
@@ -359,6 +383,10 @@ class Tareas extends Component{
      */
     checkScroll(e){
         const { offsetHeight, scrollHeight, scrollTop} = e.target;
+        if(scrollTop !== 0){
+            this.setState({ scrollTopListaTareas: scrollTop })
+        }
+
         if(offsetHeight + scrollTop === scrollHeight){
             if(this.props.proyectoActual.tareas.length !== this.props.proyectoActual.taskCount){
                 this.props.cargarMasTareas(this.props.proyectos,this.props.proyectoActual,JSON.parse(localStorage.sessionData).id_usuario);
@@ -561,9 +589,12 @@ class Tareas extends Component{
      * Renderizo las tareas si ya existen en el state
      */
     renderTareas(){
-        if(this.props.tareas !== null && this.props.tareas !== undefined) {
+        if(this.props.tareas !== null && this.props.tareas !== undefined && !this.props.loading ) {
             const me = this;
-            return this.props.tareas.map(tarea => {
+
+            const tareas = this.props.tareas.filter(tarea => tarea.txt_tarea.toLowerCase().includes(this.props.buscar));
+
+            return tareas.map(tarea => {
                     const selected = (tarea.id_tarea === me.props.tareaActual.id_tarea)?true:false;
                     const typing = (tarea.id_tarea === me.props.socket.id_tarea && me.props.socket.accion === "typing")?me.props.socket.mensaje:"";
                     return (
@@ -577,6 +608,7 @@ class Tareas extends Component{
                             txt_proyecto={this.props.proyectoActual.txt_proyecto}
                             avance={tarea.avance}
                             selected={selected}
+                            nuevo={tarea.nuevo}
                             typing={typing}
                             status={tarea.id_status}
                             onClick={this.tareaClick.bind(this)}
@@ -584,11 +616,15 @@ class Tareas extends Component{
                         />
                     )
             })/*.sort((a,b) => {
-                return (a.props.fec_limite > b.props.fec_limite)?0:1
+                return (a.props.notificaciones > b.props.notificaciones)?0:1
             })*/;
         }
 
-        return <div>loading...</div>;
+        return (
+            <div className="tareaCard" style={{ textAlign: 'center' }}>
+                <img style={{width: '50px', height: '50px'}} src={`${Config.network.server}/img/Spinner.gif`} />
+            </div>        
+        );
     }
 
     renderTipoDetalle(usuario){
@@ -607,6 +643,8 @@ class Tareas extends Component{
                     fileProgress={this.props.fileProgress}
                     url={this.props.archivo.url}
                     comments={this.props.tareaActual.topComments}
+                    participantes={this.props.tareaActual.participantes}
+                    idCampo={'ultimoVisto'}
                     text={this.props.comentario}
                     fec_creacion={this.props.tareaActual.fec_creacion}
                     commentCount={this.props.tareaActual.commentCount}
@@ -621,7 +659,9 @@ class Tareas extends Component{
                     //Recibir webSocket cuando alguien está escribiendo
                     typing={this.checkIfTyping(this.props.socket)}
                     scrollTop={this.state.lastTop}
-                    onScroll={(value) => { this.setState({ lastTop: value }); }}
+                    onScroll={(value) => { 
+                        this.setState({ lastTop: value }); 
+                    }}
                 />            
             );            
         }
@@ -677,7 +717,7 @@ class Tareas extends Component{
 
         //Actualizar tarea avisada por socket
         if(Object.keys(this.props.socket).length > 0) {
-            if(this.props.socket.accion === "enviar") {
+            if(this.props.socket.accion === "enviar" || this.props.socket.accion === "enviarLeida") {
                 this.props.clearSocket();            
                 this.props.getTarea(this.props.proyectos,this.props.socket.id_tarea,usuario.id_usuario);
             }
@@ -693,10 +733,17 @@ class Tareas extends Component{
         return(
             <div className="detallesContainer divideTop">
                 <div 
+                    ref="listaTareas"
                     onScroll={this.checkScroll.bind(this)}
                     id="listaTareas" 
                     className="w3-third chatPanel lightBackground"
                 >
+                    <input 
+                        placeholder="Buscar tareas..." 
+                        style={{ lineHeight: '1em', border: 'none', borderBottom: '1px solid #F1F1F1', padding: '5px', outline: '0'}} 
+                        onChange={({target}) => this.props.buscarTexto(target.value)}
+                        value={this.props.buscar}
+                    />                
                     <NewTask 
                         onEnter={(txt_tarea) => this.onGuardar(txt_tarea)}
                     />
@@ -717,7 +764,7 @@ class Tareas extends Component{
                     {(this.props.tareaActual.id_tarea !== null && this.props.tareaActual.id_tarea !== undefined)?
                     <Segmented
                         value={this.state.tipoDetalle} 
-                        items={[{ value: 0, title: 'Chat', icon: 'chat' },{ value: 1, title: 'Subtareas', icon: 'check_box' }]} 
+                        items={[{ value: 0, title: 'Chat', icon: 'chat' },{ value: 1, title: `Subtareas (${this.props.tareaActual.subtareas.length})`, icon: 'check_box' }]} 
                         onSelect={(value) => this.setState({ tipoDetalle: value })}                        
                     />:null}
                     {this.renderTipoDetalle(usuario)}
@@ -760,7 +807,8 @@ const mapStateToProps = state => {
         loadingFile: state.listaProyectos.loadingFile,
         socket: state.socket.socket,
         loadingMore: state.listaProyectos.loadingMore,
-        loadingChecklist: state.listaProyectos.loadingChecklist
+        loadingChecklist: state.listaProyectos.loadingChecklist,
+        buscar: state.listaProyectos.buscar
     }
 };
 
@@ -791,6 +839,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     borrarSubtarea,
     editarSubtarea,
     cargarMasTareas,
+    buscarTexto,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

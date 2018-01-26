@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { listaUsuarios, mostrarHijos, seleccionarUsuario, editaUsuario, guardarUsuario } from '../actions';
-import { Avatar, Segmented, Modal, FormRow, Radio } from '../components';
+import { listaUsuarios, mostrarHijos, seleccionarUsuario, editaUsuario, guardarUsuario, buscarTexto } from '../actions';
+import { Avatar, Segmented, Modal, FormRow, Radio, Input } from '../components';
 import Select from 'react-select';
 import swal from 'sweetalert';
 import { Config } from '../configuracion';
@@ -33,8 +33,8 @@ class Personal extends Component{
     componentWillReceiveProps(nextProps){
     }
 
-    renderChildren(usuario){
-        this.props.mostrarHijos(this.props.usuarios.usuarios, usuario);
+    renderChildren(usuarios,usuario,red){
+        this.props.mostrarHijos(usuarios, usuario,red);
     }
 
     renderUsuarios(red){
@@ -46,13 +46,18 @@ class Personal extends Component{
                 return null;
             }
 
+            const isOpen = `isOpen${(red)?'Red':''}`;
+            const isVisible = `isVisible${(red)?'Red':''}`;
+
             let usuarios = [];
             //solo usuarios de mi red
             if(red){
                 usuarios = this.props.usuarios.usuarios.filter(usuario => usuario.levelKey.includes(sessionData.levelKey));
             } else {
-                usuarios = this.props.usuarios.usuarios.filter(usuario => !usuario.levelKey.includes(sessionData.levelKey));
+                usuarios = this.props.usuarios.usuarios;
             }
+
+            usuarios = usuarios.filter(usuario => usuario.txt_usuario.toLowerCase().includes(this.props.buscar) || usuario.txt_login.toLowerCase().includes(this.props.buscar) )
 
                 return usuarios.map(usuario => {
                     const image = usuario.sn_imagen===1?
@@ -88,9 +93,9 @@ class Personal extends Component{
 
                     const nivelStyle = { marginLeft: `${usuario.nivel * 40}px` }
                     const editStyle = { right: `10px` }
-                    const icon = (usuario.isOpen)?'keyboard_arrow_down':'chevron_right';
+                    const icon = (usuario[isOpen])?'keyboard_arrow_down':'chevron_right';
 
-                    if(usuario.isVisible){
+                    if(usuario[isVisible]){
                         return (
                             <div 
                                 key={usuario.id_usuario} 
@@ -104,7 +109,7 @@ class Personal extends Component{
                                     position: 'relative',
                                     ...nivelStyle
                                 }}
-                                onClick={() => this.renderChildren(usuario)}
+                                onClick={() => this.renderChildren(usuarios,usuario,red)}
                                 onMouseOver={() => this.setState({ verEdit: usuario.id_usuario })}
                                 onMouseLeave={() => this.setState({ verEdit: null })}
                             >
@@ -263,8 +268,15 @@ class Personal extends Component{
                         value={this.state.tipoLista} 
                         items={[{ value: 0, title: 'Lista', icon: 'reorder' },{ value: 1, title: 'Jerarquía', icon: 'device_hub' }]} 
                         onSelect={(value) => this.setState({ tipoLista: value })}
-                    />
+                    />                
                 </div>
+                <Input 
+                        placeholder="Buscar usuarios..." 
+                        style={{ lineHeight: '2em', width: '20%', alignSelf: 'center', marginTop: '10px', maxHeight: '30px' }} 
+                        styleContainer={{ flex: '' }}
+                        onChangeText={(value) => this.props.buscarTexto(value)}
+                        value={this.props.buscar}
+                    />    
                 {this.renderListaUsuarios()}
                 {this.renderForma()}
             </div>
@@ -276,7 +288,8 @@ class Personal extends Component{
 const mapStateToProps = (state) => {
     return {
         usuarios: state.usuarios,
-        usuarioActual: state.usuarios.usuarioActual
+        usuarioActual: state.usuarios.usuarioActual,
+        buscar: state.listaProyectos.buscar
     }
 }
 
@@ -285,7 +298,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     mostrarHijos,
     seleccionarUsuario,
     editaUsuario,
-    guardarUsuario
+    guardarUsuario,
+    buscarTexto
 }, dispatch)
 
 export default connect(mapStateToProps,mapDispatchToProps)(Personal);

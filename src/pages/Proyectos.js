@@ -16,7 +16,8 @@ import {
     editarProyecto, 
     guardarProyecto, 
     desseleccionarProyecto,
-    listaUsuarios
+    listaUsuarios,
+    buscarTexto
 } from '../actions';
 
 class Proyectos extends Component{
@@ -45,6 +46,17 @@ class Proyectos extends Component{
         }
 
     }
+    
+    componentWillReceiveProps(nextProps){
+        const currentHash = window.location.hash;
+        if(currentHash.split("#")[1] === "notificaciones" && !this.state.filterNotif){
+            this.setState({ filterNotif: true });
+        } 
+
+        if(currentHash.split("#")[1] !== "notificaciones" && this.state.filterNotif){
+            this.setState({ filterNotif: false });
+        }         
+    }
 
     /**
      * Cuando se selecciona un proyecto se manda al reducer para almacenar "current_id_proyecto" en el state
@@ -66,8 +78,12 @@ class Proyectos extends Component{
      * Guardar un proyecto nuevo o editar uno
      */
     onGuardar(){
-        //Cuando el proyecto es nuevo el id_status es null
+        //Si el proyecto no es nuevo es !== de null
         if(this.props.proyectoActual.id_status !== null) {
+            if(this.props.proyectoActual.id_status === 2 && this.props.proyectoActual.taskCount > this.props.proyectoActual.taskCountTerminadas){
+                swal("Alerta", "Debe dar por terminadas las tareas antes de inactivar un proyecto.", "warning");
+                return;
+            }
             this.props.guardarProyecto(this.props.proyectos, this.props.proyectoActual, false, () => {
                 this.setState({ mostrarModal: false });
             });
@@ -126,7 +142,21 @@ class Proyectos extends Component{
             return <div>Cargando...</div>
         }
 
-        return this.props.proyectos.map(item => {
+        let proyectos = this.props.proyectos.filter(proyecto => proyecto.txt_proyecto.toLowerCase().includes(this.props.buscar));
+
+        if(this.state.filterNotif){
+            proyectos = this.props.proyectos.filter(proyecto => {
+                for(let tarea of proyecto.tareas){
+                    if(tarea.notificaciones > 0){
+                        return true;
+                    }
+                }
+
+                return false;
+            });
+        }
+
+        return proyectos.map(item => {
             return (
                 <Proyecto 
                     key={item.id_proyecto} 
@@ -139,6 +169,7 @@ class Proyectos extends Component{
                     tareas={item.tareas}
                     total={item.taskCount}
                     terminadas={item.taskCountTerminadas}
+                    nuevo={item.nuevo}
                     modificable={(item.id_proyecto===0?false:true)}
                     onProyectoSelect={() => this.onProyectoSelect(item.id_proyecto)}
                     onMenuOpen={() => this.onMenuOpen(item.id_proyecto)}
@@ -291,6 +322,12 @@ class Proyectos extends Component{
 
         return(
             <div id="mainProyectos" style={{display:'block'}}>
+                <Input 
+                    placeholder="Buscar proyectos..." 
+                    style={{ lineHeight: '2em', width: '20%', alignSelf: 'center', marginTop: '10px', marginBottom:'10px' }} 
+                    onChangeText={(value) => this.props.buscarTexto(value)}
+                    value={this.props.buscar}
+                />
                 <div id="list" style={styles.listWrap}>
                     <div 
                         className="w3-col newProject w3-card" 
@@ -326,7 +363,9 @@ const mapStateToProps = state => {
         error: state.listaProyectos.error,
         proyectoActual: state.listaProyectos.tmpProyecto,
         loading: state.listaProyectos.loading,
-        id_proyecto: state.listaProyectos.current_id_proyecto 
+        id_proyecto: state.listaProyectos.current_id_proyecto,
+        buscar: state.listaProyectos.buscar,
+        fltrNtf: state.listaProyectos.fltrNtf
     }
 };
 
@@ -341,6 +380,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     guardarProyecto,
     desseleccionarProyecto,
     listaUsuarios,
+    buscarTexto,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 
@@ -348,7 +388,8 @@ const styles = {
     listWrap: {
         display: 'flex', 
         flexWrap: 'wrap',
-        maxHeight: '800px'
+        maxHeight: '800px',
+        overflowY: 'auto'
     },
     project: {
         backgroundColor: '#FFF',

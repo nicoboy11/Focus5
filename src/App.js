@@ -11,7 +11,7 @@ import MenuBar from './components/MenuBar';
 import { Route } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { cargarPerfil } from './actions'
+import { cargarPerfil, filtraNotificaciones } from './actions'
 import { bindActionCreators } from 'redux';
 
 import Ajustes from './pages/Ajustes';
@@ -86,6 +86,13 @@ class App extends Component {
       current = { nombre: '' }
     }
 
+    let notificaciones = 0;
+    for(let proyecto of this.props.proyectos){
+      for(let tarea of proyecto.tareas){
+        notificaciones += tarea.notificaciones;
+      }
+    }
+    
     
     return (
           <div className="App">
@@ -102,6 +109,8 @@ class App extends Component {
             {this.renderMenu(<MenuTop 
                                 currentTitle={title} 
                                 breadCrumb={breadCrumb} 
+                                notificaciones={notificaciones}
+                                notifSelected={this.props.fltrNtf}
                                 onLogout={() =>{
                                   localStorage.removeItem("sessionData");
                                   window.location = '/';
@@ -109,7 +118,15 @@ class App extends Component {
                                 onClick={() =>{
                                     window.history.forward();
                                 }}
-                              />)}
+                                onNotifClick={() => {
+                                  if(!this.props.fltrNtf){
+                                    window.location.hash = '#notificaciones'
+                                  } else {
+                                    window.location.hash = ''
+                                  }
+                                  this.props.filtraNotificaciones(!this.props.fltrNtf);
+                                }}
+                            />)}
             {this.renderMenu(<MenuBar currentMenu={current.nombre} />)}
           </div>
     );
@@ -117,7 +134,8 @@ class App extends Component {
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  cargarPerfil
+  cargarPerfil,
+  filtraNotificaciones
 }, dispatch)
 
 const mapStateToProps = state => {
@@ -125,7 +143,8 @@ const mapStateToProps = state => {
       proyectos: state.listaProyectos.proyectos,
       proyectoActual: state.listaProyectos.tmpProyecto,
       //tareaActual: state.tareaActual,
-      perfil: state.perfil
+      perfil: state.perfil,
+      fltrNtf: state.listaProyectos.fltrNtf
   }
 };
 

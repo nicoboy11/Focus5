@@ -13,11 +13,13 @@ class Chat extends Component{
         url: '',
         typing: '',
         comments: [],
+        participantes: [],
         commentChanged: () => {},
         enviarComment: () => {},
         fileChange: () => {},
         onScroll: () => {},
-        scrollTop: 0
+        scrollTop: 0,
+        idCampo: 'id'
     }
 
     /**
@@ -56,6 +58,11 @@ class Chat extends Component{
     }
 
     onScroll(evt){
+
+        if(evt.target.scrollTop === 0 && this.props.comments.length !== this.props.commentCount){
+            this.props.onLoadMore();
+        }
+
         this.props.onScroll(evt.target.scrollTop);
     }
 
@@ -88,7 +95,11 @@ class Chat extends Component{
 
     renderMore() {
         if(this.props.loadingMore) {
-            return <div>Cargando...</div>;
+            return (
+                <div className="tareaCard" style={{ textAlign: 'center' }}>
+                    <img style={{width: '50px', height: '50px'}} src={`${Config.network.server}/img/Spinner.gif`} />
+                </div>                 
+            );
         }
 
         if(this.props.fec_creacion === undefined) {
@@ -100,7 +111,7 @@ class Chat extends Component{
                         onClick={this.props.onLoadMore}
                         style={styles.loadMore}
                     >
-                        Cargar más...
+                        MAS
                     </button>
                     );
         }
@@ -120,6 +131,15 @@ class Chat extends Component{
             if(comment.imagen !== ""){
                 ruta = `${Config.network.server}archivos/${comment.imagen}`                
             }
+
+            let seenBy = 0;
+
+            for(let participante of this.props.participantes){
+                if(participante.ultimoVisto >= comment.id_tarea_unique){
+                    seenBy++;
+                }
+            }
+
             return (
                 <ChatItem 
                     key={parseInt(comment.id_tarea_unique)}
@@ -128,6 +148,7 @@ class Chat extends Component{
                     fec_comentario={comment.fec_comentario}
                     id_usuario={parseInt(comment.id_usuario)}
                     id_tarea_unique={parseInt(comment.id_tarea_unique)}
+                    seen={(seenBy===this.props.participantes.length)}
                     id_current_user={JSON.parse(localStorage.sessionData).id_usuario}
                     imagen={ruta}
                     userName={comment.txt_usuario}
@@ -197,6 +218,11 @@ class Chat extends Component{
                         placeholder="Escribe un mensaje..." 
                         value={this.props.text}
                         onChangeText={(value) => this.props.commentChanged(value)} 
+                        onEnter={(value) => {
+                            if(this.props.text !== ""){
+                                this.enviarComment()}
+                            }
+                        }
                     />
                 </div>
                 <div className="iconContainer">
@@ -250,7 +276,16 @@ const styles = {
     },
     loadMore: {
         padding: '5px',
-        marginBottom: '10px'
+        marginBottom: '10px',
+        width: '36px',
+        height: '36px',
+        borderRadius: '18px',
+        border: '1px solid #CACACA',
+        backgroundColor: 'white',
+        fontSize: '10px',
+        alignItems: 'center',
+        display: 'flex',
+        alignSelf: 'center',
     }
 }
 

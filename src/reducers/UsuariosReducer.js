@@ -33,7 +33,7 @@ export default (state = INITIAL_STATE, action) => {
         case USUARIOS_ACTUAL_LIMPIAR:
             return { ...state, usuario_reponsable: [], USUARIOS_PARTICIPANTES: [] }
         case USR_EDIT:
-            return { ...state, usuarios: action.payload }
+            return { ...state, usuarios: action.payload }     
         case USR_SELECT:
             return { ...state, usuarioActual: action.payload }
         default:

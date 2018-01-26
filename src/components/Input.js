@@ -21,6 +21,8 @@ class Input extends Component{
         placeholder: '',
         value: '',
         replace: true,
+        style: {},
+        styleContainer:{},
         onEnter: () => {}
     }
     constructor(props){
@@ -96,7 +98,12 @@ class Input extends Component{
     onKeyPress(e){
         const code = (e.keyCode ? e.keyCode : e.which);
         if(code === 13){
-            this.props.onEnter();
+            if(!e.shiftKey){
+                this.props.onEnter();
+            } else {
+                
+            }
+            
         }
     }
 
@@ -142,7 +149,7 @@ class Input extends Component{
                 id={id} 
                 value={value} 
                 placeholder={placeholder} 
-                style={styles.inputStyle} 
+                style={{ ...styles.inputStyle, ...this.props.style}} 
                 type={(type==='PASSWORD') ? 'password' : 'text'} 
             />
         );
@@ -153,7 +160,7 @@ class Input extends Component{
      */
     render(){
         return(
-            <div style={{display: 'flex', flex: 1, flexDirection: 'column'}}>
+            <div style={{display: 'flex', flex: 1, flexDirection: 'column', ...this.props.styleContainer}}>
             {this.renderLabel()}
             {this.renderInput()}
             {this.renderError()}

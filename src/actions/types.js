@@ -100,6 +100,7 @@ export const TR_CANCEL = 'tr_fail';
 export const TR_NEW_TXT = 'tr_new_txt';
 export const TR_LEIDA = 'tr_leida';
 export const TR_NEW_CHK = 'tr_new_chk';
+export const TR_SUCCESS_SUB = "tr_success_sub";
 
 export const CM_EDIT = 'cm_edit';
 export const CM_GUARDAR = 'cm_guardar';
@@ -114,3 +115,8 @@ export const CK_FAILED = 'ck_failed';
 
 export const PSW_CHANGED = 'psw_changed';
 export const PSW_GUARDAR = 'psw_guardar';
+
+export const BSR_EDIT = 'bsr_edit';
+export const BSR_CLEAR = 'bsr_clear';
+
+export const FLTR_NTF = 'fltr_ntf';

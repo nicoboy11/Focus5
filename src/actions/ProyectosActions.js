@@ -7,7 +7,7 @@ import {
     CM_GUARDAR,     CM_PROGRESS,    CM_SUCCESS,
     CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    
     TR_SUCCESS,     CM_MORE,        TR_LEIDA,
-    CK_SUCCESS,     PY_MORE_SUCCESS
+    CK_SUCCESS,     PY_MORE_SUCCESS,TR_SUCCESS_SUB
 } from './types';
 
 /**
@@ -42,7 +42,7 @@ export const cargarMasTareas = (listaProyectos, proyecto, id_usuario) => {
                 proyectoEditado.tareas = proyectoEditado.tareas.concat(newResponse[0].tareas);
                 const proyectos = pyMerge([...listaProyectos], proyectoEditado);
 
-                dispatch({ type: PY_MORE_SUCCESS, payload: proyectos });
+                dispatch({ type: PY_MORE_SUCCESS, payload: { proyectos, proyectoEditado } });
             }
         });
     }
@@ -99,6 +99,11 @@ export const guardarProyecto = (listaProyectos, proyecto, snNuevo, callback = ()
                 } else{
                     //Limpiar datos
                     const newResponse = handleReponsePY(response);
+                    //Marco este proyecto como nuevo
+                    if(snNuevo){
+                        newResponse[0].nuevo = true;
+                    }
+                    
                     //Agregar datos a la lista original
                     const newList = pyMerge([...listaProyectos], newResponse[0]);
                     callback();
@@ -220,6 +225,11 @@ export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva, cal
                     }
 
                     tareaEditada.txt_tarea = Helper.decode_utf8(Helper.htmlPaso(tareaEditada.txt_tarea));
+
+                    if(snNueva){
+                        tareaEditada.nuevo = true;
+                    }
+
                     const proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0];
                     //Agregar a proyectos principales
                     const proyectos = pyMerge(listaProyectos, proyectoActual, tareaEditada);
@@ -241,7 +251,7 @@ export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva, cal
     }    
 }
 
-export const marcarLeida = (listaProyectos, id_proyecto, id_tarea, id_usuario) => {
+export const marcarLeida = (listaProyectos, id_proyecto, id_tarea, id_usuario, callback = () => {}) => {
     
     return (dispatch) => {
         try {
@@ -255,6 +265,7 @@ export const marcarLeida = (listaProyectos, id_proyecto, id_tarea, id_usuario) =
                     tareaEditada.notificaciones = 0;                        
                     //Agregar a proyectos principales
                     const proyectos = pyMerge(listaProyectos, proyectoActual, tareaEditada);
+                    callback();
                     dispatch({ 
                         type: TR_SUCCESS, 
                         payload: { 
@@ -425,10 +436,10 @@ export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
                     tareaEditada.subtareas = response[0].subtareas ? JSON.parse(response[0].subtareas) : [];
 
                     const proyectos = pyMerge(listaProyectos, proyecto, tareaEditada);
-                    const proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === proyecto.id_proyecto)[0];
+                    const proyectoActual = proyectos.filter(py => py.id_proyecto === proyecto.id_proyecto)[0];
 
                     dispatch({
-                        type: TR_SUCCESS,
+                        type: TR_SUCCESS_SUB,
                         payload: { 
                             proyectos, 
                             tmpProyecto: proyectoActual, 
@@ -532,7 +543,6 @@ export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
                 for(const comentario of tarea.topComments) {
                     let coment = Helper.decode_utf8(comentario.txt_comentario);
                     coment = Helper.htmlDecode(comentario.txt_comentario);
-
                     comentario.txt_comentario = coment;
                 }
             }
@@ -592,7 +602,7 @@ export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
         let foundIndex = proyectos.findIndex(x=>x.id_proyecto === proyecto.id_proyecto);
         let tareaIndex = proyecto.tareas.findIndex(x=>x.id_tarea === tarea.id_tarea);
 
-        //En caso de que cambió de proyecto borro tarea del proyecto y selecciono el nuevo proyecto
+        //En caso de que cambió de proyecto: borro tarea del proyecto y selecciono el nuevo proyecto
         if(tarea_old !== undefined){
             if(tarea.id_proyecto !== proyecto.id_proyecto) {
                 //Elimino tarea de proyecto actual y actualizo la lista general
@@ -625,10 +635,13 @@ export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
         if(tarea_old !== undefined) {
             //Si no encuentra la tarea en la lista la inserta (nueva tarea)
             if(tareaIndex === -1) {
-                proyecto.tareas.push(tarea);
+                proyecto.tareas.unshift(tarea);
             } else {
                 proyecto.tareas[tareaIndex] = tarea;
             }
+
+            proyecto.taskCount = proyecto.tareas.length;
+            proyecto.taskCountTerminadas = proyecto.tareas.filter(tarea => tarea.id_status != 1).length;
         }
     
         //Si no encuentra el proyecto en la lista lo inserta (nuevo proyecto)

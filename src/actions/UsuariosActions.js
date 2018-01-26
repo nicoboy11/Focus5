@@ -25,9 +25,12 @@ export const listaUsuarios = (id_usuario_sesion) => {
                     usuario.txt_usuario = Helper.decode_utf8(Helper.htmlPaso(usuario.txt_usuario));
                     usuario.isOpen = false;
                     usuario.isVisible = false;
+                    usuario.isOpenRed = false;
+                    usuario.isVisibleRed = false;                    
 
                     if(JSON.parse(localStorage.sessionData).id_usuario === usuario.id_usuario || usuario.nivel === 1){
                         usuario.isVisible = true;
+                        usuario.isVisibleRed = true;
                     }
                 }
 
@@ -37,27 +40,43 @@ export const listaUsuarios = (id_usuario_sesion) => {
     }
 };
 
-export const mostrarHijos = (usuarios, usuario) => {
+export const mostrarHijos = (usuarios, usuario,red) => {
 
     const _usuarios = [...usuarios];
     const isOpening = !usuario.isOpen;
+    const isOpeningRed = !usuario.isOpenRed;
 
     //Hago un loop en todos los usuarios
     for(const usr of _usuarios) {
         //Si pertenece a una llave (es decir, es hijo del papá) lo hago visible
         if(usr.levelKey.includes(usuario.levelKey) && usr.nivel > usuario.nivel){
             //Si va a cerrarse hay que esconder a los hijos
-            if(isOpening && usr.nivel === usuario.nivel +1){
-                usr.isVisible = true;
+            if(red){
+                if(isOpeningRed && usr.nivel === usuario.nivel +1){
+                    usr.isVisibleRed = true;
+                } else {
+                    usr.isVisibleRed = false;
+                    usr.isOpenRed = false;
+                }
             } else {
-                usr.isVisible = false;
-                usr.isOpen = false;
+                if(isOpening && usr.nivel === usuario.nivel +1){
+                    usr.isVisible = true;
+                } else {
+                    usr.isVisible = false;
+                    usr.isOpen = false;
+                }
             }
         }
 
         //El usuario actual se mostrará como "abierto"
-        if(usr.id_usuario === usuario.id_usuario){
-            usr.isOpen = !usr.isOpen;
+        if(red){
+            if(usr.id_usuario === usuario.id_usuario){
+                usr.isOpenRed = !usr.isOpenRed;
+            }            
+        } else {
+            if(usr.id_usuario === usuario.id_usuario){
+                usr.isOpen = !usr.isOpen;
+            }
         }
     }
 

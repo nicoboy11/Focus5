@@ -52,11 +52,12 @@ class ChatItem extends Component {
                         <img 
                             onClick={() => this.setState({ display: { display: 'flex' } })}
                             src={`${this.props.imagen}`} 
-                            style={{ ...loading, marginBottom: '10px', borderRadius: '10px', objectFit: 'cover', width: '230px', height: '230px'}} 
+                            style={{ ...loading, cursor:'pointer', marginBottom: '10px', borderRadius: '10px', objectFit: 'cover', width: '230px', height: '230px'}} 
                         />
                         <br />
                         <br />
                         <div
+                            onClick={() => { this.setState({ display: {display: 'none'} }); }} 
                             style={{ 
                                 ...this.state.display, 
                                 position: 'fixed', 
@@ -131,7 +132,8 @@ class ChatItem extends Component {
             loading,
             progress,
             userName,
-            userColor
+            userColor,
+            seen
         } = this.props;
 
         if(id_tipo_comentario === 2 ) {
@@ -139,6 +141,9 @@ class ChatItem extends Component {
                 <div className="bitacora">{Helper.htmlPaso(Helper.decode_utf8(txt_comentario))}</div>
             );
         }
+
+        
+
         let wimageStyle = {};
         if(this.props.imagen !== ""){
             wimageStyle = { marginBottom: '0px' };
@@ -151,7 +156,9 @@ class ChatItem extends Component {
                         <div style={styles.messageSelf}>
                             <div style={{ margin: '10px', ...wimageStyle, position:'relative' }}>
                                 {this.renderImage()}
-                                {Helper.decode_utf8(txt_comentario)}
+                                <pre style={{ whiteSpace: 'pre-wrap'}}>
+                                    {Helper.decode_utf8(txt_comentario)}
+                                </pre>
                                 {(progress !== undefined)?
                                 <div style={styles.barra}>
                                     <div style={{...styles.progress,width: `${progress}%`}}>{progress}%</div>
@@ -160,6 +167,9 @@ class ChatItem extends Component {
                         </div>
                         <div style={styles.datetimeStyle}>
                             <div style={styles.messageTimeSelf} className="messageTimeSelf fadeColor">{Helper.decode_utf8(Helper.prettyfyDate(fec_comentario).datetime)}</div>
+                            {(seen)?
+                                <div><i style={{ fontSize: '10px', marginLeft: '3px'}} className="material-icons clickableColor">done_all</i></div>:
+                                <div><i style={{ fontSize: '10px', marginLeft: '3px'}} className="material-icons fadeColor">done</i></div>}
                         </div>                        
                     </div>  
             );          
@@ -171,7 +181,9 @@ class ChatItem extends Component {
                         <div style={{...styles.chatTitle, color: userColor}}>{Helper.htmlDecode(Helper.decode_utf8(userName))}</div>  
                         <div style={{ marginLeft: '10px', position:'relative' }}>                     
                             {this.renderImage()}
+                            <pre style={{ whiteSpace: 'pre-wrap'}} >
                             {Helper.decode_utf8(txt_comentario)}
+                            </pre>
                         </div>
                     </div>
                     <div style={styles.datetimeStyle}>
@@ -256,7 +268,10 @@ const styles = {
     },
     datetimeStyle: {
         marginRight: '15px',
-        marginTop: '-10px'
+        marginTop: '-10px',
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'center'
     },
     messageTimeSelf: {
         float: 'right',

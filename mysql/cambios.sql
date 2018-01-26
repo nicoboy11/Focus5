@@ -286,7 +286,7 @@
 							'"participantes":',sc.participantes,',',
                             '"subtareas":',sc.subtareas,',',
 							'"topComments":',sc.topComments,'',
-						'}') ORDER BY FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
+						'}') ORDER BY SC.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
 					  ']') INTO _tareas
         FROM (
 			SELECT ct.id_tarea,
@@ -342,6 +342,7 @@
 							'"color":"',ifnull(cu.color,''),'",',
                             '"sn_imagen":',ifnull(cu.sn_imagen,0),',',
                             '"sn_espadre":',FN_ESPADRE(cu.id_usuario),',',
+                            '"ultimoVisto":',getUserLastSeen(ct.id_tarea, cu.id_usuario),',',
 							'"txt_email":"',ifnull(cu.txt_email,''),'"',
 						'}') separator ','),
 					  ']') INTO _usuarios
@@ -438,6 +439,23 @@
 		RETURN ifnull(_subtareas,'[]');
 
 	END$$    
+    
+	DELIMITER $$
+	DROP FUNCTION IF EXISTS getUserLastSeen$$
+	CREATE FUNCTION getUserLastSeen(_id_tarea int, _id_usuario int) RETURNS int
+	BEGIN
+
+		DECLARE _id_tarea_unique int;
+        
+		SELECT id_tarea_unique INTO _id_tarea_unique
+		FROM vbit_view_tarea as bvt
+		INNER JOIN ctrl_tareas_detalle as ctd on ctd.id_tarea = bvt.id_tarea and fec_actualiza >= fec_comentario
+		WHERE bvt.id_tarea = _id_tarea and bvt.id_usuario = _id_usuario
+		ORDER BY fec_comentario desc LIMIT 1;
+
+		RETURN ifnull(_id_tarea_unique,0);
+
+	END$$      
    
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getCommentCount$$

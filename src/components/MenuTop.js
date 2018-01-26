@@ -35,6 +35,17 @@ class MenuTop extends Component{
         if(localStorage.sessionData === undefined || localStorage.sessionData === 'undefined'){
             return null;
         }
+
+        let notifStyle = {};
+        if(this.props.notifSelected){
+            notifStyle = styles.selectedMenu;
+        }
+
+        const currentHash = window.location.hash;
+        if(currentHash.split("#")[1] === "notificaciones" && !this.props.notifSelected && this.refs.ntfButton !== undefined){
+            this.refs.ntfButton.click();
+        }         
+
         return(
             <div id="topBar">
                 <div id="marca">
@@ -54,8 +65,32 @@ class MenuTop extends Component{
                     <div style={styles.buttonStyle} id="searchBar">
                         <i className="material-icons fadeColor barButton">search</i>
                     </div>            
-                    <div style={styles.buttonStyle} id="notification">
-                        <i className="material-icons fadeColor barButton">notifications_none</i>
+                    <div 
+                        ref="ntfButton"
+                        style={styles.buttonStyle} 
+                        id="notification" 
+                        onClick={() => {
+                            this.props.onNotifClick();
+                        }}
+                    >
+                        <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    position: 'relative',
+                                    padding: '10px',
+                                    color: '#A2ABB2',
+                                    ...notifStyle
+                                }}
+                        >
+                        <i className="material-icons barButton">notifications_none</i>
+                        {(this.props.notificaciones)>0?
+                            <div style={{left: '25px', position:'absolute'}} className="badge">
+                                {this.props.notificaciones}
+                            </div>:
+                            null
+                        }
+                        </div>
                     </div>        
                     <div 
                         style={styles.buttonStyle} 
@@ -83,7 +118,12 @@ const styles = {
         top: '0px',
         bottom: '0px',
         marginRight:'10px'
-    }
+    },
+    selectedMenu:{
+        backgroundColor: '#F6F6F6',
+        border: '1px solid #F1F1F1',
+        color: '#2196F3'
+    }    
 }
 
 export {MenuTop}

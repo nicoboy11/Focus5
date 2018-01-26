@@ -46,7 +46,15 @@ class Tarea extends Component{
         const { participantes, txt_tarea, fec_limite, txt_proyecto, avance, selected, typing, status } = this.props;
         const opacidad = (status===2)?{ opacity: '0.4'}:{};
         const selectedStyle = (selected)?styles.selectedStyle:{};
-        return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} style={{ ...opacidad,...selectedStyle }} className="tareaCard divideBottom">
+        let nuevoStyle = {};
+        if(this.props.nuevo) {
+            nuevoStyle = {
+                backgroundColor: '#FFFDCC',
+                border: '1px solid lightgray'
+            };
+        }
+
+        return(<div data-id={this.props.id_tarea} onClick={this.onClick.bind(this)} style={{ ...opacidad,...selectedStyle, ...nuevoStyle }} className="tareaCard divideBottom">
                     <div className={`c100 p${avance} tiny blue`}>
                         <span>{avance}%</span>
                         <div className="slice">
@@ -79,6 +87,7 @@ class Tarea extends Component{
 
 const styles = {
     selectedStyle: {
+        opacity: '1',
         borderLeft: "5px solid #1ABC9C",
         backgroundColor: "#F6F6F6"
     },

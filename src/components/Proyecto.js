@@ -100,9 +100,17 @@ class Proyecto extends Component{
         } = this.props;
 
         const promedio = Math.floor((this.state.terminadas/this.state.totalTareas)*100);
+        let nuevoStyle = {};
+        if(this.props.nuevo) {
+            nuevoStyle = {
+                backgroundColor: '#FFFDCC',
+                border: '1px solid lightgray'
+            };
+        }
+
 
         if(id_status === 1 || id_status === 3){
-            return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={styles.project} className="w3-card w3-col">
+            return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={{ ...styles.project, ...nuevoStyle }} className="w3-card w3-col">
                         <div className="projectTop">                     
                             <div className="cardTitle">{txt_proyecto}</div>   
                             {this.renderNotificaciones()}     

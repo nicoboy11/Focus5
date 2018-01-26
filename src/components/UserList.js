@@ -14,7 +14,8 @@ class UserList extends Component{
         return participantes.map(participante => {
             i++;
 
-            const srcImg = `${Config.network.server}/usr/thumbs/small/${participante.id_usuario}.jpg?v=${new Date().getTime()}`;
+            const srcImg = `${Config.network.server}/usr/thumbs/small/${participante.id_usuario}.jpg`;
+            //const srcImg = `${Config.network.server}/usr/thumbs/small/${participante.id_usuario}.jpg?v=${new Date().getTime()}`;
             let overlayVal = i*12;
 
             if( i > limit){
