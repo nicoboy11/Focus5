@@ -31,12 +31,11 @@
 	WHERE bv.id_usuario = ct.id_usuario;
 
 	#--Quitar saltos de linea en textos de la tarea
-    #UPDATE ctrl_tareas
-    #SET txt_tarea = replace(replace(replace(txt_tarea,'\\n',''),'\\t',''),'\\r','')
-    #WHERE txt_tarea like CONCAT('%','\\n','%');
+    UPDATE ctrl_tareas
+    SET txt_tarea = replace(replace(replace(txt_tarea,'\n',''),'\t',''),'\r','')
+    WHERE txt_tarea like CONCAT('%','\\n','%');
     
-    #SELECT * FROM ctrl_tareas
-    #WHERE txt_tarea like CONCAT('%','\\n','%');
+    #SELECT * FROM ctrl_tareas WHERE txt_tarea like CONCAT('%','\\n','%');
 
 	#--Marcar con rol de responsable
 	UPDATE bit_view_tarea as bv
@@ -48,14 +47,7 @@
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
 	SET role_id = 3
-	WHERE bv.id_usuario <> ct.id_responsable and bv.id_usuario <> ct.id_usuario    
-    #------------------------------------
-    DELIMITER $$
-	DROP FUNCTION IF EXISTS formatDate$$
-	CREATE FUNCTION formatDate(_date datetime) RETURNS varchar(20)
-	BEGIN
-		RETURN date_format(_date,'%Y-%m-%d %T');
-	END$$
+	WHERE bv.id_usuario <> ct.id_responsable and bv.id_usuario <> ct.id_usuario;
     #------------------------------------
 	CREATE TABLE priority(
 		id int PRIMARY KEY AUTO_INCREMENT,
@@ -80,6 +72,19 @@
         fec_creacion datetime,
         id_usuario int
 	);     
+    
+    
+    
+    
+    
+    
+    #------------------------------------
+    DELIMITER $$
+	DROP FUNCTION IF EXISTS formatDate$$
+	CREATE FUNCTION formatDate(_date datetime) RETURNS varchar(20)
+	BEGIN
+		RETURN date_format(_date,'%Y-%m-%d %T');
+	END$$    
     #------------------------------------
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreatePriority`$$
@@ -120,6 +125,11 @@
     ALTER TABLE cat_usuario ADD apellidos varchar(100) NULL;
 	ALTER TABLE cat_usuario ADD tel varchar(100) DEFAULT NULL;
     #------------------------------------
+    
+    
+    
+    
+    
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreateRoleType`$$
 	CREATE PROCEDURE `CreateRoleType` (IN _description varchar(255))
