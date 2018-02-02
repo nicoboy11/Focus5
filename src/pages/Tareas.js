@@ -220,6 +220,7 @@ class Tareas extends Component{
                 case 1:
                     lista.push({ nombre: 'Editar tarea', icono: null, evento: 'editar', enabled: true });
                     lista.push({ nombre: 'Reactivar tarea', icono: null, evento: 'activar', enabled: true });
+                    lista.push({ nombre: 'Marcar como terminada', icono: 'done_all', evento: 'terminar', enabled: true });
                     break;
                 case 2:
                     lista.push({ nombre: 'Reactivar', icono: null, evento: 'activar', enabled: true });

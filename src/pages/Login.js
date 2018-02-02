@@ -4,6 +4,7 @@ import { emailChanged, passwordChanged, loginUser, cargarPerfil } from '../actio
 import { push } from 'react-router-redux';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import swal from 'sweetalert';
 
 class Login extends Component{
 
@@ -15,8 +16,9 @@ class Login extends Component{
     }
 
     componentWillReceiveProps(nextProps){
-        if(nextProps.error !== '' && this.state.mostrarModal === false){
-            this.setState({ mostrarModal: true });
+        if(nextProps.error !== ''){
+            //this.setState({ mostrarModal: true });
+            swal("Alerta", "Error de inicio de sesión", "error");
         }        
 
         if(nextProps.sessionData !== null && window.location.pathname === "/"){
@@ -46,13 +48,6 @@ class Login extends Component{
                 >
                     LogIn
                 </button>
-                <Modal 
-                    type="MENSAJE"
-                    titulo="Error de inicio de sesión"
-                    mensaje={this.props.error} 
-                    onCerrar={() => this.setState({ mostrarModal: false })}
-                    isVisible={this.state.mostrarModal}
-                />
             </div>
         );        
     }

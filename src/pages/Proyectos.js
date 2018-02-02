@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Proyecto from '../components/Proyecto';
-import { Modal, Input, Radio, FormRow} from '../components';
+import { Modal, Input, Radio, FormRow, Segmented, UserList} from '../components';
 import { Helper} from '../configuracion';
 import DatePicker from 'react-datepicker';
 import swal from 'sweetalert';
@@ -17,7 +17,8 @@ import {
     guardarProyecto, 
     desseleccionarProyecto,
     listaUsuarios,
-    buscarTexto
+    buscarTexto,
+    guardaRefs
 } from '../actions';
 
 class Proyectos extends Component{
@@ -27,7 +28,8 @@ class Proyectos extends Component{
         this.state = {
           datos: [],
           currentView: 'proyectos',
-          mostrarModal: false
+          mostrarModal: false,
+          tipoLista: 0
         };
     }
 
@@ -178,6 +180,61 @@ class Proyectos extends Component{
         });
     }
 
+    renderColumnsDetalle(){
+        if(this.props.loading){
+            return <div>Cargando...</div>
+        }
+
+        let proyectos = this.props.proyectos.filter(proyecto => proyecto.txt_proyecto.toLowerCase().includes(this.props.buscar));
+
+        if(this.state.filterNotif){
+            proyectos = this.props.proyectos.filter(proyecto => {
+                for(let tarea of proyecto.tareas){
+                    if(tarea.notificaciones > 0){
+                        return true;
+                    }
+                }
+
+                return false;
+            });
+        }        
+
+        return proyectos.map(proyecto => {
+            return (
+                    <div key={proyecto.id_proyecto} style={{ fontFamily: "'Montserrat', sans-serif", width: '300px', margin: '5px', overflowY: 'auto', flexDirection: 'column'}}>
+                        <div className="w3-card" style={{backgroundColor: 'white', padding: '10px', fontWeight: 'bold'}}>
+                            {proyecto.txt_proyecto}
+                        </div>
+                        {proyecto.tareas.map(tarea =>{
+                            if(tarea.id_status == 2){
+                                return null;
+                            }
+
+                            return (
+                                <div key={tarea.id_tarea} style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        backgroundColor: 'white',
+                                        padding: '5px',
+                                        borderBottom: '1px solid #F1F1F1', 
+                                        paddingTop: '0px'
+                                    }}
+                                >
+                                    <div style={{ padding: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} >{tarea.txt_tarea}</div>
+                                    <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '5px', height: '16px'}}>
+                                        <UserList participantes={tarea.participantes} limit={5} size="mini" />
+                                        <div style={{ fontSize: '11px', color: Helper.prettyfyDate(tarea.fec_limite).color }}>
+                                            {Helper.prettyfyDate(tarea.fec_limite).date}
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+            )
+        });
+    }
+
     /**
      * Mostrar el Modal
      */
@@ -312,41 +369,70 @@ class Proyectos extends Component{
         );     
     }
 
+    renderGrid(){
+        return (
+            <div ref="listaProyectosDiv" id="list" style={styles.listWrap}>
+                <div 
+                    className="w3-col newProject w3-card" 
+                    style={{...styles.project,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center', 
+                            alignItems: 'center', 
+                            maxHeight: '181px'}}
+                    onClick={this.onNuevoProyecto.bind(this)}
+                >
+                    <div className="w3-circle newItem">
+                        <i className="material-icons fHuge">add</i>
+                    </div>
+                    Nuevo Proyecto
+                </div>                    
+                {this.renderList()}
+                {this.renderModal()}
+            </div>
+        );
+    }
+
+    renderColumns(){
+        return (
+            <div style={{ width: '100%', height: '85%', overflow: 'auto'}}>
+                <div id="list" style={styles.listWrapCol}>
+                    {this.renderColumnsDetalle()}
+                </div>
+            </div>
+        );
+    }
+
     /**
      * Renderiza la tarjeta de "Nuevo proyecto " y posteriormente la lista de proyectos
      */
     render(){
+
+        if(this.refs.listaProyectosDiv !== undefined){
+            this.props.guardaRefs(this.props.listaRef, this.refs.listaProyectosDiv);
+        }
+        
+
         if(this.props.error !== ''){
             swal('Aviso', this.props.error, 'error');
         }
 
         return(
             <div id="mainProyectos" style={{display:'block'}}>
+                <div style={{ display: 'flex', width: '100%', justifyContent: 'center', paddingTop: '20px' }}>
+                    <Segmented 
+                        value={this.state.tipoLista} 
+                        items={[{ value: 0, title: 'Grid', icon: 'view_module' },{ value: 1, title: 'Columnas', icon: 'view_week' }]} 
+                        onSelect={(value) => this.setState({ tipoLista: value })}
+                    />                  
+                </div>
                 <Input 
                     placeholder="Buscar proyectos..." 
                     style={{ lineHeight: '2em', width: '20%', alignSelf: 'center', marginTop: '10px', marginBottom:'10px' }} 
                     onChangeText={(value) => this.props.buscarTexto(value)}
                     value={this.props.buscar}
                 />
-                <div id="list" style={styles.listWrap}>
-                    <div 
-                        className="w3-col newProject w3-card" 
-                        style={{...styles.project,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center', 
-                                alignItems: 'center', 
-                                maxHeight: '181px'}}
-                        onClick={this.onNuevoProyecto.bind(this)}
-                    >
-                        <div className="w3-circle newItem">
-                            <i className="material-icons fHuge">add</i>
-                        </div>
-                        Nuevo Proyecto
-                    </div>                    
-                    {this.renderList()}
-                    {this.renderModal()}
-                </div>       
+                {(this.state.tipoLista === 0)?this.renderGrid():this.renderColumns()}      
             </div>
         );        
     }
@@ -365,7 +451,8 @@ const mapStateToProps = state => {
         loading: state.listaProyectos.loading,
         id_proyecto: state.listaProyectos.current_id_proyecto,
         buscar: state.listaProyectos.buscar,
-        fltrNtf: state.listaProyectos.fltrNtf
+        fltrNtf: state.listaProyectos.fltrNtf,
+        listaRef: state.listaProyectos.listaRef
     }
 };
 
@@ -381,6 +468,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     desseleccionarProyecto,
     listaUsuarios,
     buscarTexto,
+    guardaRefs,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 
@@ -391,6 +479,12 @@ const styles = {
         maxHeight: '800px',
         overflowY: 'auto'
     },
+    listWrapCol: {
+        display: 'flex',
+        flexDirection: 'column',
+        flexWrap:'wrap',
+        maxHeight: '100%'
+    },    
     project: {
         backgroundColor: '#FFF',
         margin: '15px',

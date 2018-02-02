@@ -1,7 +1,7 @@
 import { Config } from './';
 import axios from 'axios';
-const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImV2ZW4uc29zYUBnbWFpbC5jb20iLCJwYXNzd29yZCI6InNvc2EifQ.e5gaUw2apXJnH747Wp2EBCdUzktMratJV3Fq48DmHBc';
-
+//const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImV2ZW4uc29zYUBnbWFpbC5jb20iLCJwYXNzd29yZCI6InNvc2EifQ.e5gaUw2apXJnH747Wp2EBCdUzktMratJV3Fq48DmHBc';
+let token = '';
 const rxOne = /^[\],:{}\s]*$/;
 const rxTwo = /\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g;
 const rxThree = /"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g;
@@ -16,9 +16,11 @@ const isJSON = (input) => (
 
 class Database {
 
-
-    
     static getHeader(headerType) {
+        if(localStorage.sessionData){
+            token = JSON.parse(localStorage.sessionData).token;
+        }
+        
         switch (headerType) {
             case 0:
                 return {

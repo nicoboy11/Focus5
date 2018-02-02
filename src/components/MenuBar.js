@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import { Config } from '../configuracion';
 import { push } from 'react-router-redux'
 import { bindActionCreators } from 'redux'
+import { desseleccionarProyecto } from '../actions'
 import { connect } from 'react-redux'
 
 const { menu } = Config;
@@ -10,6 +11,10 @@ class MenuBar extends Component{
 
     onClick(e, location){
         this.props.changePage(location);
+
+        if(location === menu[0].uri){
+            this.props.desseleccionarProyecto();
+        }
     }
 
     renderMenu(menu){
@@ -64,6 +69,7 @@ const mapStateToProps = state => {
 };
 
 const mapDispatchToProps = dispatch => bindActionCreators({
+    desseleccionarProyecto,
     changePage: (location) => push(location),
 }, dispatch)
 

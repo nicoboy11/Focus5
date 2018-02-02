@@ -7,7 +7,7 @@ import {
     CM_GUARDAR,     CM_PROGRESS,    CM_SUCCESS,
     CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    
     TR_SUCCESS,     CM_MORE,        TR_LEIDA,
-    CK_SUCCESS,     PY_MORE_SUCCESS,TR_SUCCESS_SUB
+    CK_SUCCESS,     PY_MORE_SUCCESS,TR_SUCCESS_SUB, REFS
 } from './types';
 
 /**
@@ -116,6 +116,14 @@ export const guardarProyecto = (listaProyectos, proyecto, snNuevo, callback = ()
             dispatch({ type: PY_FAIL, payload: err });
         }                 
     }    
+}
+
+export const guardaRefs = (refList, ref) => {
+    refList[ref.attributes[0].value] = ref;
+    return {
+        type: REFS,
+        payload: refList
+    };
 }
 
 /**

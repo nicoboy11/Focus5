@@ -120,3 +120,5 @@ export const BSR_EDIT = 'bsr_edit';
 export const BSR_CLEAR = 'bsr_clear';
 
 export const FLTR_NTF = 'fltr_ntf';
+
+export const REFS = 'refs';

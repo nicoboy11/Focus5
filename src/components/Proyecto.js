@@ -46,20 +46,35 @@ class Proyecto extends Component{
     }
 
     /**
-     * Se obtienen los totales de la prop tarea
+     * Se obtienen los totales de la prop tarea y también si hay tareas vencidas
      */
     obtenerTotales(){
         const totalTareas = this.props.total;
         let terminadas = this.props.terminadas;
         let notificaciones = 0;
+        let vencidas = false;
 
         for(let tarea of this.props.tareas){
-
             notificaciones += tarea.notificaciones;
+            
+            if(Helper.prettyfyDate(tarea.fec_limite).vencida && tarea.id_status !== 2){
+                vencidas = true;
+            }
         }
 
-        this.setState({ terminadas, totalTareas, notificaciones })
+        this.setState({ terminadas, totalTareas, notificaciones, vencidas })
     }    
+
+    /**
+     * Mostrar indicador si hay tareas vencidas
+     */
+    renderVencidas(){
+        if(this.state.vencidas > 0){
+            return (
+                <i className="material-icons" style={{ fontSize:'22px', color: '#e74c3c' }}>error_outline</i>
+            )
+        }
+    }
 
     /**
      * Mostrar las notificaciones
@@ -113,6 +128,7 @@ class Proyecto extends Component{
             return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={{ ...styles.project, ...nuevoStyle }} className="w3-card w3-col">
                         <div className="projectTop">                     
                             <div className="cardTitle">{txt_proyecto}</div>   
+                            {this.renderVencidas()}
                             {this.renderNotificaciones()}     
                             {this.renderMenu()}                               
                         </div> 

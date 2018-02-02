@@ -14,13 +14,8 @@
     UPDATE ctrl_tareas_detalle
     SET txt_comentario = Replace(txt_comentario,'"','&quot;')
     WHERE txt_comentario like '%"%';
-    #--------------------------------------
-	CALL CreateRoleType('Creador');
-	CALL CreateRoleType('Responsable');
-	CALL CreateRoleType('Participante');
-	CALL CreateRoleType('Administrador');       
-	#--------------------------------------
-    #ALTER TABLE bit_view_tarea ADD role_id int NULL;
+ 	#--------------------------------------
+    ALTER TABLE bit_view_tarea ADD role_id int NULL;
     #--------------------------------------
     ALTER TABLE cat_proyecto MODIFY id_proyecto INT AUTO_INCREMENT;
     #--------------------------------------
@@ -140,6 +135,12 @@
 		SELECT LAST_INSERT_ID() as id;
 		
 	END$$
+    
+    #--------------------------------------
+	CALL CreateRoleType('Creador');
+	CALL CreateRoleType('Responsable');
+	CALL CreateRoleType('Participante');
+	CALL CreateRoleType('Administrador');         
 
 	DELIMITER $$
 	DROP procedure IF EXISTS `GetRoleType`$$
@@ -296,14 +297,14 @@
 							'"participantes":',sc.participantes,',',
                             '"subtareas":',sc.subtareas,',',
 							'"topComments":',sc.topComments,'',
-						'}') ORDER BY SC.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
+						'}') ORDER BY SC.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite asc separator ','),
 					  ']') INTO _tareas
         FROM (
 			SELECT ct.id_tarea,
 				   ifnull(_id_proyecto,ct.id_proyecto) as id_proyecto,
 					ct.txt_tarea,
 					ct.fec_creacion,
-					IFNULL(ct.fec_limite,'') as fec_limite,
+					IFNULL(ct.fec_limite,'2199-01-01') as fec_limite,
 					ct.id_status,
 					IFNULL(ct.avance,0) as avance,
 					ct.priority_id,
@@ -323,7 +324,7 @@
 					AND (ct.id_usuario = _id_usuario
 					OR bvt.role_id in (1,2,3,4))
 					AND (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
-			ORDER BY FIELD(ct.id_status,1,3,2) asc, ifnull(ct.fec_limite,'1960-01-01') desc
+			ORDER BY FIELD(ct.id_status,1,3,2) asc, ifnull(ct.fec_limite,'2199-01-01') desc
 		) AS SC;
 		
 		RETURN ifnull(_tareas,'[]');
@@ -623,6 +624,37 @@ BEGIN
 	SELECT getJsonTopComments(_id_tarea,NULL,fec_comentario) as comentarios;
 
 END$$
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS getProyecto$$
+CREATE PROCEDURE `getProyecto`(_id_usuario int,_id_proyecto int, _status_tareas int, _status_proyectos int)
+BEGIN
+
+	# Status NULL: trae todas las tareas
+	# Status 1: trae tareas Activas
+	# Status 2: trae tareas Terminadas
+    
+	SELECT 	*,
+			getJsonTarea(id_proyecto,_id_usuario,_status_tareas) as tareas
+    FROM (
+		SELECT 	cp.id_proyecto,
+				cp.txt_proyecto,
+				cp.id_status,
+				formatDate(cp.fec_inicio) as fec_inicio,
+				formatDate(cp.fec_limite) as fec_inico
+		FROM cat_proyecto as cp
+		LEFT JOIN ctrl_tareas as ct on ct.id_proyecto = cp.id_proyecto
+		LEFT JOIN bit_view_tarea as bvt on bvt.id_tarea = ct.id_tarea
+		WHERE 	(cp.id_usuario = _id_usuario OR bvt.id_usuario = _id_usuario)
+				AND cp.id_proyecto = coalesce(_id_proyecto,cp.id_proyecto)
+                AND CASE WHEN _status_proyectos IS NULL THEN cp.id_status in (1,2,3)
+						 WHEN _status_proyectos = 1 THEN cp.id_status in (1,3)
+                         ELSE cp.id_status = 2 END
+		GROUP BY cp.id_proyecto, cp.txt_proyecto, cp.id_status
+    ) AS SC;
+
+END$$
+
 
 #SELECT * FROM cat_proyecto
 #CALL getContenido('12',NULL,1,1)

@@ -23,6 +23,24 @@ pre {
 	src: url('Montserrat-Regular.ttf');
 }
 
+@media print {
+    #list {
+        background-color: white;
+        height: 100%;
+        width: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 15px;
+        display: flex;
+        align-content: flex-start;
+    }
+}
+
+#list {
+    align-content: flex-start
+}
 
 /*-- MAIN -------------------------------------------*/
     #main{
@@ -80,12 +98,12 @@ pre {
         bottom: 0px;
     }
 
-        #titulo{
+     /*   #titulo{
             display: flex;
             flex: 15;
             margin-left: 15px;    
             align-items: center;        
-        }
+        }*/
 
         .cardTitle{
             font-weight: 500;
@@ -750,7 +768,7 @@ pre {
         font-feature-settings: 'liga';
     }
 
-/*-- SWITCH------------------------------------*/
+/*-- SWITCH------------------------------------------*/
     .toggleWrapper{
         /*position: absolute;
         top: 50%;
@@ -822,7 +840,7 @@ pre {
     }
 
 
-/*-- CHECKBOX-------------------------------------------*/
+/*-- CHECKBOX----------------------------------------*/
     /* Customize the label (the container) */
     .container {
         display: block;
@@ -888,3 +906,47 @@ pre {
         font-weight: bold;
         color: white;
     }
+
+
+/*--- SCROLL-----------------------------------------*/
+    /* Turn on custom 8px wide scrollbar */
+    ::-webkit-scrollbar {
+        width: 10px; /* 1px wider than Lion. */
+        /* This is more usable for users trying to click it. */
+        background-color: rgba(0,0,0,0);
+        -webkit-border-radius: 100px;
+    }
+    /* hover effect for both scrollbar area, and scrollbar 'thumb' */
+    ::-webkit-scrollbar:hover {
+        background-color: rgba(0, 0, 0, 0.09);
+    }
+    
+    /* The scrollbar 'thumb' ...that marque oval shape in a scrollbar */
+    ::-webkit-scrollbar-thumb:vertical {
+        /* This is the EXACT color of Mac OS scrollbars. 
+        Yes, I pulled out digital color meter */
+        background: #C1C1C1;
+        -webkit-border-radius: 100px;
+        background-clip: padding-box;
+        border: 2px solid rgba(0, 0, 0, 0);
+        min-height: 10px; /*Prevent it from getting too small */
+    }
+    ::-webkit-scrollbar-thumb:vertical:active {
+        background: rgba(100,100,100,0.61); /* Some darker color when you click it */
+        -webkit-border-radius: 100px;
+    }
+    
+        /* The scrollbar 'thumb' ...that marque oval shape in a scrollbar */
+        ::-webkit-scrollbar-thumb:horizontal {
+            /* This is the EXACT color of Mac OS scrollbars. 
+            Yes, I pulled out digital color meter */
+            background: #C1C1C1;
+            -webkit-border-radius: 100px;
+            background-clip: padding-box;
+            border: 2px solid rgba(0, 0, 0, 0);
+            min-height: 10px; /*Prevent it from getting too small */
+        }
+        ::-webkit-scrollbar-thumb:horizontal:active {
+            background: rgba(100,100,100,0.61); /* Some darker color when you click it */
+            -webkit-border-radius: 100px;
+        }

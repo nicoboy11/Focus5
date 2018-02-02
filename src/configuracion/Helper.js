@@ -53,7 +53,8 @@ class Helper {
             return {
                 color: colors.main,
                 date: '',
-                datetime: ''
+                datetime: '',
+                vencida: false
             };
         }
     
@@ -82,7 +83,8 @@ class Helper {
         return {
                     color: (diff > 0) ? colors.main : colors.error, 
                     date: date.getDate().toString() + ' ' + texts.month[date.getMonth()] + ((date.getYear() !== today.getYear()) ? (', ' + date.getFullYear().toString()) : ''),
-                    datetime: date.getDate().toString() + ' ' + texts.month[date.getMonth()] + ((date.getYear() !== today.getYear()) ? (', ' + date.getFullYear().toString()) : '') + time
+                    datetime: date.getDate().toString() + ' ' + texts.month[date.getMonth()] + ((date.getYear() !== today.getYear()) ? (', ' + date.getFullYear().toString()) : '') + time,
+                    vencida: (diff > 0) ? false : true
                 };		
     }
 

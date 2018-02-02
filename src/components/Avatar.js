@@ -52,8 +52,12 @@ const Avatar = ({ avatar, color, name, size, nameColor, displayName = true, flex
     } else {
         srcImg = `${avatar}`;
     }
+
+    let classColor = "_FF6D00"
+    if(color !== null){
+        classColor = color.replace("#","_");
+    }
     
-    let classColor = color.replace("#","_");
 
     let avt = null;
     if(avatar.length < 3) {

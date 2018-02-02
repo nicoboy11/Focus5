@@ -9,7 +9,7 @@ class MenuTop extends Component{
         if(this.props.breadCrumb !== ""){
             return (
                 <div 
-                    style={{ display: 'flex'}}
+                    style={{ display: 'flex', cursor: 'pointer'}}
                     onClick={() => {
                         this.props.onClick();
                     }}
@@ -45,7 +45,7 @@ class MenuTop extends Component{
         if(currentHash.split("#")[1] === "notificaciones" && !this.props.notifSelected && this.refs.ntfButton !== undefined){
             this.refs.ntfButton.click();
         }         
-
+        const refs2print = this.props.refs2Print;
         return(
             <div id="topBar">
                 <div id="marca">
@@ -56,11 +56,31 @@ class MenuTop extends Component{
                     </div>            
                 </div>
                 <div id="topBarContainer" style={styles.topBarStyle}>
-                    <div id="titulo">
+                    <div id="titulo" style={{ ...styles.titulo }}>
                         <div className="breadCrumbs fadeColor">
                             {this.renderBreadCrumb()}
                         </div>
                         {this.renderTitulo()}
+                    </div>
+                    <div 
+                        style={styles.buttonStyle} 
+                        id="print"
+                        onClick={() => {
+                            try{
+                                var content = refs2print["list"];
+                                var pri = refs2print["ifmcontentstoprint"];
+                                pri.contentDocument.open();
+                                pri.contentDocument.write(content.innerHTML);
+                                pri.contentDocument.close();
+                                pri.focus();
+                                pri.contentWindow.print();
+                            } catch(err){
+                                swal("Error de Impresion", "Este elemento no está configurado para imprimirse.","warning");
+                            }
+
+                        }}
+                    >
+                        <i className="material-icons fadeColor barBurron">print</i>
                     </div>
                     <div style={styles.buttonStyle} id="searchBar">
                         <i className="material-icons fadeColor barButton">search</i>
@@ -110,7 +130,9 @@ const styles = {
     buttonStyle: {
         display: 'flex',
         alignItems: 'center',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        flex: '1',
+        justifyContent: 'center'
     },
     topBarStyle: {
         display: 'flex',
@@ -123,7 +145,13 @@ const styles = {
         backgroundColor: '#F6F6F6',
         border: '1px solid #F1F1F1',
         color: '#2196F3'
-    }    
+    },
+    titulo: {
+        display: 'flex',
+        flex: '30',
+        marginLeft: '15px',
+        alignItems: 'center'
+    }
 }
 
 export {MenuTop}

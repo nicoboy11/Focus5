@@ -11,8 +11,9 @@ import MenuBar from './components/MenuBar';
 import { Route } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { cargarPerfil, filtraNotificaciones } from './actions'
+import { cargarPerfil, filtraNotificaciones, guardaRefs, desseleccionarProyecto } from './actions'
 import { bindActionCreators } from 'redux';
+import { push } from 'react-router-redux'
 
 import Ajustes from './pages/Ajustes';
 import Proyectos from './pages/Proyectos';
@@ -40,6 +41,12 @@ class App extends Component {
 
   componentWillMount(){
     this.props.cargarPerfil();
+  }
+
+  componentDidMount(){
+    if(this.refs.ifmcontentstoprint !== undefined){
+      this.props.guardaRefs(this.props.listaRef, this.refs.ifmcontentstoprint)
+    }
   }
 
   renderMenu(jsx){
@@ -92,10 +99,10 @@ class App extends Component {
         notificaciones += tarea.notificaciones;
       }
     }
-    
-    
+      
     return (
           <div className="App">
+            <iframe ref="ifmcontentstoprint" id="ifmcontentstoprint" style={{height: '0px', width: '0px', position: 'absolute'}}></iframe>
             <div id="main">
                 <Route exact path="/" component={Login} />
                 <Route exact path="/proyectos" render={(props) =>(
@@ -111,12 +118,14 @@ class App extends Component {
                                 breadCrumb={breadCrumb} 
                                 notificaciones={notificaciones}
                                 notifSelected={this.props.fltrNtf}
+                                refs2Print={this.props.listaRef}
                                 onLogout={() =>{
                                   localStorage.removeItem("sessionData");
                                   window.location = '/';
                                 }}
                                 onClick={() =>{
-                                    window.history.forward();
+                                    this.props.changePage("/proyectos");
+                                    this.props.desseleccionarProyecto();
                                 }}
                                 onNotifClick={() => {
                                   if(!this.props.fltrNtf){
@@ -135,7 +144,10 @@ class App extends Component {
 
 const mapDispatchToProps = dispatch => bindActionCreators({
   cargarPerfil,
-  filtraNotificaciones
+  filtraNotificaciones,
+  guardaRefs,
+  desseleccionarProyecto,
+  changePage: (location) => push(location)
 }, dispatch)
 
 const mapStateToProps = state => {
@@ -144,7 +156,8 @@ const mapStateToProps = state => {
       proyectoActual: state.listaProyectos.tmpProyecto,
       //tareaActual: state.tareaActual,
       perfil: state.perfil,
-      fltrNtf: state.listaProyectos.fltrNtf
+      fltrNtf: state.listaProyectos.fltrNtf,
+      listaRef: state.listaProyectos.listaRef
   }
 };
 

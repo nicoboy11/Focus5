@@ -5,10 +5,10 @@ import { Avatar } from './'
 class UserList extends Component{
 
     obtieneLista(){
-        let {participantes, limit} = this.props;
+        let {participantes, limit, size} = this.props;
         //poner un limite de usuarios visibles, el resto se pone con un +N
         if(limit === undefined) { limit = 5; }
-        
+        if(size === undefined) { size = 'small'}
         var i = 0;
 
         return participantes.map(participante => {
@@ -39,31 +39,11 @@ class UserList extends Component{
                     avatar={srcImg} 
                     color={participante.color} 
                     name={participante.txt_usuario} 
-                    size='small' 
+                    size={size}
                     displayName={false} 
                     style={{position: 'absolute', left: overlayVal}}
                 />
             );
-            /*
-            if(participante.txt_abbr.length > 2){
-                return <img 
-                            key={participante.id_usuario} 
-                            title={participante.txt_usuario} 
-                            className="w3-circle avtSmall ensimoso" 
-                            src={srcImg} 
-                            alt="" 
-                            style={{position: 'absolute', left: overlayVal}}
-                        />;
-            } else {
-                return (<div 
-                            key={participante.id_usuario} 
-                            title={participante.txt_usuario} 
-                            className={"w3-circle avtSmall ensimoso"} 
-                            style={{backgroundColor: participante.color, position: 'absolute', left: overlayVal}}
-                        > 
-                            {participante.txt_abbr} 
-                        </div>);
-            }*/
         });
 
     }
@@ -78,10 +58,21 @@ class UserList extends Component{
 
     render(){
         return(
-            <div className="chatContentStatus">{this.obtieneLista()}</div>
+            <div style={{...styles.chatContentStatus}}>{this.obtieneLista()}</div>
         )
     }
 
+}
+
+const styles = {
+    chatContentStatus: {
+        display: 'flex',
+        flex: '1',
+        fontSize: '11px',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        position: 'relative'
+    }    
 }
 
 export {UserList};

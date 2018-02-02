@@ -8,7 +8,7 @@ import {
     TR_SUCCESS, TR_CANCEL,      CM_MORE,
     TR_LEIDA,   CM_FILE_CANCEL, TR_EDIT,
     PY_MORE_SUCCESS, BSR_EDIT,  TR_SUCCESS_SUB,
-    FLTR_NTF
+    FLTR_NTF,   REFS
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -27,7 +27,8 @@ const INITIAL_STATE = {
     progress: null,
     error: '',
     buscar: '',
-    fltrNtf: false
+    fltrNtf: false,
+    listaRef: []
 };
 
 export default (state = INITIAL_STATE, action) => {
@@ -91,7 +92,9 @@ export default (state = INITIAL_STATE, action) => {
         case BSR_EDIT:
             return { ...state, buscar: action.payload, fltrNtf: false }     
         case FLTR_NTF:
-            return { ...state, fltrNtf: action.payload}         
+            return { ...state, fltrNtf: action.payload}   
+        case REFS:
+            return { ...state, listaRef: action.payload}      
         default:
             return state;
     }
