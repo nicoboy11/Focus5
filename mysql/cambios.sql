@@ -1,6 +1,6 @@
     #ALTER TABLE ctrl_tareas ADD isCalendarSync int DEFAULT NULL;
     #ALTER TABLE ctrl_tareas ADD fec_limiteCal datetime DEFAULT NULL;
-    #---------------------------------------
+    #-PRODUCCION--------------------------------------
     DROP TABLE IF EXISTS roleType;
 	CREATE TABLE roleType(
 		id int PRIMARY KEY AUTO_INCREMENT,
@@ -14,12 +14,12 @@
     UPDATE ctrl_tareas_detalle
     SET txt_comentario = Replace(txt_comentario,'"','&quot;')
     WHERE txt_comentario like '%"%';
- 	#--------------------------------------
+ 	#-PRODUCCION-------------------------------------
     ALTER TABLE bit_view_tarea ADD role_id int NULL;
-    #--------------------------------------
+    #-PRODUCCION-------------------------------------
     ALTER TABLE cat_proyecto MODIFY id_proyecto INT AUTO_INCREMENT;
     #--------------------------------------
-	#--Marcar con rol de creador
+	#-PRODUCCION-Marcar con rol de creador
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
 	SET role_id = 1
@@ -32,30 +32,30 @@
     
     #SELECT * FROM ctrl_tareas WHERE txt_tarea like CONCAT('%','\\n','%');
 
-	#--Marcar con rol de responsable
+	#-PRODUCCION-Marcar con rol de responsable
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
 	SET role_id = 2
 	WHERE bv.id_usuario = ct.id_responsable and bv.id_usuario <> ct.id_usuario;
 
-	#--Marcar con rol de participante
+	#-PRODUCCION-Marcar con rol de participante
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
 	SET role_id = 3
 	WHERE bv.id_usuario <> ct.id_responsable and bv.id_usuario <> ct.id_usuario;
-    #------------------------------------
+    #-PRODUCCION-----------------------------------
 	CREATE TABLE priority(
 		id int PRIMARY KEY AUTO_INCREMENT,
 		description varchar(255)
 	);    
-    #------------------------------------
+    #-PRODUCCION-----------------------------------
 	CREATE TABLE esnLog(
 		id int PRIMARY KEY AUTO_INCREMENT,
 		errorDescription text,
 		dateOfError datetime,
 		id_usuario int
 	);    
-    #------------------------------------
+    #-PRODUCCION-----------------------------------
     DROP TABLE IF EXISTS subTarea;
 	CREATE TABLE subTarea(
 		id_tarea int,
@@ -73,14 +73,14 @@
     
     
     
-    #------------------------------------
+    #-PRODUCCION-----------------------------------
     DELIMITER $$
 	DROP FUNCTION IF EXISTS formatDate$$
 	CREATE FUNCTION formatDate(_date datetime) RETURNS varchar(20)
 	BEGIN
 		RETURN date_format(_date,'%Y-%m-%d %T');
 	END$$    
-    #------------------------------------
+    #-PRODUCCION-----------------------------------
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreatePriority`$$
 	CREATE PROCEDURE `CreatePriority` (IN _description varchar(255))
@@ -102,29 +102,24 @@
 		WHERE id = coalesce(_id,id);
 		
 	END$$    
-    #------------------------------------
+    #-PRODUCCION-----------------------------------
     CALL CreatePriority('Ninguna');
 	CALL CreatePriority('Baja');
 	CALL CreatePriority('Media');
 	CALL CreatePriority('Alta');
 	CALL CreatePriority('Urgente');
-    #------------------------------------
+    #-PRODUCCION-----------------------------------
     ALTER TABLE ctrl_tareas ADD priority_id int NULL;
     ALTER TABLE ctrl_tareas ADD avance int NULL;
-    #------------------------------------
+    #-PRODUCCION-----------------------------------
     UPDATE ctrl_tareas SET priority_id = 1;
     UPDATE ctrl_tareas SET avance = 50;
-    #------------------------------------
+    #-PRODUCCION-----------------------------------
     ALTER TABLE cat_usuario ADD color varchar(10) NULL;
     ALTER TABLE cat_usuario ADD nombre varchar(50) NULL;
     ALTER TABLE cat_usuario ADD apellidos varchar(100) NULL;
 	ALTER TABLE cat_usuario ADD tel varchar(100) DEFAULT NULL;
-    #------------------------------------
-    
-    
-    
-    
-    
+    #-PRODUCCION-----------------------------------
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreateRoleType`$$
 	CREATE PROCEDURE `CreateRoleType` (IN _description varchar(255))
@@ -136,7 +131,7 @@
 		
 	END$$
     
-    #--------------------------------------
+    #-PRODUCCION-------------------------------------
 	CALL CreateRoleType('Creador');
 	CALL CreateRoleType('Responsable');
 	CALL CreateRoleType('Participante');
@@ -234,7 +229,7 @@
 	END$$         
 
 
-	#-------------------------------------------------------------------
+	#-PRODUCCION------------------------------------------------------------------
 
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTarea$$
@@ -297,7 +292,7 @@
 							'"participantes":',sc.participantes,',',
                             '"subtareas":',sc.subtareas,',',
 							'"topComments":',sc.topComments,'',
-						'}') ORDER BY SC.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite asc separator ','),
+						'}') ORDER BY sc.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite asc separator ','),
 					  ']') INTO _tareas
         FROM (
 			SELECT ct.id_tarea,
@@ -325,7 +320,7 @@
 					OR bvt.role_id in (1,2,3,4))
 					AND (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
 			ORDER BY FIELD(ct.id_status,1,3,2) asc, ifnull(ct.fec_limite,'2199-01-01') desc
-		) AS SC;
+		) AS sc;
 		
 		RETURN ifnull(_tareas,'[]');
 
@@ -443,7 +438,7 @@
                     st.numOrden,
                     st.subtarea,
                     st.id_status
-            FROM subtarea as st
+            FROM subTarea as st
             WHERE id_tarea = _id_tarea
         ) as sc;
 		
@@ -571,7 +566,7 @@
 
 		SELECT id_usuario INTO _id_usuario
 		FROM cat_usuario
-		WHERE txt_email = _email AND txt_password = _password;
+		WHERE txt_email = _email collate utf8_general_ci AND txt_password = _password collate utf8_general_ci;
 		
 		IF(_id_usuario is null) THEN
 			SIGNAL sqlstate 'ERROR' SET message_text = 'The password or email address is incorrect.';
@@ -1077,8 +1072,8 @@ SELECT 	id_usuario,
         getLevelKey(id_usuario) as levelKey,
         id_status
 FROM cat_usuario as cu
-WHERE /*FN_NIVEL(id_usuario) like CONCAT('%',lpad(Ivid_usuario,4,'0'),'%') 
-		and*/ cu.id_status = 1
+WHERE FN_NIVEL(id_usuario) like CONCAT('%',lpad(Ivid_usuario,4,'0'),'%') /* esta linea deberìa ir comentada*/
+		and cu.id_status = 1
         and txt_usuario  like CONCAT('%',vtxt,'%') 
 ORDER BY cu.id_usuario in (Ivid_usuario) desc,FN_NIVEL(id_usuario);
 END$$
