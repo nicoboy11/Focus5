@@ -40,6 +40,8 @@ import {
     buscarTexto
 } from '../actions';
 
+const { network } = Config;
+
 class Tareas extends Component{
     constructor(props){
         super(props);
@@ -63,7 +65,7 @@ class Tareas extends Component{
 
         //Si no está logeado se manda a la pantalla de log in
         if(!localStorage.sessionData) {
-            this.props.changePage("","");
+            this.props.changePage(network.basename,"");
             return;
         } else {
             sessionData = JSON.parse(localStorage.sessionData)
@@ -109,11 +111,11 @@ class Tareas extends Component{
             const currentRoute = window.location.pathname;
 
             //Seleccionar proyecto y obtener objeto
-            const proyectoActual = nextProps.proyectos.filter(proyecto => proyecto.id_proyecto === parseInt(currentRoute.split("/")[2]));
+            const proyectoActual = nextProps.proyectos.filter(proyecto => proyecto.id_proyecto === parseInt(currentRoute.split("/")[currentRoute.split("/").length - 1]));
         
             //Si el proyecto no existe (es de otro usuario ó no tiene permisos) regresar a proyectos
             if(proyectoActual.length === 0){
-                this.props.changePage("/proyectos","");
+                this.props.changePage(`${network.basename}/proyectos`,"");
                 return;
             }
 

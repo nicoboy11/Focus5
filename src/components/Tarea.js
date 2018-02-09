@@ -9,6 +9,18 @@ class Tarea extends Component{
     }
 
     /**
+     * Verificar si es necesario redibujar la tarea
+     */
+    shouldComponentUpdate(nextProps, nextState){
+
+        if(JSON.stringify(this.props) !== JSON.stringify(nextProps)){
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Cuando se aplana el boton de menu se regresa el evento al padre
      * @param {*} e 
      */

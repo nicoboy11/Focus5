@@ -24,7 +24,7 @@ import Personal from './pages/Personal';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Config } from './configuracion';
 
-const { menu } = Config;
+const { menu, network } = Config;
 
 
 class App extends Component {
@@ -104,14 +104,14 @@ class App extends Component {
           <div className="App">
             <iframe ref="ifmcontentstoprint" id="ifmcontentstoprint" style={{height: '0px', width: '0px', position: 'absolute'}}></iframe>
             <div id="main">
-                <Route exact path="/" component={Login} />
-                <Route exact path="/proyectos" render={(props) =>(
+                <Route exact path={`${network.basename}/`} component={Login} />
+                <Route exact path={`${network.basename}/proyectos`} render={(props) =>(
                   <Proyectos datos={this.state.datos} />
                 )} />
-                <Route path="/proyectos/:id" component={Tareas} />              
-                <Route path="/chats" component={Chats} />
-                <Route path="/personal" component={Personal} />
-                <Route path="/ajustes" component={Ajustes} />
+                <Route path={`${network.basename}/proyectos/:id`} component={Tareas} />              
+                <Route path={`${network.basename}/chats`} component={Chats} />
+                <Route path={`${network.basename}/personal`} component={Personal} />
+                <Route path={`${network.basename}/ajustes`} component={Ajustes} />
             </div>
             {this.renderMenu(<MenuTop 
                                 currentTitle={title} 
@@ -121,10 +121,10 @@ class App extends Component {
                                 refs2Print={this.props.listaRef}
                                 onLogout={() =>{
                                   localStorage.removeItem("sessionData");
-                                  window.location = '/';
+                                  window.location = `${network.basename}/`;
                                 }}
                                 onClick={() =>{
-                                    this.props.changePage("/proyectos");
+                                    this.props.changePage(`${network.basename}/proyectos`);
                                     this.props.desseleccionarProyecto();
                                 }}
                                 onNotifClick={() => {

@@ -5,6 +5,9 @@ import { push } from 'react-router-redux';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import swal from 'sweetalert';
+import { Config } from '../configuracion';
+
+const { network } = Config;
 
 class Login extends Component{
 
@@ -21,7 +24,7 @@ class Login extends Component{
             swal("Alerta", "Error de inicio de sesión", "error");
         }        
 
-        if(nextProps.sessionData !== null && window.location.pathname === "/"){
+        if(nextProps.sessionData !== null && window.location.pathname === `${network.basename}/`){
             this.props.cargarPerfil(nextProps.sessionData);
             this.props.loginSuccess();
         }

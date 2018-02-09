@@ -7,7 +7,8 @@ Config.network = {
     wsServer: 'ws://localhost:9998/tarea',
     blured: 'thumbs/blured/',
     big: 'thumbs/big/',
-    small: 'thumbs/small/'
+    small: 'thumbs/small/',
+    basename: '/focus/build'
 };
 
 Config.regex = {
@@ -45,10 +46,10 @@ Config.colors = {
 };
 
 const menu = [
-        { uri: '/proyectos', nombre: 'Proyectos', icono: 'view_module' },
-        { uri: '/chats', nombre: 'Chats', icono: 'chat_bubble_outline' },
-        { uri: '/personal', nombre: 'Personal', icono: 'people_outline' },
-        { uri: '/ajustes', nombre: 'Ajustes', icono: 'settings' }
+        { uri: `${Config.network.basename}/proyectos`, nombre: 'Proyectos', icono: 'view_module' },
+        { uri: `${Config.network.basename}/chats`, nombre: 'Chats', icono: 'chat_bubble_outline' },
+        { uri: `${Config.network.basename}/personal`, nombre: 'Personal', icono: 'people_outline' },
+        { uri: `${Config.network.basename}/ajustes`, nombre: 'Ajustes', icono: 'settings' }
 ];
 
 Config.menu = menu;

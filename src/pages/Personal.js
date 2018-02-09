@@ -61,7 +61,7 @@ class Personal extends Component{
 
                 return usuarios.map(usuario => {
                     const image = usuario.sn_imagen===1?
-                                    `${network.server}usr/thumbs/small/${usuario.id_usuario}.jpg?v=${new Date().getTime()}`:
+                                    `${network.server}usr/thumbs/small/${usuario.id_usuario}.jpg?v=${new Date().getTime().toString().substr(0,7)}`:
                                     usuario.txt_abbr
                     if(this.state.tipoLista === 0){
                         return (

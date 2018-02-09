@@ -5,7 +5,8 @@ import { Helper} from '../configuracion';
 import DatePicker from 'react-datepicker';
 import swal from 'sweetalert';
 import moment from 'moment';
-import 'moment/locale/es'
+import 'moment/locale/es';
+import { Config } from '../configuracion';
 
 import { push } from 'react-router-redux';
 import { bindActionCreators } from 'redux';
@@ -20,6 +21,8 @@ import {
     buscarTexto,
     guardaRefs
 } from '../actions';
+
+const { network } = Config;
 
 class Proyectos extends Component{
     constructor(props){
@@ -44,7 +47,7 @@ class Proyectos extends Component{
                 this.props.listaUsuarios(sessionData.id_usuario);
             }
         } else {
-            this.props.changePage("","");
+            this.props.changePage(network.basename,"");
         }
 
     }
@@ -73,7 +76,7 @@ class Proyectos extends Component{
         this.props.seleccionarProyecto(JSON.parse(JSON.stringify(proyectoActual[0])));
 
         //Cambiar de página
-        this.props.changePage("proyectos",proyectoActual[0].id_proyecto);
+        this.props.changePage(`${network.basename}/proyectos`,proyectoActual[0].id_proyecto);
     }
 
     /**

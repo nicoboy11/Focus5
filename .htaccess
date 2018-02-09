@@ -1,7 +1,4 @@
-RewriteEngine On
-RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f [OR]
-RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
-RewriteRule ^ - [L]
-
-# Fallback all other routes to index.html
-RewriteRule ^ /focus/build/index.html [L]
+Options -MultiViews
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ /focus/build/index.html [QSA,L]

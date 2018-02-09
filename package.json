@@ -1,6 +1,6 @@
 {
   "name": "focus",
-  "homepage": "",
+  "homepage": "/focus/build",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
