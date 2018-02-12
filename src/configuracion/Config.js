@@ -2,13 +2,13 @@ class Config {}
 
 Config.network = {
     //server: 'http://localhost:8081/sistemafocus/focusDesktop/api/',
-    server: 'http://localhost:8081/focusDesktop/api/',
-    //server: 'http://api.sistemafocus.com/',
-    wsServer: 'ws://localhost:9998/tarea',
+    //server: 'http://localhost:8081/focusDesktop/api/',
+    server: 'http://api.sistemafocus.com/',
+    wsServer: 'ws://ec2-34-211-203-109.us-west-2.compute.amazonaws.com:9978/task',
     blured: 'thumbs/blured/',
     big: 'thumbs/big/',
     small: 'thumbs/small/',
-    basename: '/focus/build'
+    basename: '/focus/v5'
 };
 
 Config.regex = {

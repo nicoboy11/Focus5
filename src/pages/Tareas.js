@@ -78,7 +78,7 @@ class Tareas extends Component{
 
         const id_tarea = this.props.tareaActual.id_tarea;
         //WebSocket
-        this.ws = new WebSocket('ws://localhost:9998/task');
+        this.ws = new WebSocket(Config.network.wsServer);
         this.ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
             this.props.enviarSocket(data);

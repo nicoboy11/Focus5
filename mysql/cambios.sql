@@ -1,6 +1,6 @@
     #ALTER TABLE ctrl_tareas ADD isCalendarSync int DEFAULT NULL;
     #ALTER TABLE ctrl_tareas ADD fec_limiteCal datetime DEFAULT NULL;
-    #-PRODUCCION--------------------------------------
+    #---------------------------------------
     DROP TABLE IF EXISTS roleType;
 	CREATE TABLE roleType(
 		id int PRIMARY KEY AUTO_INCREMENT,
@@ -14,12 +14,17 @@
     UPDATE ctrl_tareas_detalle
     SET txt_comentario = Replace(txt_comentario,'"','&quot;')
     WHERE txt_comentario like '%"%';
- 	#-PRODUCCION-------------------------------------
-    ALTER TABLE bit_view_tarea ADD role_id int NULL;
-    #-PRODUCCION-------------------------------------
+    #--------------------------------------
+	CALL CreateRoleType('Creador');
+	CALL CreateRoleType('Responsable');
+	CALL CreateRoleType('Participante');
+	CALL CreateRoleType('Administrador');       
+	#--------------------------------------
+    #ALTER TABLE bit_view_tarea ADD role_id int NULL;
+    #--------------------------------------
     ALTER TABLE cat_proyecto MODIFY id_proyecto INT AUTO_INCREMENT;
     #--------------------------------------
-	#-PRODUCCION-Marcar con rol de creador
+	#--Marcar con rol de creador
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
 	SET role_id = 1
@@ -32,30 +37,30 @@
     
     #SELECT * FROM ctrl_tareas WHERE txt_tarea like CONCAT('%','\\n','%');
 
-	#-PRODUCCION-Marcar con rol de responsable
+	#--Marcar con rol de responsable
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
 	SET role_id = 2
 	WHERE bv.id_usuario = ct.id_responsable and bv.id_usuario <> ct.id_usuario;
 
-	#-PRODUCCION-Marcar con rol de participante
+	#--Marcar con rol de participante
 	UPDATE bit_view_tarea as bv
 	INNER JOIN ctrl_tareas as ct on ct.id_tarea = bv.id_tarea
 	SET role_id = 3
 	WHERE bv.id_usuario <> ct.id_responsable and bv.id_usuario <> ct.id_usuario;
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
 	CREATE TABLE priority(
 		id int PRIMARY KEY AUTO_INCREMENT,
 		description varchar(255)
 	);    
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
 	CREATE TABLE esnLog(
 		id int PRIMARY KEY AUTO_INCREMENT,
 		errorDescription text,
 		dateOfError datetime,
 		id_usuario int
 	);    
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
     DROP TABLE IF EXISTS subTarea;
 	CREATE TABLE subTarea(
 		id_tarea int,
@@ -73,14 +78,14 @@
     
     
     
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
     DELIMITER $$
 	DROP FUNCTION IF EXISTS formatDate$$
 	CREATE FUNCTION formatDate(_date datetime) RETURNS varchar(20)
 	BEGIN
 		RETURN date_format(_date,'%Y-%m-%d %T');
 	END$$    
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreatePriority`$$
 	CREATE PROCEDURE `CreatePriority` (IN _description varchar(255))
@@ -102,24 +107,29 @@
 		WHERE id = coalesce(_id,id);
 		
 	END$$    
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
     CALL CreatePriority('Ninguna');
 	CALL CreatePriority('Baja');
 	CALL CreatePriority('Media');
 	CALL CreatePriority('Alta');
 	CALL CreatePriority('Urgente');
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
     ALTER TABLE ctrl_tareas ADD priority_id int NULL;
     ALTER TABLE ctrl_tareas ADD avance int NULL;
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
     UPDATE ctrl_tareas SET priority_id = 1;
     UPDATE ctrl_tareas SET avance = 50;
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
     ALTER TABLE cat_usuario ADD color varchar(10) NULL;
     ALTER TABLE cat_usuario ADD nombre varchar(50) NULL;
     ALTER TABLE cat_usuario ADD apellidos varchar(100) NULL;
 	ALTER TABLE cat_usuario ADD tel varchar(100) DEFAULT NULL;
-    #-PRODUCCION-----------------------------------
+    #------------------------------------
+    
+    
+    
+    
+    
 	DELIMITER $$
 	DROP procedure IF EXISTS `CreateRoleType`$$
 	CREATE PROCEDURE `CreateRoleType` (IN _description varchar(255))
@@ -130,12 +140,6 @@
 		SELECT LAST_INSERT_ID() as id;
 		
 	END$$
-    
-    #-PRODUCCION-------------------------------------
-	CALL CreateRoleType('Creador');
-	CALL CreateRoleType('Responsable');
-	CALL CreateRoleType('Participante');
-	CALL CreateRoleType('Administrador');         
 
 	DELIMITER $$
 	DROP procedure IF EXISTS `GetRoleType`$$
@@ -229,7 +233,7 @@
 	END$$         
 
 
-	#-PRODUCCION------------------------------------------------------------------
+	#-------------------------------------------------------------------
 
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTarea$$
@@ -292,14 +296,16 @@
 							'"participantes":',sc.participantes,',',
                             '"subtareas":',sc.subtareas,',',
 							'"topComments":',sc.topComments,'',
-						'}') ORDER BY sc.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite asc separator ','),
+						'}') ORDER BY SC.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
 					  ']') INTO _tareas
+        FROM (
+        SELECT *
         FROM (
 			SELECT ct.id_tarea,
 				   ifnull(_id_proyecto,ct.id_proyecto) as id_proyecto,
 					ct.txt_tarea,
 					ct.fec_creacion,
-					IFNULL(ct.fec_limite,'2199-01-01') as fec_limite,
+					IFNULL(ct.fec_limite,'') as fec_limite,
 					ct.id_status,
 					IFNULL(ct.avance,0) as avance,
 					ct.priority_id,
@@ -318,9 +324,10 @@
 						 ELSE ct.id_status = 2 END
 					AND (ct.id_usuario = _id_usuario
 					OR bvt.role_id in (1,2,3,4))
-					AND (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
-			ORDER BY FIELD(ct.id_status,1,3,2) asc, ifnull(ct.fec_limite,'2199-01-01') desc
-		) AS sc;
+			ORDER BY FIELD(ct.id_status,1,3,2) asc, ifnull(ct.fec_limite,'1960-01-01') desc
+            ) as wtf
+            WHERE (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
+		) AS SC;
 		
 		RETURN ifnull(_tareas,'[]');
 
@@ -438,7 +445,7 @@
                     st.numOrden,
                     st.subtarea,
                     st.id_status
-            FROM subTarea as st
+            FROM subtarea as st
             WHERE id_tarea = _id_tarea
         ) as sc;
 		
@@ -566,7 +573,7 @@
 
 		SELECT id_usuario INTO _id_usuario
 		FROM cat_usuario
-		WHERE txt_email = _email collate utf8_general_ci AND txt_password = _password collate utf8_general_ci;
+		WHERE txt_email = _email AND txt_password = _password;
 		
 		IF(_id_usuario is null) THEN
 			SIGNAL sqlstate 'ERROR' SET message_text = 'The password or email address is incorrect.';
@@ -619,37 +626,6 @@ BEGIN
 	SELECT getJsonTopComments(_id_tarea,NULL,fec_comentario) as comentarios;
 
 END$$
-
-DELIMITER $$
-DROP PROCEDURE IF EXISTS getProyecto$$
-CREATE PROCEDURE `getProyecto`(_id_usuario int,_id_proyecto int, _status_tareas int, _status_proyectos int)
-BEGIN
-
-	# Status NULL: trae todas las tareas
-	# Status 1: trae tareas Activas
-	# Status 2: trae tareas Terminadas
-    
-	SELECT 	*,
-			getJsonTarea(id_proyecto,_id_usuario,_status_tareas) as tareas
-    FROM (
-		SELECT 	cp.id_proyecto,
-				cp.txt_proyecto,
-				cp.id_status,
-				formatDate(cp.fec_inicio) as fec_inicio,
-				formatDate(cp.fec_limite) as fec_inico
-		FROM cat_proyecto as cp
-		LEFT JOIN ctrl_tareas as ct on ct.id_proyecto = cp.id_proyecto
-		LEFT JOIN bit_view_tarea as bvt on bvt.id_tarea = ct.id_tarea
-		WHERE 	(cp.id_usuario = _id_usuario OR bvt.id_usuario = _id_usuario)
-				AND cp.id_proyecto = coalesce(_id_proyecto,cp.id_proyecto)
-                AND CASE WHEN _status_proyectos IS NULL THEN cp.id_status in (1,2,3)
-						 WHEN _status_proyectos = 1 THEN cp.id_status in (1,3)
-                         ELSE cp.id_status = 2 END
-		GROUP BY cp.id_proyecto, cp.txt_proyecto, cp.id_status
-    ) AS SC;
-
-END$$
-
 
 #SELECT * FROM cat_proyecto
 #CALL getContenido('12',NULL,1,1)
@@ -1072,9 +1048,9 @@ SELECT 	id_usuario,
         getLevelKey(id_usuario) as levelKey,
         id_status
 FROM cat_usuario as cu
-WHERE FN_NIVEL(id_usuario) like CONCAT('%',lpad(Ivid_usuario,4,'0'),'%') /* esta linea deberìa ir comentada*/
-		and cu.id_status = 1
-        and txt_usuario  like CONCAT('%',vtxt,'%') 
+WHERE /*FN_NIVEL(id_usuario) like CONCAT('%',lpad(Ivid_usuario,4,'0'),'%') 
+		and*/ cu.id_status = 1
+        and txt_usuario /*collate utf8_general_ci*/ like CONCAT('%',vtxt,'%') 
 ORDER BY cu.id_usuario in (Ivid_usuario) desc,FN_NIVEL(id_usuario);
 END$$
 
