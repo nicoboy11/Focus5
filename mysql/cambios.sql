@@ -234,7 +234,6 @@
 
 
 	#-------------------------------------------------------------------
-
 	DELIMITER $$
 	DROP FUNCTION IF EXISTS getJsonTarea$$
 	CREATE FUNCTION getJsonTarea(_id_proyecto int, _id_tarea int, _id_usuario int, _bitStatus int, _start int) RETURNS LONGTEXT
@@ -246,39 +245,8 @@
                
 		DECLARE _tareas text;
 		SET SESSION group_concat_max_len = 1000000;
-        set @i=0;
-        /*
-		SELECT concat('[',
-						group_concat( concat(
-						'{',
-							'"id_tarea":',ct.id_tarea,',',
-                            '"id_proyecto":',ifnull(_id_proyecto,ct.id_proyecto),',',
-							'"txt_tarea":"',ct.txt_tarea,'",',
-							'"fec_creacion":"',ct.fec_creacion,'",',
-							'"fec_limite":"',IFNULL(ct.fec_limite,'2199-01-01'),'",',
-							'"id_status":',ct.id_status,',',
-                            '"avance":',IFNULL(ct.avance,0),',',
-							'"priority_id":"',ct.priority_id,'",',
-                            '"commentCount":',getCommentCount(ct.id_tarea),',',
-                            '"role_id":"',case when ct.id_usuario = _id_usuario then 1 else bvt.role_id end,'",',
-							'"notificaciones":',FN_ULTIMO_COMMENT(bvt.id_tarea, IFNULL(bvt.fec_actualiza, '2000-01-01')),',',                            
-							'"participantes":',getJsonUsuariosTarea(ct.id_tarea),',',
-                            '"subtareas":',getJsonSubTarea(ct.id_tarea),',',
-							'"topComments":',getJsonTopComments(ct.id_tarea,null,NOW()+1),'',
-						'}') separator ','),
-					  ']') INTO _tareas
-		FROM ctrl_tareas as ct
-		LEFT JOIN vbit_view_tarea as bvt on bvt.id_tarea = ct.id_tarea and bvt.id_usuario = _id_usuario
-		WHERE 	ct.id_proyecto = coalesce(_id_proyecto, ct.id_proyecto) AND
-				ct.id_tarea = coalesce(_id_tarea,ct.id_tarea) AND
-				CASE WHEN _bitStatus is NULL THEN ct.id_status in (1,2,3) 
-					 WHEN _bitStatus = 1 THEN ct.id_status in (1,3)
-                     ELSE ct.id_status = 2 END
-				AND (ct.id_usuario = _id_usuario
-				OR bvt.role_id in (1,2,3,4))
-		ORDER BY ct.fec_limite is null asc, ct.fec_limite desc;
-        */
-        
+        #set @i=0;
+
         SELECT concat('[',
 						group_concat( concat(
 						'{',
@@ -325,7 +293,7 @@
 					AND (ct.id_usuario = _id_usuario
 					OR bvt.role_id in (1,2,3,4))
 			ORDER BY FIELD(ct.id_status,1,3,2) asc, ifnull(ct.fec_limite,'1960-01-01') desc
-            ) as wtf
+            ) as wtf,(SELECT @i:=0) foo
             WHERE (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
 		) AS SC;
 		
@@ -521,9 +489,6 @@
 	#	-El creador de la tarea ó del proyecto **
     #    -Participantes de la tarea **
     #    -Responsable de la tarea ó el proyecto **
-        
-       
-    
 	DELIMITER $$
 	DROP PROCEDURE IF EXISTS GetUsuario$$
 	CREATE PROCEDURE `GetUsuario`(IN _id_usuario int)
@@ -612,6 +577,12 @@ BEGIN
 						 WHEN _status_proyectos = 1 THEN cp.id_status in (1,3)
                          ELSE cp.id_status = 2 END
 		GROUP BY cp.id_proyecto, cp.txt_proyecto, cp.id_status
+		UNION ALL
+		SELECT 	0 as id_proyecto,
+				'TAREAS PERSONALES' as txt_proyecto,
+				1 as id_status,
+				NULL as fec_inicio,
+				NULL as fec_limite
     ) AS SC
     ORDER BY txt_proyecto;
 
