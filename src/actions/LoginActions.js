@@ -45,6 +45,14 @@ export const loginUser = (email, password, callback = () => {}) => {
     }
 };
 
+export const loginLocalStorage = (session) => {
+    return {
+        type: LOGIN_USER_SUCCESS,
+        payload: session
+    }
+}
+
+
 const loginFailed = (dispatch, error) => {
     dispatch({ type: LOGIN_USER_FAILED, payload: error });
 }

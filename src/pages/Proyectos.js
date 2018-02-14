@@ -144,7 +144,7 @@ class Proyectos extends Component{
     renderList(){
         
         if(this.props.loading){
-            return <div>Cargando...</div>
+            return null;
         }
 
         let proyectos = this.props.proyectos.filter(proyecto => proyecto.txt_proyecto.toLowerCase().includes(this.props.buscar));
@@ -410,6 +410,31 @@ class Proyectos extends Component{
      * Renderiza la tarjeta de "Nuevo proyecto " y posteriormente la lista de proyectos
      */
     render(){
+
+        if(this.props.loading){
+            swal({
+                title: 'Cargando proyectos!',
+                text: 'Estamos preparando los proyectos.',
+                buttons: false,
+                closeOnClickOutside: false,
+                closeOnEsc: false,
+                content:{
+                    element:"img",
+                    attributes: {
+                        src:`${Config.network.server}/img/Spinner.gif`,
+                        style:"margin-right: 5px; width: 48px; height: 48px"
+                    }
+                }
+            });
+            return <img style={{width: '100px', height: '100px'}} src={`${Config.network.server}/img/Spinner.gif`} />
+        } else {
+            try {
+                swal.close();
+            } catch(err) {
+                console.log("swal todavía no existe");
+            }
+            
+        }
 
         if(this.refs.listaProyectosDiv !== undefined){
             this.props.guardaRefs(this.props.listaRef, this.refs.listaProyectosDiv);

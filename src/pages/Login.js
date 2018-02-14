@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Input, Modal } from '../components'
-import { emailChanged, passwordChanged, loginUser, cargarPerfil } from '../actions'
+import { emailChanged, passwordChanged, loginUser, cargarPerfil, loginLocalStorage } from '../actions'
 import { push } from 'react-router-redux';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -15,7 +15,11 @@ class Login extends Component{
         mostrarModal: false
     }
 
+
     componentWillMount(){
+        if(localStorage.sessionData !== undefined){
+            this.props.loginLocalStorage(JSON.parse(localStorage.sessionData));
+        }
     }
 
     componentWillReceiveProps(nextProps){
@@ -27,7 +31,7 @@ class Login extends Component{
         if(nextProps.sessionData !== null && window.location.pathname === `${network.basename}/`){
             this.props.cargarPerfil(nextProps.sessionData);
             this.props.loginSuccess();
-        }
+        } 
     }
 
     render(){
@@ -75,6 +79,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     passwordChanged,
     loginUser,
     cargarPerfil,
+    loginLocalStorage,
     loginSuccess: () => push('proyectos')
 }, dispatch)
 

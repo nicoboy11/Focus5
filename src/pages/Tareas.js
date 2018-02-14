@@ -72,7 +72,7 @@ class Tareas extends Component{
         }
 
 
-        if(!this.props.proyectoActual.id_proyecto) {
+        if(this.props.proyectoActual.id_proyecto === undefined) {
             this.props.listaProyectos(sessionData.id_usuario);
         } 
 
