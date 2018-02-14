@@ -232,6 +232,9 @@ class Ajustes extends Component{
 
         if(this.props.perfil.error){
             swal(":(", "No fué posible guardar, intente más tarde", "error");
+            console.log(this.props.perfil.error);
+            this.setState({ mostrarModalPerfil: false });
+            this.props.cargarPerfil();
         }
 
         if(this.props.perfil.tmp_perfil.id_usuario === undefined && this.state.mostrarModalPerfil === true) {
