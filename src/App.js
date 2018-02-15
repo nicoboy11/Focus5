@@ -41,6 +41,7 @@ class App extends Component {
 
   componentWillMount(){
     this.props.cargarPerfil();
+    document.title = 'Focus';
   }
 
   componentDidMount(){

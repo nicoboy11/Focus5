@@ -32,6 +32,12 @@ export const listaUsuarios = (id_usuario_sesion) => {
                         usuario.isVisible = true;
                         usuario.isVisibleRed = true;
                     }
+
+                    usuario.id_usuario = parseInt(usuario.id_usuario);
+                    usuario.id_usuario_superior = parseInt(usuario.id_usuario_superior);
+                    usuario.nivel = parseInt(usuario.nivel);
+                    usuario.sn_espadre = parseInt(usuario.sn_espadre);
+                    usuario.sn_imagen = parseInt(usuario.sn_imagen);
                 }
 
                 listaUsuariosSuccess(dispatch, response);

@@ -60,7 +60,7 @@ class Personal extends Component{
             usuarios = usuarios.filter(usuario => usuario.txt_usuario.toLowerCase().includes(this.props.buscar) || usuario.txt_login.toLowerCase().includes(this.props.buscar) )
 
                 return usuarios.map(usuario => {
-                    const image = usuario.sn_imagen===1?
+                    const image = usuario.sn_imagen==1?
                                     `${network.server}usr/thumbs/small/${usuario.id_usuario}.jpg?v=${new Date().getTime().toString().substr(0,7)}`:
                                     usuario.txt_abbr
                     if(this.state.tipoLista === 0){
