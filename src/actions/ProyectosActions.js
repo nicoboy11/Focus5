@@ -218,6 +218,8 @@ export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva, cal
             //Obtengo array de participantes
             tarea.participantes = generarArrayParticipantes(tarea);
 
+            tarea.txt_tarea = Helper.htmlEncode(tarea.txt_tarea);
+
             //Selecciono la ruta
             const ruta = snNueva?'CrearTarea':`EditarTarea/${tarea.id_tarea}`;
 
@@ -246,7 +248,7 @@ export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva, cal
                         type: TR_SUCCESS, 
                         payload: { 
                             proyectos, 
-                            tmpProyecto: proyectoActual, 
+                            tmpProyecto: proyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0], 
                             tareaActual: { id_tarea: tarea.id_tarea, editing: false, selected: true }    
                         }           
                     })

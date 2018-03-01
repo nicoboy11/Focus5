@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import {UserList} from './';
-import { Helper } from '../configuracion';
+import { Helper, Config } from '../configuracion';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
+import 'moment/locale/es'
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 
 class Tarea extends Component{
 
@@ -12,8 +17,17 @@ class Tarea extends Component{
      * Verificar si es necesario redibujar la tarea
      */
     shouldComponentUpdate(nextProps, nextState){
+        const tareaActual = nextProps.tareas.filter(tarea => tarea.id_tarea === this.props.id_tarea)[0];
 
-        if(JSON.stringify(this.props) !== JSON.stringify(nextProps)){
+        for(const prop of Object.keys(this.props)) {
+            if(tareaActual[prop] !== undefined) {
+                if(tareaActual[prop] !== this.props[prop]){
+                    return true;
+                }
+            }
+        }
+
+        if(nextProps.typing !== this.props.typing){
             return true;
         }
 
@@ -54,9 +68,24 @@ class Tarea extends Component{
 
         return null;
     }
+
+    renderLoading() {
+        if(this.props.loading === true && this.props.tareaSeleccionada.id_tarea === this.props.id_tarea){
+            return <img style={{width: '24px', height: '24px'}} src={`${Config.network.server}/img/Spinner.gif`} />
+        }
+
+        return null;
+    }
+
     render(){
-        const { participantes, txt_tarea, fec_limite, txt_proyecto, avance, selected, typing, status } = this.props;
-        const opacidad = (status===2)?{ opacity: '0.4'}:{};
+        const tareaActual = this.props.tareas.filter(tarea => tarea.id_tarea === this.props.id_tarea)[0];
+        
+        const { participantes, txt_tarea, txt_proyecto, avance, selected, typing } = this.props;
+
+        const fec_limite = tareaActual.fec_limite;
+        const id_status = tareaActual.id_status;
+
+        const opacidad = (id_status===2)?{ opacity: '0.4'}:{};
         const selectedStyle = (selected)?styles.selectedStyle:{};
         let nuevoStyle = {};
         if(this.props.nuevo) {
@@ -76,8 +105,9 @@ class Tarea extends Component{
                     </div>
                     <div className="chatItemContent">
                         <div className="chatContentTop">
-                            <div className="chatContentTitle" title={Helper.decode_utf8(txt_tarea)}>{Helper.decode_utf8(txt_tarea)}</div>
+                            <div className="chatContentTitle" title={Helper.htmlDecode(Helper.decode_utf8(txt_tarea))}>{Helper.htmlDecode(Helper.decode_utf8(txt_tarea))}</div>
                             {this.renderNotificaciones()}
+                            {this.renderLoading()}
                             <i onClick={(e) => this.onMenuClick(e)} className="material-icons fadeColor">more_vert</i>
                         </div>
                         <div className="chatContentBottom">
@@ -86,16 +116,56 @@ class Tarea extends Component{
                             </div>
                         </div>
                     </div>
-                    {this.renderStatus(status)}                    
+                    {this.renderStatus(id_status)}                    
                 <div className="taskBottom chatContentBottom">
                     <UserList participantes={participantes} limit={3} />
                     <div style={styles.typingStyle}>{typing}</div>
-                    <div className="taskFechaLimite chatContentDatetime" style={{ color: Helper.prettyfyDate(fec_limite).color }}>{Helper.prettyfyDate(fec_limite).date}</div>
+                    <DatePicker
+                        customInput={<ButtonDate color={Helper.prettyfyDate(fec_limite).color} date={Helper.prettyfyDate(fec_limite).date} />}
+                        selected={Helper.toDateM(fec_limite)}
+                        onChange={
+                                (date) => {
+                                    this.props.editarTarea({ 
+                                        prop: 'fec_limite', 
+                                        value:date.format('YYYY-MM-DD')
+                                    })
+                                }
+                            }
+                        popperPlacement='left-start'
+                        locale="es"
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
+                        todayButton="Hoy"                        
+                    />
                 </div>
             </div>);
     }
 
 }
+
+class ButtonDate extends React.Component {
+    static defaultProps = {
+        onClick: () => {},
+        value: 'Sin fecha',
+        date: null,
+        color: '#CCC'
+    }    
+
+      render () {
+        return (
+            <div 
+                onClick={this.props.onClick}
+                className="taskFechaLimite chatContentDatetime" 
+                style={{ color: this.props.color }}
+            >
+                {this.props.date}
+            </div>
+          
+        )
+      }
+    }
+    
 
 const styles = {
     selectedStyle: {
@@ -105,8 +175,23 @@ const styles = {
     },
     typingStyle: {
         fontSize: '12px',
-        color: '#1ABC9C'
+        color: '#1ABC9C',
+        display: 'flex',
+        flex: '1'
     }
 }
 
-export {Tarea};
+const mapStateToProps = state => {
+    const proyecto = state.listaProyectos.proyectos.filter(proyecto => proyecto.id_proyecto === state.listaProyectos.tmpProyecto.id_proyecto);
+    const tareas = proyecto[0]?proyecto[0].tareas:[];
+    
+    return {
+        tareas,
+        loading: state.listaProyectos.loadingTarea,
+        tareaSeleccionada: state.listaProyectos.tareaActual
+    }
+};
+
+const mapDispatchToProps = dispatch => bindActionCreators({}, dispatch)
+
+export default connect(mapStateToProps, mapDispatchToProps)(Tarea)

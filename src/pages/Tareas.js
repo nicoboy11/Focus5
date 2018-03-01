@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Tarea, Input, Modal, ContextMenu, FormRow, Chat, NewTask, Segmented, CheckList } from '../components';
+import { Input, Modal, ContextMenu, FormRow, Chat, NewTask, Segmented, CheckList } from '../components';
+import Tarea from '../components/Tarea';
 import Slider from 'react-rangeslider';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
@@ -51,7 +52,10 @@ class Tareas extends Component{
             currentComments: [],
             listaContext: [],
             mostrarContextMenu: false,
-            tipoDetalle: 0
+            tipoDetalle: 0,
+            mostrarFiltros: false,
+            filtroEstatus: null,
+            filtroFecha: null
         }
     }
 
@@ -137,6 +141,18 @@ class Tareas extends Component{
         }
 
     }
+
+   /* shouldComponentUpdate(nextProps, nextState) {
+        if(nextProps.tareas.length !== this.props.tareas.length || 
+            JSON.stringify(nextProps.tareaActual) !== JSON.stringify(this.props.tareaActual) ||
+            JSON.stringify(nextState) !== JSON.stringify(this.state) ||
+            nextProps.loading !== this.props.loading 
+        ){
+            return true;
+        }
+
+        return false;
+    }*/
 
     componentDidUpdate(prevProps, prevState){
         const {ChatComponent, CheckList, listaTareas} = this.refs;
@@ -236,8 +252,13 @@ class Tareas extends Component{
         this.props.seleccionarTarea(id_tarea, true, false);
         this.props.marcarLeida(this.props.proyectos,this.props.proyectoActual.id_proyecto, id_tarea,sessionData.id_usuario);
 
+        let y = e.clientY;
+        if(this.refs.listaTareas.scrollHeight - e.clientY < 250){
+            y = e.clientY - 80;
+        }
+
         //Mostrar menú
-        this.setState({ mostrarContextMenu: true, listaContext: lista, posicion: {x: e.clientX, y: e.clientY} });
+        this.setState({ mostrarContextMenu: true, listaContext: lista, posicion: {x: e.clientX, y} });
 
     }
 
@@ -277,11 +298,11 @@ class Tareas extends Component{
      */
     onGuardar(txt_tarea){
         //Cuando la tarea es nueva el txt_tarea es undefined
-        if(!txt_tarea) {
+        if(!txt_tarea) { //UPDATE
             this.props.guardarTarea(this.props.proyectos, this.props.proyectoActual.id_proyecto, this.props.tareaActual, false, () => {
                 this.setState({ mostrarModal: false });                
             });
-        } else {
+        } else { //INSERT
             let tareaNueva = {
                     avance: 0,
                     fec_creacion: '',
@@ -435,7 +456,7 @@ class Tareas extends Component{
             <Modal 
                 type='FORM' 
                 isVisible={this.state.mostrarModal} 
-                titulo={txt_tarea}
+                titulo={Helper.htmlDecode(txt_tarea)}
                 loading={this.props.loading}
                 componenteInicial="txt_tarea"
                 onGuardar={() => { this.onGuardar(); }}
@@ -450,7 +471,7 @@ class Tareas extends Component{
                         type="EXTENDEDTEXT"
                         autoFocus={true}
                         placeholder='Nombre de la tarea' 
-                        value={txt_tarea}
+                        value={Helper.htmlDecode(txt_tarea)}
                         onChangeText={
                             value => this.props.editarTarea({ 
                                         prop: 'txt_tarea', 
@@ -592,10 +613,21 @@ class Tareas extends Component{
      * Renderizo las tareas si ya existen en el state
      */
     renderTareas(){
-        if(this.props.tareas !== null && this.props.tareas !== undefined && !this.props.loading ) {
+        if(this.props.tareas !== null && this.props.tareas !== undefined  ) {
             const me = this;
+            const tmpTarea = this.props.tareaActual;
+            const tmpProyecto = this.props.proyectoActual;
 
-            const tareas = this.props.tareas.filter(tarea => tarea.txt_tarea.toLowerCase().includes(this.props.buscar));
+            let tareas = this.props.tareas.filter(tarea => tarea.txt_tarea.toLowerCase().includes(this.props.buscar));
+
+            if(this.state.filtroEstatus !== null){
+                tareas = tareas.filter(tarea => tarea.id_status === this.state.filtroEstatus);
+            }
+
+            if(this.state.filtroFecha !== null){
+                tareas = tareas.filter(tarea => Helper.prettyfyDate(tarea.fec_limite).estado === this.state.filtroFecha);
+            }            
+            
 
             return tareas.map(tarea => {
                     const selected = (tarea.id_tarea === me.props.tareaActual.id_tarea)?true:false;
@@ -613,7 +645,14 @@ class Tareas extends Component{
                             selected={selected}
                             nuevo={tarea.nuevo}
                             typing={typing}
-                            status={tarea.id_status}
+                            id_status={tarea.id_status}
+                            editarTarea={({ prop, value }) => { 
+                                    this.props.editarTarea({ prop, value,tmpProyecto, tmpTarea}, (proyecto, tarea) => {
+                                        this.props.guardarTarea(this.props.proyectos, proyecto.id_proyecto, tarea, false, () => {
+                                            this.setState({ mostrarModal: false });                
+                                        });
+                                    }); 
+                            }}
                             onClick={this.tareaClick.bind(this)}
                             onMenuOpen={(e) => this.onContextOpen(e,tarea.id_tarea)}
                         />
@@ -623,11 +662,6 @@ class Tareas extends Component{
             })*/;
         }
 
-        return (
-            <div className="tareaCard" style={{ textAlign: 'center' }}>
-                <img style={{width: '50px', height: '50px'}} src={`${Config.network.server}/img/Spinner.gif`} />
-            </div>        
-        );
     }
 
     renderTipoDetalle(usuario){
@@ -712,6 +746,24 @@ class Tareas extends Component{
             }
         }
     }
+
+    renderFilterButtons(filtro, color, icono, tipoFiltro, filtroActual){
+
+        let estilo = {};
+        if(filtroActual === filtro[tipoFiltro]){
+            estilo = styles.selectedStyle;
+        }
+
+        return (<i 
+                    style={{padding: '5px', ...estilo }} 
+                    onClick={() => this.setState({ ...filtro }) } 
+                    className={`material-icons ${color} botonGral`}
+                >
+                    {icono}
+                </i>
+                );
+
+    }
     /**
      * Renderizo la pagina completa
      */
@@ -732,7 +784,6 @@ class Tareas extends Component{
             this.props.clearTareaSocket();            
         }       
 
-
         return(
             <div className="detallesContainer divideTop">
                 <div 
@@ -741,16 +792,64 @@ class Tareas extends Component{
                     id="listaTareas" 
                     className="w3-third chatPanel lightBackground"
                 >
-                    <input 
-                        placeholder="Buscar tareas..." 
-                        style={{ lineHeight: '1em', border: 'none', borderBottom: '1px solid #F1F1F1', padding: '5px', outline: '0'}} 
-                        onChange={({target}) => this.props.buscarTexto(target.value)}
-                        value={this.props.buscar}
-                    />                
+                    <div style={{ padding: '19px',  borderBottom: '1px solid #F1F1F1' }}>
+                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <input 
+                            placeholder="Buscar tareas..." 
+                            style={{ lineHeight: '1em', border: 'none', outline: '0', flex: '1'}} 
+                            onChange={({target}) => this.props.buscarTexto(target.value)}
+                            value={this.props.buscar}
+                        />  
+                        {(this.state.mostrarFiltros) ?
+                        <div style={{ display: 'flex', flex: '1', justifyContent: 'space-between'}}>
+                            <div className="w3-animate-right">
+                                <div className="fadeColor" style={{fontSize: '10px'}}>FILTRO POR ESTATUS</div>
+                                <div style={{ display: 'flex', justifyContent: 'center'}}>
+                                    {this.renderFilterButtons({filtroEstatus: 3},'clickableColor', 'done', 'filtroEstatus', this.state.filtroEstatus )}
+                                    {this.renderFilterButtons({filtroEstatus: 2},'clickableColor', 'done_all', 'filtroEstatus', this.state.filtroEstatus )}
+                                </div>
+                            </div>                        
+                            <div className="w3-animate-right">
+                                <div className="fadeColor" style={{fontSize: '10px'}}>FILTRO POR FECHA</div>
+                                <div style={{ display: 'flex', justifyContent: 'center'}}>
+                                    {this.renderFilterButtons({filtroFecha: 'sin fecha'},'fadeColor', 'access_time', 'filtroFecha', this.state.filtroFecha )}
+                                    {this.renderFilterButtons({filtroFecha: 'vencida'},'errorColor', 'access_time', 'filtroFecha', this.state.filtroFecha )}
+                                    {this.renderFilterButtons({filtroFecha: 'ontime'},'mainColor', 'access_time', 'filtroFecha', this.state.filtroFecha )}
+                                </div>
+                            </div>
+                            <div>
+                                <i 
+                                    style={{padding: '5px' }} 
+                                    onClick={() => { this.setState({ mostrarFiltros: false, filtroEstatus: null, filtroFecha: null }) }}
+                                    className="material-icons fadeColor botonGral"
+                                >
+                                    close
+                                </i>
+                            </div>
+                        </div>
+                         :                       
+                        <div>
+                            <i 
+                                style={{padding: '5px' }} 
+                                onClick={() => { this.setState({ mostrarFiltros: true }) }}
+                                className="material-icons fadeColor botonGral"
+                            >
+                                filter_list
+                            </i>
+                        </div>                        
+                        }
+                    </div>
+                    </div>
+                    <div>
                     <NewTask 
                         onEnter={(txt_tarea) => this.onGuardar(txt_tarea)}
                     />
+                    </div>
                     {this.renderTareas()}
+                    {(this.props.loading)?
+                        <div className="tareaCard" style={{ textAlign: 'center' }}>
+                            <img style={{width: '50px', height: '50px'}} src={`${Config.network.server}/img/Spinner.gif`} />
+                        </div>:null  }
                     {this.renderLoadMore()}
                     {this.renderModalTareas()}
                     <ContextMenu 
@@ -845,5 +944,13 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     buscarTexto,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
+
+const styles = {
+    selectedStyle: {
+        backgroundColor: '#F6F6F6',
+        border: '1px solid #E2E2E2',
+        borderRadius: '5px'
+    }
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(Tareas)

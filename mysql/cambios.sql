@@ -567,7 +567,8 @@ BEGIN
 				cp.txt_proyecto,
 				cp.id_status,
 				formatDate(cp.fec_inicio) as fec_inicio,
-				formatDate(cp.fec_limite) as fec_limite
+				formatDate(cp.fec_limite) as fec_limite,
+                cp.id_usuario
 		FROM cat_proyecto as cp
 		LEFT JOIN ctrl_tareas as ct on ct.id_proyecto = cp.id_proyecto
 		LEFT JOIN bit_view_tarea as bvt on bvt.id_tarea = ct.id_tarea
@@ -582,7 +583,8 @@ BEGIN
 				'TAREAS PERSONALES' as txt_proyecto,
 				1 as id_status,
 				NULL as fec_inicio,
-				NULL as fec_limite
+				NULL as fec_limite,
+                _id_usuario as id_usuario
     ) AS SC
     ORDER BY txt_proyecto;
 

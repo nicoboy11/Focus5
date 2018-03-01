@@ -42,6 +42,15 @@ pre {
     align-content: flex-start
 }
 
+.botonGral {
+
+}
+
+.botonGral:hover {
+    cursor: pointer;
+    background-color: #F6F6F6 !important
+}
+
 /*-- MAIN -------------------------------------------*/
     #main{
         position: absolute;

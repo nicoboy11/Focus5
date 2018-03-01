@@ -46,7 +46,7 @@ class ChatItem extends Component {
                 loading = styles.loadingStyle;
             }
 
-            if((/\.(gif|jpg|jpeg|tiff|png)$/i).test(this.props.imagen)){
+            if((/\.(gif|jpg|jpeg|tiff|png)$/i).test(this.props.imagen) || (/data:image\/([a-zA-Z]*);base64,([^\"]*)/g).test(this.props.imagen)){
                 return (
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                         <img 
@@ -138,7 +138,7 @@ class ChatItem extends Component {
 
         if(id_tipo_comentario === 2 ) {
             return (
-                <div className="bitacora">{Helper.htmlPaso(Helper.decode_utf8(txt_comentario))}</div>
+                <div className="bitacora">{Helper.htmlDecode(Helper.htmlPaso(Helper.decode_utf8(txt_comentario)))}</div>
             );
         }
 
@@ -157,7 +157,7 @@ class ChatItem extends Component {
                             <div style={{ margin: '10px', ...wimageStyle, position:'relative' }}>
                                 {this.renderImage()}
                                 <pre style={{ whiteSpace: 'pre-wrap'}}>
-                                    {Helper.decode_utf8(txt_comentario)}
+                                    {Helper.htmlDecode(Helper.decode_utf8(txt_comentario))}
                                 </pre>
                                 {(progress !== undefined)?
                                 <div style={styles.barra}>
@@ -182,7 +182,7 @@ class ChatItem extends Component {
                         <div style={{ marginLeft: '10px', position:'relative' }}>                     
                             {this.renderImage()}
                             <pre style={{ whiteSpace: 'pre-wrap'}} >
-                            {Helper.decode_utf8(txt_comentario)}
+                            {Helper.htmlDecode(Helper.decode_utf8(txt_comentario))}
                             </pre>
                         </div>
                     </div>

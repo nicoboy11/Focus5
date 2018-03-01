@@ -51,15 +51,17 @@ class Helper {
     static prettyfyDate(uglyDate) {
         if (uglyDate === undefined || uglyDate === null || uglyDate === 'null' || uglyDate === '') {
             return {
-                color: colors.main,
-                date: '',
-                datetime: '',
-                vencida: false
+                color: colors.lightText,
+                date: 'Sin fecha',
+                datetime: null,
+                vencida: false,
+                estado: 'sin fecha'
             };
         }
-    
-        const date = this.toDate(uglyDate);
-        const realDate = new Date(uglyDate);
+
+        let realDate = moment(uglyDate).toDate();
+        let date = this.toDate(moment(uglyDate).format("YYYY-MM-DD"));
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
     
@@ -67,24 +69,25 @@ class Helper {
         const time =  ' ' + ('00' + realDate.getHours().toString()).slice(-2) + ':' + ('00' + realDate.getMinutes().toString()).slice(-2) /*+ ':' + realDate.getSeconds().toString()*/
     
         if(diff > 3600) {
-            return { color: colors.lightText, date: 'Sin fecha', datetime: 'Sin fecha'}
+            return { color: colors.lightText, date: 'Sin fecha', datetime: 'Sin fecha', estado: 'sin fecha'}
         }
 
         if (diff === 0) {
-            return { color: colors.main, date: 'Hoy', datetime: 'Hoy' + time };
+            return { color: colors.main, date: 'Hoy', datetime: 'Hoy' + time, estado: 'ontime' };
         } else if (diff === 1) {
-            return { color: colors.main, date: 'Mañana', datetime: 'Mañana' + time };
+            return { color: colors.main, date: 'Mañana', datetime: 'Mañana' + time, estado: 'ontime' };
         } else if (diff === -1) {
-            return { color: colors.error, date: 'Ayer', datetime: 'Ayer' + time };
+            return { color: colors.error, date: 'Ayer', datetime: 'Ayer' + time, estado: 'vencida' };
         } else if (diff > -6 && diff < 6) {
-            return { color: (diff > 0) ? colors.main : colors.error, date: this.getDayOfWeek(date), datetime: this.getDayOfWeek(date) + time };		
+            return { color: (diff > 0) ? colors.main : colors.error, date: this.getDayOfWeek(date), datetime: this.getDayOfWeek(date) + time, estado: 'ontime' };		
         } 
     
         return {
                     color: (diff > 0) ? colors.main : colors.error, 
                     date: date.getDate().toString() + ' ' + texts.month[date.getMonth()] + ((date.getYear() !== today.getYear()) ? (', ' + date.getFullYear().toString()) : ''),
                     datetime: date.getDate().toString() + ' ' + texts.month[date.getMonth()] + ((date.getYear() !== today.getYear()) ? (', ' + date.getFullYear().toString()) : '') + time,
-                    vencida: (diff > 0) ? false : true
+                    vencida: (diff > 0) ? false : true,
+                    estado: (diff > 0) ? 'ontime' : 'vencida',
                 };		
     }
 
@@ -94,14 +97,18 @@ class Helper {
 
     static htmlEncode(str) {
         return str
-            .replace("&amp;", '&')
-            .replace("&lt;", "<")
-            .replace("&gt;", ">")
-            .replace("&quot;", '"')
-            .replace("&#039;", "'");           
+            .replace(/&/g, '&amp;')
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, "&#039;");           
     }
 
     static htmlDecode(str) {
+        if(str === undefined){
+            return str;
+        }
+
         return str
             .replace(/&amp;/g, '&')
             .replace(/&lt;/g, "<")

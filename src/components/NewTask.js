@@ -33,6 +33,7 @@ class NewTask extends Component{
             return (
                 <div id="newTask" className="divideBottom" style={{ ...styles.containerStyle }}>
                     <Input 
+                        type="EXTENDEDTEXT"
                         autoFocus={true}
                         placeholder="Escriba el nombre de la tarea"
                         value={this.state.value}
@@ -67,7 +68,7 @@ const styles = {
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center',
-        padding: '20px',
+        padding: '12px',
         cursor: 'pointer'
     }
 }

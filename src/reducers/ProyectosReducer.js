@@ -24,6 +24,7 @@ const INITIAL_STATE = {
     loadingFile: false,
     loadingMore: false,
     loadingChecklist: false,
+    loadingTarea: false,
     progress: null,
     error: '',
     buscar: '',
@@ -40,7 +41,7 @@ export default (state = INITIAL_STATE, action) => {
         case PY_MORE_SUCCESS:
             return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, tmpProyecto: action.payload.proyectoEditado }            
         case PY_FAIL:
-            return { ...state, error: action.payload, fltrNtf: false, loading: false, loadingFile: false, loadingMore: false, progress: null }
+            return { ...state, error: action.payload, fltrNtf: false, loading: false, loadingTarea: false, loadingFile: false, loadingMore: false, progress: null }
         case PY_SELECT:
             return { ...state, error: '', fltrNtf: false, tmpProyecto: action.payload }
         case PY_UNSELECT:
@@ -55,7 +56,7 @@ export default (state = INITIAL_STATE, action) => {
         case TR_UNSELECT:
             return { ...state, error: '', fltrNtf: false, tmpProyecto: action.payload }
         case TR_GUARDAR:
-            return { ...state, error: '', fltrNtf: false, loading: true }
+            return { ...state, error: '', fltrNtf: false, loadingTarea: true }
         case TR_NEW_TXT:
             return { ...state, error: '', fltrNtf: false, tareaNuevaTxt: action.payload }
         case TR_EDIT:
@@ -65,13 +66,13 @@ export default (state = INITIAL_STATE, action) => {
             if(action.payload.tareaActual.selected){
                 tareaActual = { tareaActual: action.payload.tareaActual }
             }
-            return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, ...tareaActual, tmpProyecto: action.payload.tmpProyecto, loadingChecklist: false, loading: false, tmpProyecto: { tareas: []} }
+            return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, ...tareaActual, tmpProyecto: action.payload.tmpProyecto, loadingTarea: false, loadingChecklist: false, loading: false/*, tmpProyecto: { tareas: []}*/ }
         case TR_SUCCESS_SUB:
             let tareaActual_sub = {};
             if(action.payload.tareaActual.selected){
                 tareaActual_sub = { tareaActual: action.payload.tareaActual }
             }
-            return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, ...tareaActual_sub, tmpProyecto: action.payload.tmpProyecto, loadingChecklist: false, loading: false }            
+            return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, ...tareaActual_sub, tmpProyecto: action.payload.tmpProyecto, loadingTarea: false, loadingChecklist: false, loading: false }            
         case TR_CANCEL:
             return { ...state, error: '', fltrNtf: false }
         /** COMENTARIOS */
@@ -96,6 +97,6 @@ export default (state = INITIAL_STATE, action) => {
         case REFS:
             return { ...state, listaRef: action.payload}      
         default:
-            return state;
+            return { ...state };
     }
 };
