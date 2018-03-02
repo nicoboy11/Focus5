@@ -14,6 +14,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { 
     listaProyectos, 
+    listaProyectosInactivos,
     seleccionarProyecto, 
     editarProyecto, 
     guardarProyecto, 
@@ -47,7 +48,9 @@ class Proyectos extends Component{
         if(localStorage.sessionData) {
             if(this.props.proyectos.length === 0){
                 const sessionData = JSON.parse(localStorage.sessionData);
-                this.props.listaProyectos(sessionData.id_usuario);
+                this.props.listaProyectos(sessionData.id_usuario, (proyectos) => {
+                    this.props.listaProyectosInactivos(sessionData.id_usuario, proyectos);
+                });
                 this.props.listaUsuarios(sessionData.id_usuario);
             }
         } else {
@@ -152,6 +155,9 @@ class Proyectos extends Component{
         }
 
         let proyectos = this.props.proyectos.filter(proyecto => proyecto.txt_proyecto.toLowerCase().includes(this.props.buscar));
+        if(this.props.buscar === ""){
+            proyectos = this.props.proyectos.filter(proyecto => proyecto.id_status === 1);
+        }
 
         if(this.state.filterNotif){
             proyectos = this.props.proyectos.filter(proyecto => {
@@ -569,6 +575,7 @@ const mapStateToProps = state => {
  */
 const mapDispatchToProps = dispatch => bindActionCreators({
     listaProyectos,
+    listaProyectosInactivos,
     seleccionarProyecto,
     editarProyecto,
     guardarProyecto,

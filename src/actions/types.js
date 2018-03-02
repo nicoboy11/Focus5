@@ -90,6 +90,7 @@ export const PY_SUCCESS = 'py_success';
 export const PY_FAIL = 'py_fail';
 export const PY_UNSELECT = 'py_unselect';
 export const PY_MORE_SUCCESS = 'py_more_success';
+export const PY_SUCCESS_INACT = 'py_success_inact';
 
 export const TR_SELECT = 'tr_select';
 export const TR_UNSELECT = 'tr_unselect';

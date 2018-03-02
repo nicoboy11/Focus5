@@ -51,6 +51,7 @@ class App extends Component {
   }
 
   componentDidUpdate(){
+      if(localStorage.length > 0){
         const sessionData = JSON.parse(localStorage.sessionData);
         if(this.ws === undefined && sessionData.id_usuario !== undefined) {
           //WebSocket
@@ -75,7 +76,9 @@ class App extends Component {
               "mensaje":"conectado",
               "id_usuario":${sessionData.id_usuario}}`)
           }   
-        }      
+        }     
+      }
+ 
   }
 
   renderMenu(jsx){

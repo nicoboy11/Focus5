@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Helper } from '../configuracion';
+import Link from 'react-linkify';
 
 class ChatItem extends Component {
 
@@ -38,6 +39,12 @@ class ChatItem extends Component {
         //regreso la extension
         return woExt[woExt.length - 1];
     }    
+
+    mostrarLinks(str){
+
+        const rgx = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g
+        return str.replace(rgx, '<a href="#">$1</a>');
+    }
 
     renderImage() {
         if(this.props.imagen !== "") {
@@ -157,7 +164,7 @@ class ChatItem extends Component {
                             <div style={{ margin: '10px', ...wimageStyle, position:'relative' }}>
                                 {this.renderImage()}
                                 <pre style={{ whiteSpace: 'pre-wrap'}}>
-                                    {Helper.htmlDecode(Helper.decode_utf8(txt_comentario))}
+                                    <Link properties={{target: '_blank' }}>{Helper.htmlDecode(Helper.decode_utf8(txt_comentario))}</Link>
                                 </pre>
                                 {(progress !== undefined)?
                                 <div style={styles.barra}>
@@ -182,7 +189,7 @@ class ChatItem extends Component {
                         <div style={{ marginLeft: '10px', position:'relative' }}>                     
                             {this.renderImage()}
                             <pre style={{ whiteSpace: 'pre-wrap'}} >
-                            {Helper.htmlDecode(Helper.decode_utf8(txt_comentario))}
+                            <Link properties={{target: '_blank' }}>{Helper.htmlDecode(Helper.decode_utf8(txt_comentario))}</Link>
                             </pre>
                         </div>
                     </div>

@@ -133,12 +133,19 @@ class Proyecto extends Component{
             };
         }
 
+        let inactivoStyle = {}
+        if(id_status == 2){
+            inactivoStyle = {
+                opacity: 0.6
+            }
+        }
+
         const imagen = this.props.typing.sn_imagen===1?
             `${network.server}usr/thumbs/small/${this.props.typing.id_usuario}.jpg?v=${new Date().getTime()}`:
             this.props.typing.txt_abbr
 
-        if(id_status === 1 || id_status === 3){
-            return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={{ ...styles.project, ...nuevoStyle }} className="w3-card w3-col">
+        //if(id_status === 1 || id_status === 3){
+            return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={{ ...inactivoStyle, ...styles.project, ...nuevoStyle }} className="w3-card w3-col">
                         <div className="projectTop">                     
                             <div className="cardTitle">{txt_proyecto}</div>   
                             {this.renderVencidas()}
@@ -153,7 +160,8 @@ class Proyecto extends Component{
                                     <div className="bar"></div>
                                     <div className="fill"></div>
                                 </div>
-                            </div>      
+                            </div>    
+                            {(this.state.terminadas===this.state.totalTareas)?<i className="material-icons mainColor" style={{ fontSize:'48px' }}>done_all</i>:null}
                         </div>   
                         
                             {(typing.mensaje !== "" && typing.mensaje !== undefined) ?
@@ -170,9 +178,9 @@ class Proyecto extends Component{
 
                                
                     </div>);
-        }
+      //  }
 
-        return <div />;
+      //  return <div />;
 
     }
 

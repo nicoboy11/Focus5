@@ -8,7 +8,8 @@ import {
     TR_SUCCESS, TR_CANCEL,      CM_MORE,
     TR_LEIDA,   CM_FILE_CANCEL, TR_EDIT,
     PY_MORE_SUCCESS, BSR_EDIT,  TR_SUCCESS_SUB,
-    FLTR_NTF,   REFS, TR_SUCCESS_SOCKET
+    FLTR_NTF,   REFS, TR_SUCCESS_SOCKET,
+    PY_SUCCESS_INACT
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -39,12 +40,14 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, error: '', fltrNtf: false, loading: true }
         case PY_SUCCESS:
             return { ...state, error: '', fltrNtf: false, ...INITIAL_STATE, proyectos: action.payload }
+        case PY_SUCCESS_INACT:
+            return { ...state, proyectos: action.payload }
         case PY_MORE_SUCCESS:
             return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, tmpProyecto: action.payload.proyectoEditado }            
         case PY_FAIL:
             return { ...state, error: action.payload, fltrNtf: false, loading: false, loadingTarea: false, loadingProyecto: false, loadingFile: false, loadingMore: false, progress: null }
         case PY_SELECT:
-            return { ...state, error: '', fltrNtf: false, tmpProyecto: action.payload }
+            return { ...state, error: '', buscar: '', fltrNtf: false, tmpProyecto: action.payload }
         case PY_UNSELECT:
             return { ...state, error: '', fltrNtf: false, tmpProyecto: {} }
         case PY_EDIT:

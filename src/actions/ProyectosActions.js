@@ -7,13 +7,15 @@ import {
     CM_GUARDAR,     CM_PROGRESS,    CM_SUCCESS,
     CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    
     TR_SUCCESS,     CM_MORE,        TR_LEIDA,
-    CK_SUCCESS,     PY_MORE_SUCCESS,TR_SUCCESS_SUB, REFS, TR_SUCCESS_SOCKET
+    CK_SUCCESS,     PY_MORE_SUCCESS,TR_SUCCESS_SUB, 
+    REFS,           TR_SUCCESS_SOCKET,PY_SUCCESS_INACT
+
 } from './types';
 
 /**
  * === PROYECTOS ================================================================================== 
   */
-export const listaProyectos = (id_usuario) => {
+export const listaProyectos = (id_usuario, callback = () => {}) => {
     return (dispatch) => {
         dispatch({ type: PY_LIST });
 
@@ -23,11 +25,28 @@ export const listaProyectos = (id_usuario) => {
                 console.log(response);
             } else{
                 const newResponse = handleReponsePY(response);
+                callback(newResponse);
                 dispatch({ type: PY_SUCCESS, payload: newResponse });
             }
         });            
     }
 };
+
+export const listaProyectosInactivos = (id_usuario, listaProyectos) => {
+    return (dispatch) => {
+        Database.request('GET', `contenido/${id_usuario}?statusTareas=${1}&statusProyectos=${2}`, {}, 2, (error, response) => {
+            if(error || response.status > 299){
+                dispatch({ type: PY_FAIL, payload: 'No se pudieron cargar los proyectos' })
+                console.log(response);
+            } else {
+                const newResponse = handleReponsePY(response);
+                const proyectos = pyAppendList([...listaProyectos], newResponse);
+
+                dispatch({ type: PY_SUCCESS_INACT, payload: proyectos })
+            }
+        });
+    }
+}
 
 export const cargarMasTareas = (listaProyectos, proyecto, id_usuario) => {
     return (dispatch) => {
@@ -666,4 +685,27 @@ export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
             if(a.txt_proyecto > b.txt_proyecto) return 1; 
             return 0;
         });
+    }
+/** Agregar lista de proyectos a lista existente
+ * 
+ * @param {*} proyectos_old 
+ * @param {*} proyectos_add 
+ */
+    function pyAppendList(proyectos_old, proyectos_add){
+
+        const proyectosReturn = [...proyectos_old];
+
+        for(const proyecto of proyectos_add){
+            
+            const prold = proyectos_old.find( p => {
+                return p.id_proyecto === proyecto.id_proyecto;
+            });
+
+            if(prold === undefined){
+                proyectosReturn.push(proyecto);
+            }
+
+        }
+
+        return proyectosReturn;
     }

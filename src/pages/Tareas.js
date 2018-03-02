@@ -80,27 +80,12 @@ class Tareas extends Component{
             this.props.listaProyectos(sessionData.id_usuario);
         } 
 
+        if(this.props.proyectoActual.id_status == 2 && this.props.proyectoActual.tareas.length === 0){
+            this.props.cargarMasTareas(this.props.proyectos,this.props.proyectoActual,JSON.parse(localStorage.sessionData).id_usuario);            
+        }
+
         const id_tarea = this.props.tareaActual.id_tarea;
-        //WebSocket
-        /*this.ws = new WebSocket(Config.network.wsServer);
-        this.ws.onmessage = (e) => {
-            const data = JSON.parse(e.data);
-            this.props.enviarSocket(data);
 
-            if(data.accion === "enviar" && data.id_tarea === this.props.tareaActual.id_tarea){
-                const id_tarea = this.props.tareaActual.id_tarea;
-                this.props.marcarLeida(this.props.proyectos,this.props.proyectoActual.id_proyecto, id_tarea,sessionData.id_usuario, () => {
-                    this.wsComment("enviarLeida",{ id_tarea });
-                });
-            }
-        };
-
-        this.ws.onopen = function(){
-            this.send(`{"accion":"conectar",
-            "room":"tareas",
-            "mensaje":"conectado",
-            "id_usuario":${sessionData.id_usuario}}`)
-        }*/
     }
 
     /**
@@ -141,18 +126,6 @@ class Tareas extends Component{
         }
 
     }
-
-   /* shouldComponentUpdate(nextProps, nextState) {
-        if(nextProps.tareas.length !== this.props.tareas.length || 
-            JSON.stringify(nextProps.tareaActual) !== JSON.stringify(this.props.tareaActual) ||
-            JSON.stringify(nextState) !== JSON.stringify(this.state) ||
-            nextProps.loading !== this.props.loading 
-        ){
-            return true;
-        }
-
-        return false;
-    }*/
 
     componentDidUpdate(prevProps, prevState){
         const {ChatComponent, CheckList, listaTareas} = this.refs;
@@ -330,6 +303,7 @@ class Tareas extends Component{
     onLoadMore() {
         try{
             const { id_tarea, topComments, id_proyecto } = this.props.tareaActual;
+
             this.props.loadMore(this.props.proyectos,id_proyecto,id_tarea,topComments[topComments.length - 1].fec_comentario);
     
             const {ChatComponent} = this.refs;
