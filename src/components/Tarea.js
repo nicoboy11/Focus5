@@ -82,8 +82,8 @@ class Tarea extends Component{
         
         const { participantes, txt_tarea, txt_proyecto, avance, selected, typing } = this.props;
 
-        const fec_limite = tareaActual.fec_limite;
-        const id_status = tareaActual.id_status;
+        const fec_limite = (tareaActual)?tareaActual.fec_limite:this.props.fec_limite;
+        const id_status = (tareaActual)?tareaActual.id_status:this.props.id_status;
 
         const opacidad = (id_status===2)?{ opacity: '0.4'}:{};
         const selectedStyle = (selected)?styles.selectedStyle:{};

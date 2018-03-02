@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Proyecto from '../components/Proyecto';
-import { Modal, Input, Radio, FormRow, Segmented, UserList} from '../components';
+import { Modal, Input, Radio, FormRow, Segmented, UserList } from '../components';
+import Tarea from '../components/Tarea';
 import { Helper} from '../configuracion';
 import DatePicker from 'react-datepicker';
 import swal from 'sweetalert';
@@ -19,7 +20,10 @@ import {
     desseleccionarProyecto,
     listaUsuarios,
     buscarTexto,
-    guardaRefs
+    guardaRefs,
+    getTarea,
+    clearSocket,
+    clearTareaSocket
 } from '../actions';
 
 const { network } = Config;
@@ -160,8 +164,9 @@ class Proyectos extends Component{
                 return false;
             });
         }
-
+        const me = this;
         return proyectos.map(item => {
+            const typing = (item.id_proyecto === me.props.socket.id_proyecto && me.props.socket.accion === "typing")?me.props.socket:"";
             return (
                 <Proyecto 
                     key={item.id_proyecto} 
@@ -175,6 +180,7 @@ class Proyectos extends Component{
                     total={item.taskCount}
                     terminadas={item.taskCountTerminadas}
                     nuevo={item.nuevo}
+                    typing={typing}
                     modificable={(item.id_proyecto===0?false:true)}
                     onProyectoSelect={() => this.onProyectoSelect(item.id_proyecto)}
                     onMenuOpen={() => this.onMenuOpen(item.id_proyecto)}
@@ -238,6 +244,42 @@ class Proyectos extends Component{
         });
     }
 
+    renderDetalleActividades(){
+
+        let tareas = [];
+        let proyectos = this.props.proyectos.filter(proyecto => proyecto.txt_proyecto.toLowerCase().includes(this.props.buscar));
+        
+        return proyectos.map(proyecto => {
+            return(<div key={proyecto.id_proyecto} style={{ minWidth: '400px' }}>
+            {
+                proyecto.tareas.map(tarea => {
+                    if(Helper.prettyfyDate(tarea.fec_limite).date == Helper.prettyfyDate(Helper.getDateISOfromDate(new Date())).date){
+                        return (
+                            <div key={tarea.id_tarea} style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    backgroundColor: 'white',
+                                    padding: '5px',
+                                    borderBottom: '1px solid #F1F1F1', 
+                                    paddingTop: '0px'
+                                }}
+                            >
+                                <div style={{ padding: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} >{tarea.txt_tarea}</div>
+                                <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '5px', height: '16px'}}>
+                                    <UserList participantes={tarea.participantes} limit={5} size="mini" />
+                                    <div style={{ fontSize: '11px', color: Helper.prettyfyDate(tarea.fec_limite).color }}>
+                                        {Helper.prettyfyDate(tarea.fec_limite).date}
+                                    </div>
+                                </div>
+                            </div>                        
+                        )
+                    }
+                })
+            }
+            </div>)
+        });
+
+    }
     /**
      * Mostrar el Modal
      */
@@ -258,7 +300,7 @@ class Proyectos extends Component{
             type='FORM' 
             isVisible={this.state.mostrarModal} 
             titulo={txt_proyecto}
-            loading={this.props.loading}
+            loading={this.props.loadingProyecto}
             componenteInicial="txt_proyecto"
             onGuardar={() => { this.onGuardar(); }}
             onCerrar={() => { 
@@ -406,10 +448,40 @@ class Proyectos extends Component{
         );
     }
 
+    renderActividades(){
+        return (
+            <div style={{ overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <h3>Actividades de hoy</h3>
+                {this.renderDetalleActividades()}
+            </div>
+        );
+    }
+
+    renderTipoLista(tipo){
+        switch(tipo){
+            case 0:
+                return this.renderGrid();
+            case 1:
+                return this.renderColumns();
+            case 2:
+                return this.renderActividades();
+            default:
+                return this.renderGrid();
+        }
+    }
+
     /**
      * Renderiza la tarjeta de "Nuevo proyecto " y posteriormente la lista de proyectos
      */
     render(){
+        const usuario = JSON.parse(localStorage.sessionData);
+        //Actualizar tarea avisada por socket
+        if(Object.keys(this.props.socket).length > 0) {
+            if(this.props.socket.accion === "enviar" || this.props.socket.accion === "enviarLeida") {
+                this.props.clearSocket();            
+                this.props.getTarea(this.props.proyectos,this.props.socket.id_tarea,usuario.id_usuario);
+            }
+        }
 
         if(this.props.loading){
             swal({
@@ -426,7 +498,7 @@ class Proyectos extends Component{
                     }
                 }
             });
-            return <img style={{width: '100px', height: '100px'}} src={`${Config.network.server}/img/Spinner.gif`} />
+            return null;
         } else {
             try {
                 swal.close();
@@ -450,7 +522,11 @@ class Proyectos extends Component{
                 <div style={{ display: 'flex', width: '100%', justifyContent: 'center', paddingTop: '20px' }}>
                     <Segmented 
                         value={this.state.tipoLista} 
-                        items={[{ value: 0, title: 'Grid', icon: 'view_module' },{ value: 1, title: 'Columnas', icon: 'view_week' }]} 
+                        items={[
+                                { value: 0, title: 'Proyectos', icon: 'view_module' },
+                                { value: 1, title: 'Columnas', icon: 'view_week' },
+                                { value: 2, title: 'Actividades', icon: 'date_range' }
+                        ]} 
                         onSelect={(value) => this.setState({ tipoLista: value })}
                     />                  
                 </div>
@@ -460,7 +536,7 @@ class Proyectos extends Component{
                     onChangeText={(value) => this.props.buscarTexto(value)}
                     value={this.props.buscar}
                 />
-                {(this.state.tipoLista === 0)?this.renderGrid():this.renderColumns()}      
+                {this.renderTipoLista(this.state.tipoLista)}      
             </div>
         );        
     }
@@ -477,10 +553,13 @@ const mapStateToProps = state => {
         error: state.listaProyectos.error,
         proyectoActual: state.listaProyectos.tmpProyecto,
         loading: state.listaProyectos.loading,
+        loadingProyecto: state.listaProyectos.loadingProyecto,
         id_proyecto: state.listaProyectos.current_id_proyecto,
         buscar: state.listaProyectos.buscar,
         fltrNtf: state.listaProyectos.fltrNtf,
-        listaRef: state.listaProyectos.listaRef
+        listaRef: state.listaProyectos.listaRef,
+        socket: state.socket.socket,
+        tareaSocket: state.listaProyectos.tareaSocket,
     }
 };
 
@@ -497,6 +576,9 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     listaUsuarios,
     buscarTexto,
     guardaRefs,
+    getTarea,
+    clearSocket,
+    clearTareaSocket,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

@@ -1,5 +1,8 @@
 import React, {Component} from 'react';
-import { Helper} from '../configuracion';
+import { Helper, Config} from '../configuracion';
+import { Avatar } from './';
+
+const { network } = Config;
 
 class Proyecto extends Component{
     static defaultProps = {
@@ -24,7 +27,13 @@ class Proyecto extends Component{
      * Al cargar sacar los totales de las tareas
      */
     componentWillMount(){
-        this.obtenerTotales();
+        this.obtenerTotales(this.props);
+    }
+
+    componentWillReceiveProps(nextProps){
+        if(JSON.stringify(nextProps) !== JSON.stringify(this.props)){
+            this.obtenerTotales(nextProps);
+        }
     }
 
     /**
@@ -48,13 +57,13 @@ class Proyecto extends Component{
     /**
      * Se obtienen los totales de la prop tarea y también si hay tareas vencidas
      */
-    obtenerTotales(){
-        const totalTareas = this.props.total;
-        let terminadas = this.props.terminadas;
+    obtenerTotales(props){
+        const totalTareas = props.total;
+        let terminadas = props.terminadas;
         let notificaciones = 0;
         let vencidas = false;
 
-        for(let tarea of this.props.tareas){
+        for(let tarea of props.tareas){
             notificaciones += tarea.notificaciones;
             
             if(Helper.prettyfyDate(tarea.fec_limite).vencida && tarea.id_status !== 2){
@@ -109,11 +118,12 @@ class Proyecto extends Component{
             txt_proyecto,
             fec_inicio,
             fec_limite,
-            id_status
+            id_status,
+            typing
             //participantes,
             //tareas
         } = this.props;
-
+        
         const promedio = Math.floor((this.state.terminadas/this.state.totalTareas)*100);
         let nuevoStyle = {};
         if(this.props.nuevo) {
@@ -123,6 +133,9 @@ class Proyecto extends Component{
             };
         }
 
+        const imagen = this.props.typing.sn_imagen===1?
+            `${network.server}usr/thumbs/small/${this.props.typing.id_usuario}.jpg?v=${new Date().getTime()}`:
+            this.props.typing.txt_abbr
 
         if(id_status === 1 || id_status === 3){
             return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={{ ...styles.project, ...nuevoStyle }} className="w3-card w3-col">
@@ -142,9 +155,20 @@ class Proyecto extends Component{
                                 </div>
                             </div>      
                         </div>   
-                        <div className="projectBottom divideTop">
-                            {/* <UserList participantes={participantes} limit={3} /> */}
-                        </div>       
+                        
+                            {(typing.mensaje !== "" && typing.mensaje !== undefined) ?
+                            <div className="projectBottom divideTop">
+                                <Avatar 
+                                    avatar={imagen}
+                                    size="small"
+                                    color={this.props.typing.color}
+                                />                             
+                                <div style={styles.typingStyle}>{typing.mensaje}</div>
+                            </div>
+                            : null     
+                        }
+
+                               
                     </div>);
         }
 
@@ -164,8 +188,16 @@ const styles = {
         paddingBottom: '0px',
         minWidth: '180px',
         maxWidth: '250px',
+        minHeight: '183px',
         borderRadius: '3px',
         cursor: 'pointer'     
+    },
+    typingStyle: {
+        fontSize: '12px',
+        color: '#1ABC9C',
+        display: 'flex',
+        flex: '1',
+        marginLeft: '5px'
     }
 }
 

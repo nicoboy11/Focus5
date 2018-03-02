@@ -8,7 +8,7 @@ import {
     TR_SUCCESS, TR_CANCEL,      CM_MORE,
     TR_LEIDA,   CM_FILE_CANCEL, TR_EDIT,
     PY_MORE_SUCCESS, BSR_EDIT,  TR_SUCCESS_SUB,
-    FLTR_NTF,   REFS
+    FLTR_NTF,   REFS, TR_SUCCESS_SOCKET
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -25,6 +25,7 @@ const INITIAL_STATE = {
     loadingMore: false,
     loadingChecklist: false,
     loadingTarea: false,
+    loadingProyecto: false,
     progress: null,
     error: '',
     buscar: '',
@@ -41,7 +42,7 @@ export default (state = INITIAL_STATE, action) => {
         case PY_MORE_SUCCESS:
             return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, tmpProyecto: action.payload.proyectoEditado }            
         case PY_FAIL:
-            return { ...state, error: action.payload, fltrNtf: false, loading: false, loadingTarea: false, loadingFile: false, loadingMore: false, progress: null }
+            return { ...state, error: action.payload, fltrNtf: false, loading: false, loadingTarea: false, loadingProyecto: false, loadingFile: false, loadingMore: false, progress: null }
         case PY_SELECT:
             return { ...state, error: '', fltrNtf: false, tmpProyecto: action.payload }
         case PY_UNSELECT:
@@ -49,7 +50,7 @@ export default (state = INITIAL_STATE, action) => {
         case PY_EDIT:
             return { ...state, error: '', fltrNtf: false, tmpProyecto: action.payload }
         case PY_GUARDAR:
-            return { ...state, error: '', fltrNtf: false, loading: true }
+            return { ...state, error: '', fltrNtf: false, loadingProyecto: true }
         /** TAREAS */
         case TR_SELECT:
             return { ...state, error: '', fltrNtf: false, tareaActual: action.payload }
@@ -67,6 +68,8 @@ export default (state = INITIAL_STATE, action) => {
                 tareaActual = { tareaActual: action.payload.tareaActual }
             }
             return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, ...tareaActual, tmpProyecto: action.payload.tmpProyecto, loadingTarea: false, loadingChecklist: false, loading: false/*, tmpProyecto: { tareas: []}*/ }
+        case TR_SUCCESS_SOCKET:
+            return { ...state, proyectos: action.payload.proyectos }
         case TR_SUCCESS_SUB:
             let tareaActual_sub = {};
             if(action.payload.tareaActual.selected){

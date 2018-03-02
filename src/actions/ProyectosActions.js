@@ -7,7 +7,7 @@ import {
     CM_GUARDAR,     CM_PROGRESS,    CM_SUCCESS,
     CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    
     TR_SUCCESS,     CM_MORE,        TR_LEIDA,
-    CK_SUCCESS,     PY_MORE_SUCCESS,TR_SUCCESS_SUB, REFS
+    CK_SUCCESS,     PY_MORE_SUCCESS,TR_SUCCESS_SUB, REFS, TR_SUCCESS_SOCKET
 } from './types';
 
 /**
@@ -308,7 +308,7 @@ export const getTarea = (listaProyectos, id_tarea, id_usuario, selected = false)
                     //Vuelvo a sacar proyecto y tarea ya con datos actualizados
                     proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === tareaSocket.id_proyecto)[0];
                     dispatch({ 
-                        type: TR_SUCCESS, 
+                        type: TR_SUCCESS_SOCKET, 
                         payload: { 
                             proyectos, 
                             tmpProyecto: proyectoActual, 

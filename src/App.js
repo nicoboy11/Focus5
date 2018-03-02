@@ -11,7 +11,7 @@ import MenuBar from './components/MenuBar';
 import { Route } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { cargarPerfil, filtraNotificaciones, guardaRefs, desseleccionarProyecto } from './actions'
+import { cargarPerfil, filtraNotificaciones, guardaRefs, desseleccionarProyecto, enviarSocket, marcarLeida } from './actions'
 import { bindActionCreators } from 'redux';
 import { push } from 'react-router-redux'
 
@@ -47,7 +47,35 @@ class App extends Component {
   componentDidMount(){
     if(this.refs.ifmcontentstoprint !== undefined){
       this.props.guardaRefs(this.props.listaRef, this.refs.ifmcontentstoprint)
-    }
+    }  
+  }
+
+  componentDidUpdate(){
+        const sessionData = JSON.parse(localStorage.sessionData);
+        if(this.ws === undefined && sessionData.id_usuario !== undefined) {
+          //WebSocket
+          this.ws = new WebSocket(Config.network.wsServer);
+          const me = this;
+
+          this.ws.onmessage = (e) => {
+              const data = JSON.parse(e.data);
+              this.props.enviarSocket(data);
+
+              if(data.accion === "enviar" && data.id_tarea === this.props.tareaActual.id_tarea){
+                  const id_tarea = this.props.tareaActual.id_tarea;
+                  //this.props.marcarLeida(me.props.proyectos,me.props.proyectoActual.id_proyecto, id_tarea,sessionData.id_usuario, () => {
+                      //this.wsComment("enviarLeida",{ id_tarea });
+                  //});
+              }
+          };
+
+          this.ws.onopen = function(){
+              this.send(`{"accion":"conectar",
+              "room":"tareas",
+              "mensaje":"conectado",
+              "id_usuario":${sessionData.id_usuario}}`)
+          }   
+        }      
   }
 
   renderMenu(jsx){
@@ -109,7 +137,9 @@ class App extends Component {
                 <Route exact path={`${network.basename}/proyectos`} render={(props) =>(
                   <Proyectos datos={this.state.datos} />
                 )} />
-                <Route path={`${network.basename}/proyectos/:id`} component={Tareas} />              
+                <Route path={`${network.basename}/proyectos/:id`} render={(props) => (
+                  <Tareas ws={this.ws} />
+                )} />              
                 <Route path={`${network.basename}/chats`} component={Chats} />
                 <Route path={`${network.basename}/personal`} component={Personal} />
                 <Route path={`${network.basename}/ajustes`} component={Ajustes} />
@@ -148,6 +178,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   filtraNotificaciones,
   guardaRefs,
   desseleccionarProyecto,
+  enviarSocket,
+  marcarLeida,
   changePage: (location) => push(location)
 }, dispatch)
 
@@ -155,7 +187,7 @@ const mapStateToProps = state => {
   return { 
       proyectos: state.listaProyectos.proyectos,
       proyectoActual: state.listaProyectos.tmpProyecto,
-      //tareaActual: state.tareaActual,
+      tareaActual: state.listaProyectos.tareaActual,
       perfil: state.perfil,
       fltrNtf: state.listaProyectos.fltrNtf,
       listaRef: state.listaProyectos.listaRef

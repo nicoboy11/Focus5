@@ -82,7 +82,7 @@ class Tareas extends Component{
 
         const id_tarea = this.props.tareaActual.id_tarea;
         //WebSocket
-        this.ws = new WebSocket(Config.network.wsServer);
+        /*this.ws = new WebSocket(Config.network.wsServer);
         this.ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
             this.props.enviarSocket(data);
@@ -100,7 +100,7 @@ class Tareas extends Component{
             "room":"tareas",
             "mensaje":"conectado",
             "id_usuario":${sessionData.id_usuario}}`)
-        }
+        }*/
     }
 
     /**
@@ -328,11 +328,16 @@ class Tareas extends Component{
      * Load more comments
      */
     onLoadMore() {
-        const { id_tarea, topComments, id_proyecto } = this.props.tareaActual;
-        this.props.loadMore(this.props.proyectos,id_proyecto,id_tarea,topComments[topComments.length - 1].fec_comentario);
+        try{
+            const { id_tarea, topComments, id_proyecto } = this.props.tareaActual;
+            this.props.loadMore(this.props.proyectos,id_proyecto,id_tarea,topComments[topComments.length - 1].fec_comentario);
+    
+            const {ChatComponent} = this.refs;
+            this.setState({ lastHeight: ChatComponent.refs.chatScroll.scrollHeight, lastTop: 0 });
+        } catch(err){
+            console.log(err);
+        }
 
-        const {ChatComponent} = this.refs;
-        this.setState({ lastHeight: ChatComponent.refs.chatScroll.scrollHeight, lastTop: 0 });
 
     }
 
@@ -365,6 +370,7 @@ class Tareas extends Component{
             id_usuario: `${usuario.id_usuario}`,
             datos: { 
                 id_tarea: this.props.tareaActual.id_tarea,
+                id_proyecto: this.props.proyectoActual.id_proyecto,
                 id_usuario: `${usuario.id_usuario}`,
                 sn_imagen: usuario.sn_imagen,
                 txt_abbr: usuario.txt_abbr,
@@ -373,8 +379,8 @@ class Tareas extends Component{
             }
         }
 
-        if(this.ws.readyState === this.ws.OPEN) {
-            this.ws.send(JSON.stringify(obj));        
+        if(this.props.ws.readyState === this.props.ws.OPEN) {
+            this.props.ws.send(JSON.stringify(obj));        
         }
         
     }
