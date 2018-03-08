@@ -23,7 +23,7 @@ export const listaProyectos = (id_usuario, callback = () => {}) => {
             if(error || response.status > 299){
                 dispatch({ type: PY_FAIL, payload: 'No se pudieron cargar los proyectos' });
                 console.log(response);
-                errorLog(response,id_usuario);
+                errorLog(JSON.stringify(response),id_usuario);
             } else{
                 const newResponse = handleReponsePY(response);
                 callback(newResponse);
@@ -39,7 +39,7 @@ export const listaProyectosInactivos = (id_usuario, listaProyectos) => {
             if(error || response.status > 299){
                 dispatch({ type: PY_FAIL, payload: 'No se pudieron cargar los proyectos' })
                 console.log(response);
-                errorLog(response,id_usuario);
+                errorLog(JSON.stringify(response),id_usuario);
             } else {
                 const newResponse = handleReponsePY(response);
                 const proyectos = pyAppendList([...listaProyectos], newResponse);
@@ -57,7 +57,7 @@ export const cargarMasTareas = (listaProyectos, proyecto, id_usuario) => {
             if(error || response.status > 299){
                 dispatch({ type: PY_FAIL, payload: 'No se pudieron cargar más tareas' });
                 console.log(response);
-                errorLog(response,id_usuario);
+                errorLog(JSON.stringify(response),id_usuario);
             } else{
                 const newResponse = handleReponsePY(response);
                 const proyectoEditado = {...proyecto};
@@ -126,7 +126,7 @@ export const guardarProyecto = (listaProyectos, proyecto, snNuevo, callback = ()
                 if(error || response.status > 299){
                     dispatch({ type: PY_FAIL, payload: error });
                     console.log(error);
-                    errorLog(response,JSON.parse(localStorage.sessionData).id_usuario);
+                    errorLog(JSON.stringify(response),JSON.parse(localStorage.sessionData).id_usuario);
                 } else{
                     //Limpiar datos
                     const newResponse = handleReponsePY(response);
@@ -378,7 +378,7 @@ export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comenta
             Database.requestWithFile(`CreaComentario/${id_tarea}`, comentario, "archivos", (error, res) => {
                 if(error) {
                     dispatch({ type: PY_FAIL, payload: error })
-                    errorLog(res,comentario.id_usuario)
+                    errorLog(JSON.stringify(res),comentario.id_usuario)
                 } else {
                     switch(res.type) {
                         case "progress":
@@ -474,6 +474,7 @@ export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
             Database.request('POST', `CrearSubtarea/${tarea.id_tarea}`, item, 2, (error, response) => {
                 if(error || response.status > 299){
                     console.log(response);
+                    errorLog(JSON.stringify(response),JSON.parse(localStorage.sessionData).id_usuario);
                 } else {
 
                     let tareaEditada = { ...tarea };
@@ -505,6 +506,7 @@ export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
             Database.request('POST', `BorrarSubtarea/${tarea.id_tarea}`, item, 2, (error, response) => {
                 if(error || response.status > 299){
                     console.log(response);
+                    errorLog(JSON.stringify(response),JSON.parse(localStorage.sessionData).id_usuario);
                 } else {
 
                     let tareaEditada = { ...tarea };

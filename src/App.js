@@ -41,7 +41,7 @@ import { Config } from './configuracion';
 
 const { menu, network } = Config;
 
-const CLIENT_ID = '647932593057-dnr8vtm3ruk1t101912g09t7drcv5upd.apps.googleusercontent.com';
+const CLIENT_ID = '647932593057-il1hhpr2uo4o18fjnom3hnv0idc00uj8.apps.googleusercontent.com';
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
 const SCOPES = "https://www.googleapis.com/auth/calendar";
 const OneSignal = [];
@@ -299,7 +299,7 @@ class App extends Component {
   }
 
   componentDidUpdate(){
-      if(localStorage.length > 0){
+      if(localStorage.length > 0 && localStorage.sessionData !== undefined){
         const sessionData = JSON.parse(localStorage.sessionData);
         // Cargar web sockets
         if(this.ws === undefined && sessionData.id_usuario !== undefined) {

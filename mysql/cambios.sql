@@ -267,7 +267,7 @@
 							'"participantes":',sc.participantes,',',
                             '"subtareas":',sc.subtareas,',',
 							'"topComments":',sc.topComments,'',
-						'}') ORDER BY SC.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
+						'}') ORDER BY sc.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
 					  ']') INTO _tareas
         FROM (
         SELECT *
@@ -302,7 +302,7 @@
             ) as wtf,(SELECT @i:=0) foo
             WHERE (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
             ORDER BY FIELD(wtf.id_status,1,3,2) asc, ifnull(wtf.fec_limite,'1960-01-01') desc
-		) AS SC;
+		) AS sc;
 		
 		RETURN ifnull(_tareas,'[]');
 
