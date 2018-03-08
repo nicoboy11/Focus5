@@ -77,6 +77,12 @@ class Tarea extends Component{
         return null;
     }
 
+    renderCalendar() {
+        if(this.props.isCalendarSync){
+            return <img style={{ width: '24px', height: '24px', margin: '0px', marginLeft: '5px', marginRight: '5px' }} src={`${Config.network.server}/img/calendaricon.png`} />
+        }
+    }
+
     render(){
         const tareaActual = this.props.tareas.filter(tarea => tarea.id_tarea === this.props.id_tarea)[0];
         
@@ -106,6 +112,7 @@ class Tarea extends Component{
                     <div className="chatItemContent">
                         <div className="chatContentTop">
                             <div className="chatContentTitle" title={Helper.htmlDecode(Helper.decode_utf8(txt_tarea))}>{Helper.htmlDecode(Helper.decode_utf8(txt_tarea))}</div>
+                            {this.renderCalendar()}
                             {this.renderNotificaciones()}
                             {this.renderLoading()}
                             <i onClick={(e) => this.onMenuClick(e)} className="material-icons fadeColor">more_vert</i>

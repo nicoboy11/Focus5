@@ -255,6 +255,9 @@
 							'"txt_tarea":"',sc.txt_tarea,'",',
 							'"fec_creacion":"',sc.fec_creacion,'",',
 							'"fec_limite":"',sc.fec_limite,'",',
+                            '"fec_limiteCal":"',sc.fec_limiteCal,'",',
+                            '"fec_actualiza":"',sc.fec_actualiza,'",',
+                            '"isCalendarSync":',sc.isCalendarSync,',',
 							'"id_status":',sc.id_status,',',
                             '"avance":',sc.avance,',',
 							'"priority_id":"',sc.priority_id,'",',
@@ -274,6 +277,9 @@
 					ct.txt_tarea,
 					ct.fec_creacion,
 					IFNULL(ct.fec_limite,'') as fec_limite,
+                    IFNULL(ct.fec_limiteCal,'') as fec_limiteCal,
+                    IFNULL(ct.fec_actualiza,'') as fec_actualiza,
+                    IFNULL(ct.isCalendarSync,0) as isCalendarSync,
 					ct.id_status,
 					IFNULL(ct.avance,0) as avance,
 					ct.priority_id,
@@ -295,6 +301,7 @@
 			ORDER BY FIELD(ct.id_status,1,3,2) asc, ifnull(ct.fec_limite,'1960-01-01') desc
             ) as wtf,(SELECT @i:=0) foo
             WHERE (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
+            ORDER BY FIELD(wtf.id_status,1,3,2) asc, ifnull(wtf.fec_limite,'1960-01-01') desc
 		) AS SC;
 		
 		RETURN ifnull(_tareas,'[]');
@@ -653,13 +660,15 @@ END;
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS EditTarea$$
-CREATE PROCEDURE EditTarea(IN _id_tarea int, IN _txt_tarea varchar(100), IN _txt_descripcion varchar(500), IN _fec_limite date, IN _id_usuario int, IN _id_responsable int, 
-							IN _id_proyecto int, IN _id_status int, IN _priority_id int, IN _avance int, IN _participantes varchar(1000))
+CREATE PROCEDURE EditTarea(IN _id_tarea int, IN _txt_tarea varchar(100), IN _txt_descripcion varchar(500), IN _fec_limite datetime, IN _id_usuario int, IN _id_responsable int, 
+							IN _id_proyecto int, IN _id_status int, IN _priority_id int, IN _avance int, IN _participantes varchar(1000), IN _fec_limiteCal datetime, IN _isCalendarSync int)
 BEGIN
 
 	DECLARE _fl date;
 	DECLARE _id_tarea_detalle int;
     DECLARE _ir int;
+    DECLARE _notificar_responsable varchar(500);
+    DECLARE _notificar_participantes varchar(500);
 
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 	BEGIN
@@ -700,6 +709,8 @@ BEGIN
 			SET @comentario = concat(getUserName(_id_usuario), ' se puso como responsable ' );
         END IF;
         
+        SET _notificar_responsable = _id_responsable;
+        
 		INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
 		VALUES(_id_tarea,_id_tarea_detalle,@comentario,'',NOW(),1,_id_tarea_detalle,_id_usuario,2);    
     END IF;
@@ -716,7 +727,9 @@ BEGIN
             id_status = coalesce(_id_status,id_status),
             priority_id = coalesce(_priority_id,priority_id),
             avance = coalesce(_avance,avance),
-            fec_actualiza = NOW()
+            fec_actualiza = NOW(),
+            fec_limiteCal = coalesce(_fec_limiteCal, fec_limiteCal),
+            isCalendarSync = coalesce(_isCalendarSync, isCalendarSync)
 		WHERE id_tarea = _id_tarea;
 
 		#Quitar responsable actual
@@ -739,6 +752,10 @@ BEGIN
             VALUE(_id_tarea, _id_usuario, NULL, 2);
 			
 		END IF;
+        
+		SELECT group_concat(id_usuario) INTO _notificar_participantes
+		FROM bit_view_tarea
+		WHERE id_tarea = _id_tarea and role_id = 3;        
 		
         #Borrar todos los participantes
 		DELETE FROM bit_view_tarea
@@ -750,7 +767,7 @@ BEGIN
 		FROM cat_usuario 
 		WHERE FIND_IN_SET(id_usuario, _participantes);
         
-        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL,NULL) as tarea;
+        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL,NULL) as tarea, _notificar_responsable as responsable_notif, _notificar_participantes as participantes_old;
         
 	COMMIT;       
 	

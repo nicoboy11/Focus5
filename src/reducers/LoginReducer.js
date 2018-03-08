@@ -4,7 +4,12 @@ import {
     LOGIN_USER,
     LOGIN_USER_SUCCESS,
     LOGIN_USER_FAILED,
-    LOGOUT
+    LOGOUT,
+    GOOGLE_LOGIN_SUCCESS,
+    GOOGLE_LOGOUT,
+    GOOGLE_INIT,
+    GOOGLE_STATUS,
+    GOOGLE_EVENTS
 } from '../actions/types';
 
 const INITIAL_STATE = {
@@ -12,7 +17,11 @@ const INITIAL_STATE = {
     password: '',
     sessionData: null,
     error: '',
-    loading: false
+    loading: false,
+    googleLogin: false,
+    gapi: null,
+    googleStatus: false,
+    events: []
 }
 
 export default (state = INITIAL_STATE, action) => {
@@ -29,6 +38,16 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, loading: false, sessionData: action.payload, email: '', password: '' }
         case LOGIN_USER_FAILED:
             return { ...state, loading: false, sessionData: null, error: action.payload}
+        case GOOGLE_INIT:
+            return { ...state, gapi: action.payload }
+        case GOOGLE_LOGIN_SUCCESS:
+            return { ...state, googleLogin: true, googleStatus: true }
+        case GOOGLE_LOGOUT:
+            return { ...state, googleLogin: false, googleStatus: false }      
+        case GOOGLE_STATUS:
+            return { ...state, googleStatus: action.payload }      
+        case GOOGLE_EVENTS:
+            return { ...state, events: action.payload }
         default:
             return state;
     }

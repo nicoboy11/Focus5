@@ -5,7 +5,12 @@ import {
     LOGIN_USER,
     LOGIN_USER_SUCCESS,
     LOGIN_USER_FAILED,
-    LOGOUT
+    LOGOUT,
+    GOOGLE_LOGIN_SUCCESS,
+    GOOGLE_LOGOUT,
+    GOOGLE_INIT,
+    GOOGLE_STATUS,
+    GOOGLE_EVENTS
 } from './types';
 
 export const emailChanged = (text) => {
@@ -52,6 +57,38 @@ export const loginLocalStorage = (session) => {
     }
 }
 
+export const loginGoogle = (gapi) => {
+    return {
+        type: GOOGLE_LOGIN_SUCCESS
+    }
+}
+
+export const logoutGoogle = () => {
+    return {
+        type: GOOGLE_LOGOUT
+    }
+}
+
+export const initGoogle = (gapi) => {
+    return {
+        type: GOOGLE_INIT,
+        payload: gapi
+    }
+}
+
+export const googleStatus = (status) => {
+    return {
+        type: GOOGLE_STATUS,
+        payload: status
+    }
+}
+
+export const setCalEvents = (events) => {
+    return {
+        type: GOOGLE_EVENTS,
+        payload: events
+    }
+}
 
 const loginFailed = (dispatch, error) => {
     dispatch({ type: LOGIN_USER_FAILED, payload: error });

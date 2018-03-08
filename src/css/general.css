@@ -17,6 +17,10 @@ pre {
     font-family: 'Montserrat', sans-serif !important;
 }
 
+ul{
+    padding: 0px;
+}
+
 @font-face
 {
 	font-family: Montserrat;
@@ -455,7 +459,7 @@ pre {
         .chatContentTitle{
             flex: 1;
             /*font-weight: bold;*/
-            white-space: nowrap;
+            /*white-space: nowrap;*/
             overflow: hidden;
             text-overflow: ellipsis;
         }

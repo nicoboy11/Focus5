@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Input, Modal, ContextMenu, FormRow, Chat, NewTask, Segmented, CheckList } from '../components';
+import { Input, Modal, ContextMenu, FormRow, Chat, NewTask, Segmented, CheckList, Radio } from '../components';
+import swal from 'sweetalert';
 import Tarea from '../components/Tarea';
 import Slider from 'react-rangeslider';
 import Select from 'react-select';
@@ -84,6 +85,10 @@ class Tareas extends Component{
             this.props.cargarMasTareas(this.props.proyectos,this.props.proyectoActual,JSON.parse(localStorage.sessionData).id_usuario);            
         }
 
+        if(this.props.proyectoActual.id_status == 1 && this.props.proyectoActual.tareas.length === 0 && this.props.proyectoActual.taskCount > 0){
+            this.props.cargarMasTareas(this.props.proyectos,this.props.proyectoActual,JSON.parse(localStorage.sessionData).id_usuario);            
+        }        
+
         const id_tarea = this.props.tareaActual.id_tarea;
 
     }
@@ -145,7 +150,7 @@ class Tareas extends Component{
         if(ChatComponent !== undefined && this.state.lastTop <= 30 && ChatComponent.refs.chatScroll.scrollHeight !== this.state.lastHeight) {
             ChatComponent.setScrollTop(ChatComponent.refs.chatScroll.scrollHeight - this.state.lastHeight);   
             this.setState({ lastHeight: ChatComponent.refs.chatScroll.scrollHeight });
-        }
+        } 
 
         //Poner el text cuando acaban de agregar subtarea para hacerlo más agil
         try{
@@ -160,6 +165,17 @@ class Tareas extends Component{
             this.setState({ tipoDetalle: 0 });
         }
 
+    }
+
+    componentDidMount(){
+        const {ChatComponent, CheckList, listaTareas} = this.refs;
+
+        if(this.props.proyectoActual.tareas.length > 0 && 
+            this.props.proyectoActual.tareas.length !== this.props.proyectoActual.taskCount &&
+            listaTareas.clientHeight == listaTareas.scrollHeight
+        ){
+            this.props.cargarMasTareas(this.props.proyectos,this.props.proyectoActual,JSON.parse(localStorage.sessionData).id_usuario);
+        }      
     }
 
     /**
@@ -270,10 +286,21 @@ class Tareas extends Component{
      * Guardar una tarea nuevo o editar uno
      */
     onGuardar(txt_tarea){
+
+        if(this.props.tareaActual.isCalendarSync === 1 && this.props.tareaActual.fec_limite > this.props.tareaActual.fec_limiteCal){
+            swal("Alerta", "Las horas en las fechas limites nos son validas.", "warning");
+            return;
+        }
+
         //Cuando la tarea es nueva el txt_tarea es undefined
         if(!txt_tarea) { //UPDATE
-            this.props.guardarTarea(this.props.proyectos, this.props.proyectoActual.id_proyecto, this.props.tareaActual, false, () => {
-                this.setState({ mostrarModal: false });                
+            this.props.guardarTarea(this.props.proyectos, this.props.proyectoActual.id_proyecto, this.props.tareaActual, false, (tarea) => {
+                this.setState({ mostrarModal: false });
+                if(tarea.isCalendarSync){
+                    this.agregarCalendario(tarea);
+                } else {
+                    this.borrarCalendario(tarea);
+                }
             });
         } else { //INSERT
             let tareaNueva = {
@@ -296,6 +323,83 @@ class Tareas extends Component{
         }
         
     }   
+
+    agregarCalendario({id_tarea, txt_tarea, fec_limite, fec_limiteCal}) {
+            var event = {
+                /*'id': 'focus' + id_tarea,*/
+                'summary': txt_tarea,
+                /*'location': '800 Howard St., San Francisco, CA 94103',*/
+                'description': '[creado automaticamente por sistemafocus.com]-'+id_tarea,
+                'start': {
+                'dateTime': fec_limite.replace(" ","T") + '-06:00',
+                'timeZone': 'America/Mexico_City'
+                },
+                'end': {
+                'dateTime': fec_limiteCal.replace(" ","T") + '-06:00',
+                'timeZone': 'America/Mexico_City'
+                },
+                /*'recurrence': [
+                'RRULE:FREQ=DAILY;COUNT=2'
+                ],
+                'attendees': [
+                {'email': 'esosarodriguez1@sheffield.ac.uk'}
+                ],*/
+                'reminders': {
+                    'useDefault': true,
+                    /*'overrides': [
+                        {'method': 'email', 'minutes': 24 * 60},
+                        {'method': 'popup', 'minutes': 10}
+                    ]*/
+                }
+            };
+
+            var request = this.props.gapi.client.calendar.events.insert({
+                'calendarId': 'primary',
+                'resource': event
+            });
+
+            request.execute(function(event) {
+                console.log(event);
+                //alert("agregado al calendario");
+                //listEvents(true);
+            });		
+    }
+
+    borrarCalendario({ id_tarea }) {
+        const me = this;
+        this.props.gapi.client.calendar.events.list({
+            'calendarId': 'primary',
+            'showDeleted': false,
+            'singleEvents': true,
+            'maxResults': 250,
+            'orderBy': 'startTime',
+            'q': '[creado automaticamente por sistemafocus.com]'
+          }).then(function(response) {
+                const googleEvents = response.result.items;
+                //Agrego icono a la tarea
+                if (googleEvents.length > 0) {
+                    for (let i = 0; i < googleEvents.length; i++) {
+                        var event = googleEvents[i];
+    
+                        var id_tareaCal = event.description.split("-")[1];
+    
+                        if(id_tareaCal == id_tarea) {
+                            var request = me.props.gapi.client.calendar.events.delete({
+                                'calendarId': 'primary',
+                                'eventId': event.id
+                            });                        
+                            
+                            request.execute(function(event) {
+                                console.log(event);
+                                //alert("borrado del calendario");
+                                //listEvents(true);
+                            });		
+                        }
+                    }
+                }
+    
+          });    
+    }    
 
     /**
      * Load more comments
@@ -322,7 +426,8 @@ class Tareas extends Component{
         const comentario = {
             id_usuario: JSON.parse(localStorage.sessionData).id_usuario,
             txt_comentario: this.props.comentario,
-            imagen: this.props.archivo.file
+            imagen: this.props.archivo.file,
+            txt_tarea: this.props.tareaActual.txt_tarea
         };
 
         const {ChatComponent} = this.refs;
@@ -409,7 +514,9 @@ class Tareas extends Component{
             id_proyecto,
             id_status,
             participantes,
-            avance
+            avance,
+            isCalendarSync,
+            fec_limiteCal
         } = this.props.tareaActual;
 
         const tmpTarea = this.props.tareaActual;
@@ -532,13 +639,14 @@ class Tareas extends Component{
                     />                    
                 </FormRow>                      
                 <FormRow titulo='FECHA LIMITE'>
+                    <div style={{ display:'flex' }}>
                         <DatePicker 
                             selected={Helper.toDateM(fec_limite)}
                             onChange={
                                 (date) => {
                                     this.props.editarTarea({ 
                                         prop: 'fec_limite', 
-                                        value:date.format('YYYY-MM-DD'),
+                                        value:date.format('YYYY-MM-DD HH:mm'),
                                         tmpProyecto,
                                         tmpTarea
                                     })
@@ -548,11 +656,59 @@ class Tareas extends Component{
                             className="dateStyle"
                             showMonthDropdown
                             showYearDropdown
+                            showTimeSelect={(isCalendarSync==1)?true:false}
+                            timeFormat={(isCalendarSync==1)?"HH:mm":''}
+                            timeIntervals={15}
+                            dateFormat={(isCalendarSync==1)?"DD/MM/YYYY HH:mm":undefined}
+                            timeCaption="Hora"                               
                             dropdownMode="select"
                             todayButton="Hoy"
                             placeholderText="Fecha limite"
                             minDate={moment()}
-                        />    
+                        />  
+                        <Radio 
+                            label="Calendario"
+                            id="rdbCalendario"
+                            style={{ marginLeft: '20px', marginRight: '20px' }}
+                            checked={(isCalendarSync == 0)?false:true}
+                            onChange={(value) => {
+                                    this.props.editarTarea({ 
+                                        prop: 'isCalendarSync', 
+                                        value:(value)?1:0,
+                                        tmpProyecto,
+                                        tmpTarea
+                                    });                                                           
+                            }}
+                        />  
+                        <DatePicker 
+                            selected={(fec_limiteCal == "")?Helper.toDateM(fec_limite):Helper.toDateM(fec_limiteCal)}
+                            onChange={
+                                (date) => {
+                                    this.props.editarTarea({ 
+                                        prop: 'fec_limiteCal', 
+                                        value:date.format('YYYY-MM-DD HH:mm'),
+                                        tmpProyecto,
+                                        tmpTarea
+                                    })
+                                }
+                            }
+                            locale="es"
+                            className="dateStyle"
+                            disabled={!isCalendarSync}
+                            showTimeSelect
+                            timeFormat="HH:mm"
+                            timeIntervals={15}
+                            dateFormat='DD/MM/YYYY HH:mm'                            
+                            timeCaption="Hora"                            
+                            dropdownMode="select"
+                            todayButton="Hoy"
+                            placeholderText="Fecha limite"
+                            minDate={Helper.toDateM(fec_limite)}
+                            maxDate={Helper.toDateM(fec_limite)}
+                            minTime={(Helper.toDateM(fec_limite)!== null)?moment().hours(Helper.toDateM(fec_limite).hour()).minutes(Helper.toDateM(fec_limite).minutes()+15):undefined}
+                            maxTime={moment().hours(23).minutes(59)}
+                        />                         
+                    </div>
                 </FormRow>      
                 <FormRow titulo='PROYECTO'>
                     <Select 
@@ -626,6 +782,7 @@ class Tareas extends Component{
                             nuevo={tarea.nuevo}
                             typing={typing}
                             id_status={tarea.id_status}
+                            isCalendarSync={tarea.isCalendarSync}
                             editarTarea={({ prop, value }) => { 
                                     this.props.editarTarea({ prop, value,tmpProyecto, tmpTarea}, (proyecto, tarea) => {
                                         this.props.guardarTarea(this.props.proyectos, proyecto.id_proyecto, tarea, false, () => {
@@ -890,7 +1047,8 @@ const mapStateToProps = state => {
         socket: state.socket.socket,
         loadingMore: state.listaProyectos.loadingMore,
         loadingChecklist: state.listaProyectos.loadingChecklist,
-        buscar: state.listaProyectos.buscar
+        buscar: state.listaProyectos.buscar,
+        gapi: state.login.gapi
     }
 };
 

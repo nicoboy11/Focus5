@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Card, Modal, FormRow, Input, Avatar, ImagePicker } from '../components';
+import { Card, Modal, FormRow, Input, Avatar, ImagePicker, Radio } from '../components';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { 
@@ -10,7 +10,8 @@ import {
     cancelarArchivo, 
     cambioPassword, 
     loginUser, 
-    guardarPassword 
+    guardarPassword,
+    googleStatus
 } from '../actions';
 import swal from 'sweetalert';
 import { Config } from '../configuracion';
@@ -228,6 +229,41 @@ class Ajustes extends Component{
       
     }
 
+    renderModalGoogle(){
+
+        return(
+            <Modal 
+                type='FORM' 
+                isVisible={this.state.mostratModalGoogle} 
+                titulo='Conectar con google'
+                componenteInicial="rdbConectado"
+                onGuardar={() => { 
+                    if(this.props.gStatus){
+                        this.props.gapi.auth2.getAuthInstance().signIn();
+                    } else {
+                        this.props.gapi.auth2.getAuthInstance().signOut();
+                    }
+
+                    this.setState({ mostratModalGoogle: false })
+                }}
+                onCerrar={() => { this.setState({ mostratModalGoogle: false }) }}
+            >
+                <FormRow titulo='Conectar con google'>
+                    <Radio 
+                        label="Conectar" 
+                        id="rdbConectado" 
+                        checked={this.props.gStatus}
+                        onChange={
+                            (value) => {
+                                this.props.googleStatus(value);
+                            }
+                        }
+                    />                     
+                </FormRow>
+            </Modal>            
+        )
+    }    
+
     render(){
 
         if(this.props.perfil.error){
@@ -243,7 +279,13 @@ class Ajustes extends Component{
         }
 
         const sessionData = JSON.parse(localStorage.sessionData)
+        let logo = null;
 
+        if(this.props.googleLogin){
+            logo = require('../img/googleColor.png');
+        } else {
+            logo = require('../img/google.png');
+        }
 
         return(
             <div id="mainProyectos" style={{display:'flex'}}>
@@ -256,9 +298,15 @@ class Ajustes extends Component{
                     titulo="Cambiar Contraseña"
                     icono="lock"
                     onClick={() => this.setState({ mostrarModalPass: true })}
-                />       
+                />    
+                <Card 
+                    titulo="Sincronizar con Google"
+                    img={logo}
+                    onClick={() => this.setState({ mostratModalGoogle: true })}
+                />                     
                 {this.renderModalPerfil(sessionData)} 
-                {this.renderModalPassword()}                  
+                {this.renderModalPassword()}       
+                {this.renderModalGoogle()}           
             </div>
         );        
     }
@@ -272,7 +320,10 @@ const mapStateToProps = (state) => {
         fileProgress: state.listaProyectos.progress,
         loading: state.listaProyectos.loading,
         archivo: state.listaProyectos.archivoNuevo,
-        psw: state.password
+        psw: state.password,
+        googleLogin: state.login.googleLogin,
+        gapi: state.login.gapi,
+        gStatus: state.login.googleStatus
     }
 }
 
@@ -284,7 +335,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     cancelarArchivo,
     cambioPassword,
     loginUser,
-    guardarPassword
+    guardarPassword,
+    googleStatus
 }, dispatch)
 
 export default connect(mapStateToProps,mapDispatchToProps)(Ajustes);

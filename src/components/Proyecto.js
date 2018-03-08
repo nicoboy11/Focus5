@@ -161,7 +161,7 @@ class Proyecto extends Component{
                                     <div className="fill"></div>
                                 </div>
                             </div>    
-                            {(this.state.terminadas===this.state.totalTareas)?<i className="material-icons mainColor" style={{ fontSize:'48px' }}>done_all</i>:null}
+                            {(this.state.terminadas===this.state.totalTareas && this.state.totalTareas > 0)?<i className="material-icons mainColor" style={{ fontSize:'48px' }}>done_all</i>:null}
                         </div>   
                         
                             {(typing.mensaje !== "" && typing.mensaje !== undefined) ?

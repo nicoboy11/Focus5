@@ -5,13 +5,14 @@ class Radio extends Component{
     static defaultProps = {
         id: null,
         label: 'Radio',
-        checked: false
+        checked: false,
+        style: {}
     }    
 
     render(){
-        const { id, label, checked } = this.props;
+        const { id, label, checked, style } = this.props;
         return(
-            <div style={{ display: 'flex', alignItems:'center'}}>
+            <div style={{ display: 'flex', alignItems:'center', ...style }}>
                 <span className="txtSpan">{label}</span>
                 <div className="toggleWrapper">
                     <input {...(checked ? {checked:true} : {})} type="checkbox" id={id} className={id} onChange={(e) => this.props.onChange(e.target.checked)} />

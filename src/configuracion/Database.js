@@ -131,7 +131,7 @@ class Database {
             })
             .catch(err => {
                 err.type="error";
-                callback(true, err.message);
+                callback(true, err.message + " | response:" + err.response.data);
             })
     
         /** Cuando termina de cargar el archivo */

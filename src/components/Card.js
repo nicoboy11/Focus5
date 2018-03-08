@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 class Card extends Component {
     render(){
+
         return (
             <div 
                 className="w3-card" 
@@ -12,7 +13,10 @@ class Card extends Component {
                     {this.props.titulo}
                 </div>
                 <div>
-                    <i style={{ fontSize: '120px' }} className="material-icons">{this.props.icono}</i>
+                    {this.props.icono?
+                    <i style={{ fontSize: '120px' }} className="material-icons">{this.props.icono}</i>:
+                    <img style={{ width: '120px', height: '120px' }} src={this.props.img} />
+                    }
                 </div>
             </div>
         )

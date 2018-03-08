@@ -250,6 +250,19 @@ class Proyectos extends Component{
         });
     }
 
+
+    renderStatusActividad(status){
+        if(status == 2){
+            return <i title="Terminada" className="material-icons clickableColor" style={{position:'absolute', right: '10px'}}>done_all</i>;
+        } 
+
+        if(status == 3){
+            return <i title="Atendida" className="material-icons clickableColor" style={{position:'absolute', right: '10px'}}>done</i>;
+        }
+
+        return null;
+    }
+
     renderDetalleActividades(){
 
         let tareas = [];
@@ -270,7 +283,11 @@ class Proyectos extends Component{
                                     paddingTop: '0px'
                                 }}
                             >
-                                <div style={{ padding: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} >{tarea.txt_tarea}</div>
+                                <div style={{ paddingLeft: '5px', paddingTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} >{tarea.txt_tarea}</div>
+                                <div style={{ paddingLeft: '5px', paddingBottom: '5px' }} className="chatContentStatus fadeColor">
+                                    {proyecto.txt_proyecto}
+                                    {this.renderStatusActividad(tarea.id_status)}
+                                </div>
                                 <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '5px', height: '16px'}}>
                                     <UserList participantes={tarea.participantes} limit={5} size="mini" />
                                     <div style={{ fontSize: '11px', color: Helper.prettyfyDate(tarea.fec_limite).color }}>
@@ -480,6 +497,10 @@ class Proyectos extends Component{
      * Renderiza la tarjeta de "Nuevo proyecto " y posteriormente la lista de proyectos
      */
     render(){
+        if(localStorage.length === 0){
+            return null;
+        }
+
         const usuario = JSON.parse(localStorage.sessionData);
         //Actualizar tarea avisada por socket
         if(Object.keys(this.props.socket).length > 0) {

@@ -124,3 +124,9 @@ export const BSR_CLEAR = 'bsr_clear';
 export const FLTR_NTF = 'fltr_ntf';
 
 export const REFS = 'refs';
+
+export const GOOGLE_LOGIN_SUCCESS = 'google_login_success';
+export const GOOGLE_LOGOUT = 'google_logout';
+export const GOOGLE_INIT = 'google_init';
+export const GOOGLE_STATUS = 'google_status';
+export const GOOGLE_EVENTS = 'google_events';
