@@ -8,7 +8,7 @@ import { Chats } from './pages';
 import { MenuTop } from './components';
 import MenuBar from './components/MenuBar';
 
-import { Route } from 'react-router-dom';
+import { Route, Router } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import moment from 'moment';
@@ -39,9 +39,9 @@ import Personal from './pages/Personal';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Config } from './configuracion';
 
-const { menu, network } = Config;
+const { menu, network, keys } = Config;
 
-const CLIENT_ID = '647932593057-il1hhpr2uo4o18fjnom3hnv0idc00uj8.apps.googleusercontent.com';
+const CLIENT_ID = keys.calendar;
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
 const SCOPES = "https://www.googleapis.com/auth/calendar";
 const OneSignal = [];
@@ -329,7 +329,7 @@ class App extends Component {
       }
 
       if(this.props.proyectos.length > 0 && this.props.events.length == 0 && window.gapi.auth2.getAuthInstance().isSignedIn.get()){
-        this.listEvents();        
+        this.listEvents();
       }
  
   }

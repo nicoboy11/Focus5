@@ -292,6 +292,11 @@ class Tareas extends Component{
             return;
         }
 
+        if(!this.props.gapi.auth2.getAuthInstance().isSignedIn.get()){
+            swal("Alerta", "Debe conectarse a su cuenta de google para agregar al calendario. Revise la seccion de 'Ajustes'", "warning");
+            return;
+        }
+
         //Cuando la tarea es nueva el txt_tarea es undefined
         if(!txt_tarea) { //UPDATE
             this.props.guardarTarea(this.props.proyectos, this.props.proyectoActual.id_proyecto, this.props.tareaActual, false, (tarea) => {

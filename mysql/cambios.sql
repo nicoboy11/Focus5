@@ -267,7 +267,7 @@
 							'"participantes":',sc.participantes,',',
                             '"subtareas":',sc.subtareas,',',
 							'"topComments":',sc.topComments,'',
-						'}') ORDER BY sc.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
+						'}') ORDER BY SC.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
 					  ']') INTO _tareas
         FROM (
         SELECT *
@@ -302,7 +302,7 @@
             ) as wtf,(SELECT @i:=0) foo
             WHERE (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
             ORDER BY FIELD(wtf.id_status,1,3,2) asc, ifnull(wtf.fec_limite,'1960-01-01') desc
-		) AS sc;
+		) AS SC;
 		
 		RETURN ifnull(_tareas,'[]');
 
@@ -667,6 +667,7 @@ BEGIN
 	DECLARE _fl date;
 	DECLARE _id_tarea_detalle int;
     DECLARE _ir int;
+    DECLARE _cal int;
     DECLARE _notificar_responsable varchar(500);
     DECLARE _notificar_participantes varchar(500);
 
@@ -691,13 +692,44 @@ BEGIN
     SELECT fec_limite INTO _fl FROM ctrl_tareas WHERE id_tarea = _id_tarea;
     SELECT id_responsable INTO _ir FROM ctrl_tareas WHERE id_tarea = _id_tarea;
 	SELECT ifnull(max(id_tarea_detalle),1) + 1 INTO _id_tarea_detalle FROM ctrl_tareas_detalle;
+    SELECT isCalendarSync INTO _cal FROM ctrl_tareas WHERE id_tarea = _id_tarea;
     
+    #Si cambió la fecha limite
     IF(_fec_limite <> _fl)
     THEN
-		INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
-		VALUES(_id_tarea,_id_tarea_detalle,concat(getUserName(_id_usuario), ' modificó la fecha al ',_fec_limite  ),'',NOW(),1,_id_tarea_detalle,_id_usuario,2);
+		#checa si se modificó la sincronización del calendario
+		IF(_cal <> _isCalendarSync)
+        THEN
+			#Si ahora se va a sincronizar
+			IF(_isCalendarSync = 1)
+            THEN
+				INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
+				VALUES(_id_tarea,_id_tarea_detalle,concat(getUserName(_id_usuario), ' enlazó la tarea con google calendars '  ),'',NOW(),1,_id_tarea_detalle,_id_usuario,2);                    
+            ELSE
+				INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
+				VALUES(_id_tarea,_id_tarea_detalle,concat(getUserName(_id_usuario), ' quitó la tarea de google calendars '  ),'',NOW(),1,_id_tarea_detalle,_id_usuario,2);                    
+            END IF;
         
+        ELSE
+        	INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
+			VALUES(_id_tarea,_id_tarea_detalle,concat(getUserName(_id_usuario), ' modificó la fecha al ',_fec_limite  ),'',NOW(),1,_id_tarea_detalle,_id_usuario,2);        
+        END IF;
+
         SET _id_tarea_detalle = _id_tarea_detalle + 1;
+	ELSE
+		IF(_cal <> _isCalendarSync)
+        THEN
+			#Si ahora se va a sincronizar
+			IF(_isCalendarSync = 1)
+            THEN
+				INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
+				VALUES(_id_tarea,_id_tarea_detalle,concat(getUserName(_id_usuario), ' enlazó la tarea con google calendars '  ),'',NOW(),1,_id_tarea_detalle,_id_usuario,2);                    
+            ELSE
+				INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
+				VALUES(_id_tarea,_id_tarea_detalle,concat(getUserName(_id_usuario), ' quitó la tarea de google calendars '  ),'',NOW(),1,_id_tarea_detalle,_id_usuario,2);                    
+            END IF;
+        
+        END IF;    
     END IF;
     
     IF(_id_responsable <> _ir)

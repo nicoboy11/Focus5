@@ -1,18 +1,9 @@
+import { Info } from './';
+
 class Config {}
 
-Config.network = {
-    //server: 'http://localhost:8081/sistemafocus/focusDesktop/api/',
-    //server: 'http://localhost:8082/focusDesktop/api/',
-    server: 'http://api.sistemafocus.com/',
-    wsServer: 'ws://ec2-34-211-203-109.us-west-2.compute.amazonaws.com:9978/task',
-    //wsServer: 'ws://localhost:9998/task',
-    blured: 'thumbs/blured/',
-    big: 'thumbs/big/',
-    small: 'thumbs/small/',
-    basename: '/focus/v5'
-    //basename: '/focus/build'
-    //basename: ''
-};
+Config.network = Info.network;
+Config.keys = Info.keys;
 
 Config.regex = {
     email: /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i,
