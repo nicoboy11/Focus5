@@ -58,12 +58,14 @@ class Avatar extends Component{
                 backgroundColor: 'transparent'
             },
             containerStyle: {
+                display: 'flex',
                 flexDirection,
                 alignItems: 'center'
             },
             nameStyle: {
                 fontSize: (sizes[size] - (sizes[size] / 2)),
-                color: nameColor
+                color: nameColor,
+                marginLeft: '5px'
             },
             abbrStyle: {
                 color: colors.mainText,

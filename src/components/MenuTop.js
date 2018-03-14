@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import { Config } from '../configuracion';
+import { Avatar } from '../components'
 import swal from 'sweetalert';
 
 const { network } = Config;
@@ -50,8 +51,9 @@ class MenuTop extends Component{
             <div id="topBar">
                 <div id="marca">
                     <div id="avatar">
-                            <div id="sessionAvatarContainer" className="fadeColor">
-                                <img id="sessionAvatar" className="w3-circle" src={`${network.server}usr/thumbs/small/${JSON.parse(localStorage.sessionData).id_usuario}.jpg`} alt="" />
+                            <div id="sessionAvatarContainer" className="pale">
+                                {/*<img id="sessionAvatar" className="w3-circle" src={`${network.server}usr/thumbs/small/${JSON.parse(localStorage.sessionData).id_usuario}.jpg`} alt="" />*/}
+                                FOCUS
                             </div>
                     </div>            
                 </div>
@@ -82,9 +84,9 @@ class MenuTop extends Component{
                     >
                         <i className="material-icons fadeColor barBurron">print</i>
                     </div>
-                    <div style={styles.buttonStyle} id="searchBar">
+                    {/*<div style={styles.buttonStyle} id="searchBar">
                         <i className="material-icons fadeColor barButton">search</i>
-                    </div>            
+                    </div>        */}
                     <div 
                         ref="ntfButton"
                         style={styles.buttonStyle} 
@@ -120,6 +122,15 @@ class MenuTop extends Component{
                         }}>
                         <i className="material-icons fadeColor barButton">power_settings_new</i>
                     </div>    
+                    <div id="avatar">
+                        <Avatar 
+                            key={JSON.parse(localStorage.sessionData).id_usuario}
+                            avatar={`${network.server}usr/thumbs/small/${JSON.parse(localStorage.sessionData).id_usuario}.jpg`} 
+                            color={JSON.parse(localStorage.sessionData).color} 
+                            name={JSON.parse(localStorage.sessionData).txt_usuario} 
+                            size='small'
+                        />
+                    </div>                      
                 </div>
             </div>            
         );

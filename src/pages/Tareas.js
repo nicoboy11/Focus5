@@ -910,6 +910,9 @@ class Tareas extends Component{
      * Renderizo la pagina completa
      */
     render(){
+        if(localStorage.sessionData === undefined){
+            return null;
+        }
         const usuario = JSON.parse(localStorage.sessionData);
 
         //Actualizar tarea avisada por socket

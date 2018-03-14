@@ -24,7 +24,9 @@ import {
     guardaRefs,
     getTarea,
     clearSocket,
-    clearTareaSocket
+    clearTareaSocket,
+    editarTarea,
+    guardarTarea
 } from '../actions';
 
 const { network } = Config;
@@ -145,6 +147,109 @@ class Proyectos extends Component{
 
     }    
 
+    onDragStart(e){
+        e.dataTransfer.setData('id_tarea', e.target.attributes["data-id"].value);
+        e.dataTransfer.setData('id_proyecto', e.target.attributes["data-idproyecto"].value);
+        e.dataTransfer.setData('tipo', e.target.closest(".containerDrop").attributes["data-id"].value);
+    }
+
+    onDragOver(e){
+        e.preventDefault();
+
+        if(e.target.classList.contains("containerDrop")){
+            e.target.style.borderWidth = '2px';
+            e.target.style.borderStyle = 'dashed';
+            e.target.style.borderColor = '#2196F3';
+        } else {
+            const element = e.target.closest(".containerDrop");
+            element.style.borderWidth = '2px';
+            element.style.borderStyle = 'dashed';
+            element.style.borderColor = '#2196F3';
+        }
+    }
+
+    onDragLeave(e){
+        e.preventDefault();
+        if(e.target.classList.contains("containerDrop")){
+            e.target.style.borderWidth = '';
+            e.target.style.borderStyle = '';
+            e.target.style.borderColor = '';
+        }
+        else {
+            const element = e.target.closest(".containerDrop");
+            element.style.borderWidth = '';
+            element.style.borderStyle = '';
+            element.style.borderColor = ''; 
+        }
+    }    
+
+    onDrop(e){
+        e.preventDefault();
+
+        const id_tarea = e.dataTransfer.getData('id_tarea');
+        const id_proyecto = e.dataTransfer.getData('id_proyecto');
+        let tipo;
+
+        if(e.target.classList.contains("containerDrop")){
+            tipo = e.target.attributes["data-id"].value;
+            e.target.style.borderWidth = '';
+            e.target.style.borderStyle = '';
+            e.target.style.borderColor = '';            
+        } else {
+            const element = e.target.closest(".containerDrop");
+            tipo = element.attributes["data-id"].value;
+            element.style.borderWidth = '';
+            element.style.borderStyle = '';
+            element.style.borderColor = '';            
+        }
+
+        if(e.dataTransfer.getData("tipo") == e.target.closest(".containerDrop").attributes["data-id"].value){
+            swal("no aplica");
+            return;
+        }
+
+        if(tipo){
+            //Obtener fecha actual (busco en proyecto luego en tarea y luego saco la fecha)
+            const proyecto = this.props.proyectos.filter(proyecto => proyecto.id_proyecto == id_proyecto)[0];
+            const tarea = proyecto.tareas.filter(tarea => tarea.id_tarea == id_tarea)[0];
+
+            const roleId = parseInt(tarea.role_id);            
+
+            if(roleId !== 1 && roleId !== 2){
+                swal('No tiene permisos para editar esta tarea');
+                return;
+            }
+
+
+            let fec_limite = tarea.fec_limite;
+            let nuevaFecha;
+            fec_limite = Helper.toDateM(fec_limite);
+            if(fec_limite == null){
+                fec_limite = moment();
+            }
+            //Actualizar fecha por tipo
+            switch(tipo){
+                case "hoy":
+                    nuevaFecha = moment();
+                    nuevaFecha.set({ 'hour': fec_limite.get('hour'), 'minute': fec_limite.get('minute') })
+                    break;
+                case "proximas":
+                    nuevaFecha = moment().add(1, 'days');
+                    nuevaFecha.set({ 'hour': fec_limite.get('hour'), 'minute': fec_limite.get('minute') })
+                    break;  
+                default:
+                    break;
+            }
+
+            this.props.editarTarea({ prop: 'fec_limite', value: nuevaFecha.format('YYYY-MM-DD HH:mm:ss'), tmpProyecto: proyecto, tmpTarea: tarea}, (proyecto, tarea) => {
+                this.props.guardarTarea(this.props.proyectos, proyecto.id_proyecto, tarea, false, () => {
+                    //swal(`Agregado ${id_tarea} a ${tipo} con fecha ${nuevaFecha}`);
+                });
+            }); 
+        }
+
+    }        
+
     /**
      * Si ya hay proyectos en el state los renderiza, si no carga un "cargando..."
      */
@@ -250,7 +355,6 @@ class Proyectos extends Component{
         });
     }
 
-
     renderStatusActividad(status){
         if(status == 2){
             return <i title="Terminada" className="material-icons clickableColor" style={{position:'absolute', right: '10px'}}>done_all</i>;
@@ -263,29 +367,64 @@ class Proyectos extends Component{
         return null;
     }
 
-    renderDetalleActividades(){
+    renderDetalleActividades(cuando){
 
         let tareas = [];
         let proyectos = this.props.proyectos.filter(proyecto => proyecto.txt_proyecto.toLowerCase().includes(this.props.buscar));
-        
+
         return proyectos.map(proyecto => {
-            return(<div key={proyecto.id_proyecto} style={{ minWidth: '400px' }}>
+            return(<div key={proyecto.id_proyecto} style={{ width: '400px' }}>
             {
                 proyecto.tareas.map(tarea => {
-                    if(Helper.prettyfyDate(tarea.fec_limite).date == Helper.prettyfyDate(Helper.getDateISOfromDate(new Date())).date){
+
+                    let imprimir = false;
+
+                    if(Helper.toDateM(tarea.fec_limite) !== null){
+                        switch(cuando){
+                            case 'vencidas':
+                                imprimir = Helper.toDateM(tarea.fec_limite).startOf('day').diff(moment().startOf('day'),'days') < 0;
+                                break;
+                            case 'hoy':
+                                imprimir = Helper.toDateM(tarea.fec_limite).startOf('day').diff(moment().startOf('day'),'day') == 0;
+                                break;
+                            case 'proximas':
+                                imprimir = Helper.toDateM(tarea.fec_limite).startOf('day').diff(moment().startOf('day'),'day') > 0;
+                                break;
+                            default:
+                                imprimir = false;
+                                break;
+                        }   
+                    } else {
+                        if(cuando === 'vencidas'){
+                            imprimir = true;
+                        }
+                    }
+
+                    const roleId = parseInt(tarea.role_id); 
+
+                    if(imprimir){
                         return (
-                            <div key={tarea.id_tarea} style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    backgroundColor: 'white',
-                                    padding: '5px',
-                                    borderBottom: '1px solid #F1F1F1', 
-                                    paddingTop: '0px'
-                                }}
+                            <div    draggable={true} 
+                                    onDrop={(cuando === 'vencidas')?undefined:this.onDrop.bind(this)}
+                                    onDragOver={(cuando === 'vencidas')?undefined:this.onDragOver.bind(this)}
+                                    key={tarea.id_tarea} 
+                                    data-id={tarea.id_tarea}
+                                    data-idproyecto={proyecto.id_proyecto}
+                                    className='grabbable'
+                                    onDragStart={this.onDragStart.bind(this)}
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        backgroundColor: 'white',
+                                        padding: '5px',
+                                        borderBottom: '1px solid #F1F1F1', 
+                                        paddingTop: '0px'
+                                    }}
                             >
                                 <div style={{ paddingLeft: '5px', paddingTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} >{tarea.txt_tarea}</div>
                                 <div style={{ paddingLeft: '5px', paddingBottom: '5px' }} className="chatContentStatus fadeColor">
                                     {proyecto.txt_proyecto}
+                                    {(roleId !== 1 && roleId !== 2)?<i className="material-icons fadeColor" style={{ fontSize: '18px' }}>lock</i>:null}
                                     {this.renderStatusActividad(tarea.id_status)}
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '5px', height: '16px'}}>
@@ -473,9 +612,43 @@ class Proyectos extends Component{
 
     renderActividades(){
         return (
-            <div style={{ overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                <h3>Actividades de hoy</h3>
-                {this.renderDetalleActividades()}
+            <div style={{ overflow: 'auto', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start'}}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <h3>Actividades vencidas / sin fecha</h3>
+                    <div 
+                        data-id="vencidas"
+                        className="containerDrop"
+                        style={{ height: '500px', overflowY: 'auto' }}
+                    >
+                        {this.renderDetalleActividades('vencidas')}
+                    </div>
+                </div>            
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <h3>Actividades de hoy</h3>
+                    <div 
+                        data-id="hoy"
+                        className="containerDrop"
+                        onDragOver={this.onDragOver.bind(this)} 
+                        onDragLeave={this.onDragLeave.bind(this)} 
+                        onDrop={this.onDrop.bind(this)}
+                        style={{ height: '500px', overflowY: 'auto' }}
+                    >
+                        {this.renderDetalleActividades('hoy')}
+                    </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <h3>Actividades próximas</h3>
+                    <div 
+                        data-id="proximas"
+                        className="containerDrop"
+                        onDragOver={this.onDragOver.bind(this)} 
+                        onDragLeave={this.onDragLeave.bind(this)} 
+                        onDrop={this.onDrop.bind(this)}
+                        style={{ height: '500px', overflowY: 'auto' }}
+                    >
+                        {this.renderDetalleActividades('proximas')}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -607,6 +780,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     getTarea,
     clearSocket,
     clearTareaSocket,
+    editarTarea,
+    guardarTarea,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

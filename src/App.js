@@ -142,6 +142,10 @@ class App extends Component {
 
     listEvents() {
       const me = this;
+      if(window.gapi.client.calendar === undefined){
+        return;
+      }
+
       window.gapi.client.calendar.events.list({
         'calendarId': 'primary',
         'showDeleted': false,

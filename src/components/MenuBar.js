@@ -32,7 +32,7 @@ class MenuBar extends Component{
         }
 
         const selectedClass = isSelected ? "menuBarSelected" : "";
-        const selectedColor = isSelected ? "mainColor" : "";        
+        //const selectedColor = isSelected ? "mainColor" : "";        
 
         return(
             <div 
@@ -41,7 +41,7 @@ class MenuBar extends Component{
                 data-key={nombre} 
                 onClick={(e) => this.onClick(e,uri)}
             >
-                <i className={"material-icons menuBarIcon " + selectedColor}>{icono}</i>
+                <i className={"material-icons menuBarIcon " /*+ selectedColor*/}>{icono}</i>
                 {nombre}
             </div>
         );

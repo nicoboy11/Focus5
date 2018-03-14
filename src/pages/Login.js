@@ -7,6 +7,8 @@ import { connect } from 'react-redux';
 import swal from 'sweetalert';
 import { Config } from '../configuracion';
 
+import '../css/loginStyles.css';
+
 const { network } = Config;
 
 class Login extends Component{
@@ -36,25 +38,71 @@ class Login extends Component{
 
     render(){
         return(
-            <div id="mainLogin" style={{display:'block', backgroundColor: 'white', position:'fixed', top:'0px', left: '0px', width:'100%', height: '100%', zIndex: '9999'}}>
-                <Input 
-                    value={this.props.email}
-                    onChangeText={(value) => {
-                        this.props.emailChanged(value);
-                    }}
-                />
-                <Input 
-                    value={this.props.password}
-                    type="PASSWORD" 
-                    onChangeText={(value) => {
-                        this.props.passwordChanged(value);
-                    }}                    
-                />
-                <button 
-                    onClick={() => this.props.loginUser(this.props.email, this.props.password) }
-                >
-                    LogIn
-                </button>
+            <div className="limiter">
+                <div className="container-login100" style={{ backgroundImage: `url('${Config.network.server}/img/img-01.jpg')` }}>
+                    <div className="wrap-login100 p-t-150 p-b-30">
+                        <div className="login100-form validate-form">
+                            <span className="login100-form-title p-t-20 p-b-45">
+                                Focus
+                            </span>
+
+                            <div className="wrap-input100 validate-input m-b-10" data-validate = "Username is required">
+                                <input 
+                                    className="input100" 
+                                    type="text" 
+                                    name="username" 
+                                    placeholder="Email" 
+                                    value={this.props.email}
+                                    onChange={(value) => {
+                                        this.props.emailChanged(value.target.value);
+                                    }}
+                                />
+                                <span className="focus-input100"></span>
+                                <span className="symbol-input100">
+                                    <i className="material-icons" style={{ fontSize: '18px' }}>person</i>
+                                </span>
+                            </div>
+
+                            <div className="wrap-input100 validate-input m-b-10" data-validate = "Password is required">
+                                <input 
+                                    className="input100" 
+                                    type="password" 
+                                    name="pass"
+                                    placeholder="Contraseña" 
+                                    value={this.props.password}
+                                    onChange={(value) => {
+                                        this.props.passwordChanged(value.target.value);
+                                    }}    
+                                />
+                                <span className="focus-input100"></span>
+                                <span className="symbol-input100">
+                                    <i className="material-icons" style={{ fontSize: '18px' }}>lock</i>
+                                </span>
+                            </div>
+
+                            <div className="container-login100-form-btn p-t-10">
+                                <button 
+                                    onClick={() => this.props.loginUser(this.props.email, this.props.password) }
+                                    className="login100-form-btn"
+                                >
+                                    Entrar
+                                </button>
+                            </div>
+
+                            <div className="text-center w-full p-t-25 p-b-180">
+                                <a href="#" className="txt1">
+                                    Olvidó contraseña?
+                                </a>
+                            </div>
+
+                            <div className="text-center w-full">
+                                <a className="txt1" href="#">
+                                    Solicitar nueva cuenta		
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         );        
     }
