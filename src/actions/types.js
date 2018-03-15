@@ -106,6 +106,7 @@ export const TR_SUCCESS_SOCKET = 'tr_success_socket';
 
 export const CM_EDIT = 'cm_edit';
 export const CM_GUARDAR = 'cm_guardar';
+export const CM_GUARDARWFILE = 'cm_guardarwfile';
 export const CM_PROGRESS = 'cm_progress';
 export const CM_SUCCESS = 'cm_success';
 export const CM_FILE_CHANGE = 'cm_file_change';

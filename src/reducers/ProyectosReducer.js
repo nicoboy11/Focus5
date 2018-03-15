@@ -9,7 +9,7 @@ import {
     TR_LEIDA,   CM_FILE_CANCEL, TR_EDIT,
     PY_MORE_SUCCESS, BSR_EDIT,  TR_SUCCESS_SUB,
     FLTR_NTF,   REFS, TR_SUCCESS_SOCKET,
-    PY_SUCCESS_INACT
+    PY_SUCCESS_INACT, CM_GUARDARWFILE
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -86,10 +86,12 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, error: '', fltrNtf: false, comentarioNuevo: action.payload }
         case CM_GUARDAR:
             return { ...state, error: '', fltrNtf: false, loading: true }
+        case CM_GUARDARWFILE:
+            return { ...state, error: '', fltrNtf: false, loadingFile: true }            
         case CM_MORE:
             return { ...state, loadingMore: true, fltrNtf: false}            
         case CM_PROGRESS:
-            return { ...state, error: '', fltrNtf: false, progress: action.payload, loadingFile: true }
+            return { ...state, error: '', fltrNtf: false, progress: action.payload, loadingFile: true, loading: false }
         case CM_SUCCESS:
             return { ...state, ...INITIAL_STATE, proyectos: action.payload.proyectos, tareaActual: action.payload.tareaActual, tmpProyecto: action.payload.tmpProyecto}
         case CM_FILE_CHANGE:

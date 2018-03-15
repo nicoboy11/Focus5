@@ -166,7 +166,7 @@ class ChatItem extends Component {
                                 <pre style={{ whiteSpace: 'pre-wrap'}}>
                                     <Link properties={{target: '_blank' }}>{Helper.htmlDecode(Helper.decode_utf8(txt_comentario))}</Link>
                                 </pre>
-                                {(progress !== undefined)?
+                                {(progress !== undefined && progress < 100)?
                                 <div style={styles.barra}>
                                     <div style={{...styles.progress,width: `${progress}%`}}>{progress}%</div>
                                 </div>: null}                                

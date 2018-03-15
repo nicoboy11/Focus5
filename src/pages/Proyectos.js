@@ -26,6 +26,7 @@ import {
     clearSocket,
     clearTareaSocket,
     editarTarea,
+    editarMultiTarea,
     guardarTarea
 } from '../actions';
 
@@ -222,6 +223,9 @@ class Proyectos extends Component{
 
 
             let fec_limite = tarea.fec_limite;
+            let fec_limiteCal = tarea.fec_limiteCal;
+            const isCalendarSync = tarea.isCalendarSync;
+
             let nuevaFecha;
             fec_limite = Helper.toDateM(fec_limite);
             if(fec_limite == null){
@@ -241,7 +245,31 @@ class Proyectos extends Component{
                     break;
             }
 
-            this.props.editarTarea({ prop: 'fec_limite', value: nuevaFecha.format('YYYY-MM-DD HH:mm:ss'), tmpProyecto: proyecto, tmpTarea: tarea}, (proyecto, tarea) => {
+            let fec_limiteCalEdit = Helper.toDateM(fec_limiteCal);
+            let format = 'YYYY-MM-DD';
+
+            if(isCalendarSync){
+                const diff = nuevaFecha.clone().startOf('day').diff(fec_limiteCalEdit.clone().startOf('day'),'days');
+                format = 'YYYY-MM-DD HH:mm';
+                fec_limiteCalEdit = fec_limiteCalEdit.add(diff,'days').format(format);
+            }            
+
+            const cambios = [
+                { 
+                    prop: 'fec_limite', 
+                    value: nuevaFecha.format(format), 
+                    tmpProyecto: proyecto, 
+                    tmpTarea: tarea
+                },
+                {
+                    prop: 'fec_limiteCal',
+                    value: fec_limiteCalEdit,
+                    tmpProyecto: proyecto, 
+                    tmpTarea: tarea                    
+                }
+            ]
+
+            this.props.editarMultiTarea(cambios, (proyecto, tarea) => {
                 this.props.guardarTarea(this.props.proyectos, proyecto.id_proyecto, tarea, false, () => {
                     //swal(`Agregado ${id_tarea} a ${tipo} con fecha ${nuevaFecha}`);
                 });
@@ -781,6 +809,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     clearSocket,
     clearTareaSocket,
     editarTarea,
+    editarMultiTarea,
     guardarTarea,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)

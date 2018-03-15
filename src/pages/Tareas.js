@@ -21,6 +21,7 @@ import {
     seleccionarTarea, 
     desseleccionarTarea,
     editarTarea,
+    editarMultiTarea,
     listaUsuarios, 
     actualizarGente, 
     guardarTarea,
@@ -544,12 +545,16 @@ class Tareas extends Component{
             usuariosPart = usuarios.filter(usuario => usuario.id_usuario !== responsable[0].id_usuario)
         }
 
+        let displayDates = (isCalendarSync)?{}:{ display: 'none' };
+
+        
+
         return (
             <Modal 
                 type='FORM' 
                 isVisible={this.state.mostrarModal} 
                 titulo={Helper.htmlDecode(txt_tarea)}
-                loading={this.props.loading}
+                loading={this.props.loadingTarea}
                 componenteInicial="txt_tarea"
                 onGuardar={() => { this.onGuardar(); }}
                 onCerrar={() => { 
@@ -644,75 +649,139 @@ class Tareas extends Component{
                     />                    
                 </FormRow>                      
                 <FormRow titulo='FECHA LIMITE'>
-                    <div style={{ display:'flex' }}>
-                        <DatePicker 
-                            selected={Helper.toDateM(fec_limite)}
-                            onChange={
-                                (date) => {
-                                    this.props.editarTarea({ 
-                                        prop: 'fec_limite', 
-                                        value:date.format('YYYY-MM-DD HH:mm'),
-                                        tmpProyecto,
-                                        tmpTarea
-                                    })
+                    <div style={{ display:'flex', flexDirection: 'column' }}>
+                        <div style={displayDates}>De: </div>
+                        <div style={{ display:'flex', flexDirection: 'row' }}>
+                            <DatePicker 
+                                selected={Helper.toDateM(fec_limite)}
+                                onChange={
+                                    (date) => {
+                                        let fec_limiteCalEdit;
+                                        //Si la fecha está vacía le pone una hora más a la que se seleccione
+                                        if(fec_limiteCal == "" || fec_limiteCal == null){
+                                            fec_limiteCalEdit = date.clone().add(60,'minutes').format('YYYY-MM-DD HH:mm');
+                                        } else {
+                                            //Si la fecha final es menor que la inicial. También le aumento una hora
+                                            if(Helper.toDateM(fec_limiteCal).diff(date,'minutes') <= 0){
+                                                fec_limiteCalEdit = date.clone().add(60,'minutes').format('YYYY-MM-DD HH:mm');
+                                            } else {
+                                                //Si es mayor se queda igual (es lo correcto que sea mayor)
+                                                fec_limiteCalEdit = Helper.toDateM(fec_limiteCal);
+                                            }
+                                        }
+
+                                        this.props.editarMultiTarea([
+                                            { 
+                                                prop: 'fec_limite', 
+                                                value:date.format('YYYY-MM-DD HH:mm'),
+                                                tmpProyecto,
+                                                tmpTarea,
+                                            },
+                                            { 
+                                                prop: 'fec_limiteCal', 
+                                                value:fec_limiteCalEdit,
+                                                tmpProyecto,
+                                                tmpTarea
+                                            }                                            
+                                        ]);                                    
+                                    }
                                 }
-                            }
-                            locale="es"
-                            className="dateStyle"
-                            showMonthDropdown
-                            showYearDropdown
-                            showTimeSelect={(isCalendarSync==1)?true:false}
-                            timeFormat={(isCalendarSync==1)?"HH:mm":''}
-                            timeIntervals={15}
-                            dateFormat={(isCalendarSync==1)?"DD/MM/YYYY HH:mm":undefined}
-                            timeCaption="Hora"                               
-                            dropdownMode="select"
-                            todayButton="Hoy"
-                            placeholderText="Fecha limite"
-                            minDate={moment()}
-                        />  
-                        <Radio 
-                            label="Calendario"
-                            id="rdbCalendario"
-                            style={{ marginLeft: '20px', marginRight: '20px' }}
-                            checked={(isCalendarSync == 0)?false:true}
-                            onChange={(value) => {
-                                    this.props.editarTarea({ 
-                                        prop: 'isCalendarSync', 
-                                        value:(value)?1:0,
-                                        tmpProyecto,
-                                        tmpTarea
-                                    });                                                           
-                            }}
-                        />  
-                        <DatePicker 
-                            selected={(fec_limiteCal == "")?Helper.toDateM(fec_limite):Helper.toDateM(fec_limiteCal)}
-                            onChange={
-                                (date) => {
-                                    this.props.editarTarea({ 
-                                        prop: 'fec_limiteCal', 
-                                        value:date.format('YYYY-MM-DD HH:mm'),
-                                        tmpProyecto,
-                                        tmpTarea
-                                    })
+                                locale="es"
+                                className="dateStyle"
+                                showMonthDropdown
+                                showYearDropdown
+                                showTimeSelect={(isCalendarSync==1)?true:false}
+                                timeFormat={(isCalendarSync==1)?"HH:mm":''}
+                                timeIntervals={15}
+                                dateFormat={(isCalendarSync==1)?"DD/MM/YYYY HH:mm":undefined}
+                                timeCaption="Hora"                               
+                                dropdownMode="select"
+                                todayButton="Hoy"
+                                placeholderText="Fecha limite"
+                                minDate={moment()}
+                            />  
+                            <Radio 
+                                label="Calendario"
+                                id="rdbCalendario"
+                                style={{ marginLeft: '20px', marginRight: '20px' }}
+                                checked={(isCalendarSync == 0)?false:true}
+                                onChange={(value) => {
+
+                                        let fec_limiteEdit;
+                                        if(fec_limite == "" || fec_limite == null){
+                                            fec_limiteEdit = moment().startOf('day').add(9,'hours');
+                                        } else {
+                                            fec_limiteEdit = Helper.toDateM(fec_limite);
+                                        }
+
+                                        let fec_limiteCalEdit;
+                                        //Si la fecha está vacía le pone una hora más a la que se seleccione
+                                        if(fec_limiteCal == "" || fec_limiteCal == null){
+                                            fec_limiteCalEdit = fec_limiteEdit.clone().add(60,'minutes').format('YYYY-MM-DD HH:mm');
+                                        } else {
+                                            //Si la fecha final es menor que la inicial. También le aumento una hora
+                                            if(Helper.toDateM(fec_limiteCal).diff(fec_limiteEdit,'minutes') <= 0){
+                                                fec_limiteCalEdit = fec_limiteEdit.clone().add(60,'minutes').format('YYYY-MM-DD HH:mm');
+                                            } else {
+                                                //Si es mayor se queda igual (es lo correcto que sea mayor)
+                                                fec_limiteCalEdit = Helper.toDateM(fec_limiteCal);
+                                            }
+                                        }                                        
+
+                                        this.props.editarMultiTarea([
+                                            { 
+                                                prop: 'isCalendarSync', 
+                                                value:(value)?1:0,
+                                                tmpProyecto,
+                                                tmpTarea
+                                            },
+                                            { 
+                                                prop: 'fec_limite', 
+                                                value:fec_limiteEdit,
+                                                tmpProyecto,
+                                                tmpTarea,
+                                            }     ,
+                                            { 
+                                                prop: 'fec_limiteCal', 
+                                                value:fec_limiteCalEdit,
+                                                tmpProyecto,
+                                                tmpTarea,
+                                            }                                         
+                                        ]);
+                                }}
+                            />  
+                        </div>
+                        <div style={displayDates}> hasta: </div>
+                        <div style={displayDates}>
+                            <DatePicker 
+                                selected={(fec_limiteCal == "")?Helper.toDateM(fec_limite):Helper.toDateM(fec_limiteCal)}
+                                onChange={
+                                    (date) => {
+                                        this.props.editarTarea({ 
+                                            prop: 'fec_limiteCal', 
+                                            value:date.format('YYYY-MM-DD HH:mm'),
+                                            tmpProyecto,
+                                            tmpTarea
+                                        })
+                                    }
                                 }
-                            }
-                            locale="es"
-                            className="dateStyle"
-                            disabled={!isCalendarSync}
-                            showTimeSelect
-                            timeFormat="HH:mm"
-                            timeIntervals={15}
-                            dateFormat='DD/MM/YYYY HH:mm'                            
-                            timeCaption="Hora"                            
-                            dropdownMode="select"
-                            todayButton="Hoy"
-                            placeholderText="Fecha limite"
-                            minDate={Helper.toDateM(fec_limite)}
-                            maxDate={Helper.toDateM(fec_limite)}
-                            minTime={(Helper.toDateM(fec_limite)!== null)?moment().hours(Helper.toDateM(fec_limite).hour()).minutes(Helper.toDateM(fec_limite).minutes()+15):undefined}
-                            maxTime={moment().hours(23).minutes(59)}
-                        />                         
+                                locale="es"
+                                className="dateStyle"
+                                disabled={!isCalendarSync}
+                                showTimeSelect
+                                timeFormat="HH:mm"
+                                timeIntervals={15}
+                                dateFormat='DD/MM/YYYY HH:mm'                            
+                                timeCaption="Hora"                            
+                                dropdownMode="select"
+                                todayButton="Hoy"
+                                placeholderText="Fecha limite"
+                                minDate={Helper.toDateM(fec_limite)}
+                                maxDate={Helper.toDateM(fec_limite)}
+                                minTime={(Helper.toDateM(fec_limite)!== null)?moment().hours(Helper.toDateM(fec_limite).hour()).minutes(Helper.toDateM(fec_limite).minutes()+15):undefined}
+                                maxTime={moment().hours(23).minutes(59)}
+                            />      
+                        </div>                   
                     </div>
                 </FormRow>      
                 <FormRow titulo='PROYECTO'>
@@ -788,8 +857,10 @@ class Tareas extends Component{
                             typing={typing}
                             id_status={tarea.id_status}
                             isCalendarSync={tarea.isCalendarSync}
-                            editarTarea={({ prop, value }) => { 
-                                    this.props.editarTarea({ prop, value,tmpProyecto, tmpTarea}, (proyecto, tarea) => {
+                            editarTarea={(cambios) => { 
+                                    cambios[0].tmpProyecto = tmpProyecto;
+                                    cambios[0].tmpTarea = tmpTarea;
+                                    this.props.editarMultiTarea(cambios, (proyecto, tarea) => {
                                         this.props.guardarTarea(this.props.proyectos, proyecto.id_proyecto, tarea, false, () => {
                                             this.setState({ mostrarModal: false });                
                                         });
@@ -1055,6 +1126,7 @@ const mapStateToProps = state => {
         socket: state.socket.socket,
         loadingMore: state.listaProyectos.loadingMore,
         loadingChecklist: state.listaProyectos.loadingChecklist,
+        loadingTarea: state.listaProyectos.loadingTarea,
         buscar: state.listaProyectos.buscar,
         gapi: state.login.gapi
     }
@@ -1070,6 +1142,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     seleccionarTarea, 
     desseleccionarTarea,
     editarTarea,
+    editarMultiTarea,
     listaUsuarios, 
     actualizarGente, 
     guardarTarea, 

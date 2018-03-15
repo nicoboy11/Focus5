@@ -8,7 +8,7 @@ import {
     CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    
     TR_SUCCESS,     CM_MORE,        TR_LEIDA,
     CK_SUCCESS,     PY_MORE_SUCCESS,TR_SUCCESS_SUB, 
-    REFS,           TR_SUCCESS_SOCKET,PY_SUCCESS_INACT
+    REFS,           TR_SUCCESS_SOCKET,PY_SUCCESS_INACT, CM_GUARDARWFILE
 
 } from './types';
 
@@ -196,6 +196,29 @@ export const editarTarea = ({ prop, value, tmpProyecto, tmpTarea }, callback = (
     }
 }
 
+/** Editar varios campos simultaneamente en una tarea */
+export const editarMultiTarea = (cambios, callback = () =>{}) => {
+
+    const { tmpProyecto, tmpTarea } = cambios[0];
+
+    let proyecto = { ...tmpProyecto };
+    const foundIndex = proyecto.tareas.findIndex(x=>x.id_tarea === tmpTarea.id_tarea);
+    let tarea = { ...tmpTarea };
+
+    for(const { prop, value } of cambios){
+        tarea[prop] = value;
+    }
+
+    proyecto.tareas[foundIndex] = tarea;
+
+    callback(proyecto, tarea);
+
+    return {
+        type: 'tr_editar',
+        payload: proyecto
+    }
+}
+
 export const actualizarGente = ({ rolId, persona, tmpProyecto, tmpTarea }) => {
     let proyecto = { ...tmpProyecto };
     const foundIndex = proyecto.tareas.findIndex(x=>x.id_tarea === tmpTarea.id_tarea);
@@ -371,7 +394,12 @@ export const editarComentario = (txt_comentario) => {
 
 export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comentario, callback) => {
     return (dispatch) => {
-        dispatch({ type: CM_GUARDAR });
+        if(comentario.imagen.name){
+            dispatch({ type: CM_GUARDARWFILE });
+        } else {
+            dispatch({ type: CM_GUARDAR });
+        }
+        
         try {
             comentario.txt_comentario = Helper.htmlEncode(comentario.txt_comentario);
             
@@ -382,7 +410,9 @@ export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comenta
                 } else {
                     switch(res.type) {
                         case "progress":
-                            dispatch({ type: CM_PROGRESS, payload: res.progress });
+                            if(Object.keys(comentario.imagen).length > 0){
+                                dispatch({ type: CM_PROGRESS, payload: res.progress });
+                            }
                             break;
                         case "error":
                             dispatch({ type: PY_FAIL, payload: error })
