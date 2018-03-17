@@ -27,7 +27,8 @@ import {
     clearTareaSocket,
     editarTarea,
     editarMultiTarea,
-    guardarTarea
+    guardarTarea,
+    seleccionarTarea
 } from '../actions';
 
 const { network } = Config;
@@ -89,10 +90,21 @@ class Proyectos extends Component{
         this.props.changePage(`${network.basename}/proyectos`,proyectoActual[0].id_proyecto);
     }
 
+    onTareaClick(id_proyecto, id_tarea){
+        this.onProyectoSelect(id_proyecto)
+        this.props.seleccionarTarea(id_tarea, false, true);
+    }
+
     /**
      * Guardar un proyecto nuevo o editar uno
      */
     onGuardar(){
+
+        if(this.props.proyectoActual.txt_proyecto == ""){
+            swal("Alerta", "Debe asignarle un nombre al proyecto", "warning");
+            return;
+        }
+
         //Si el proyecto no es nuevo es !== de null
         if(this.props.proyectoActual.id_status !== null) {
             if(this.props.proyectoActual.id_status === 2 && this.props.proyectoActual.taskCount > this.props.proyectoActual.taskCountTerminadas){
@@ -335,6 +347,10 @@ class Proyectos extends Component{
 
         let proyectos = this.props.proyectos.filter(proyecto => proyecto.txt_proyecto.toLowerCase().includes(this.props.buscar));
 
+        if(this.props.buscar === ""){
+            proyectos = this.props.proyectos.filter(proyecto => proyecto.id_status === 1);
+        }
+
         if(this.state.filterNotif){
             proyectos = this.props.proyectos.filter(proyecto => {
                 for(let tarea of proyecto.tareas){
@@ -365,8 +381,10 @@ class Proyectos extends Component{
                                         backgroundColor: 'white',
                                         padding: '5px',
                                         borderBottom: '1px solid #F1F1F1', 
-                                        paddingTop: '0px'
+                                        paddingTop: '0px',
+                                        cursor: 'pointer'
                                     }}
+                                    onClick={() => this.onTareaClick(proyecto.id_proyecto, tarea.id_tarea)}
                                 >
                                     <div style={{ padding: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} >{tarea.txt_tarea}</div>
                                     <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '5px', height: '16px'}}>
@@ -400,8 +418,12 @@ class Proyectos extends Component{
         let tareas = [];
         let proyectos = this.props.proyectos.filter(proyecto => proyecto.txt_proyecto.toLowerCase().includes(this.props.buscar));
 
+        if(this.props.buscar === ""){
+            proyectos = this.props.proyectos.filter(proyecto => proyecto.id_status === 1);
+        }
+
         return proyectos.map(proyecto => {
-            return(<div key={proyecto.id_proyecto} style={{ width: '400px' }}>
+            return(<div key={proyecto.id_proyecto} style={{ width: '350px' }}>
             {
                 proyecto.tareas.map(tarea => {
 
@@ -429,6 +451,10 @@ class Proyectos extends Component{
                     }
 
                     const roleId = parseInt(tarea.role_id); 
+
+                    if(tarea.id_status == 2){
+                        return null
+                    }
 
                     if(imprimir){
                         return (
@@ -811,6 +837,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     editarTarea,
     editarMultiTarea,
     guardarTarea,
+    seleccionarTarea,
     changePage: (page, id) => push(`${page}/${id}`)
 }, dispatch)
 

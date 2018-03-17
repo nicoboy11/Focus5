@@ -31,6 +31,10 @@ class Tarea extends Component{
             return true;
         }
 
+        if(nextProps.loadingTarea !== this.props.loadingTarea){
+            return true;
+        }        
+
         return false;
     }
 
@@ -70,7 +74,7 @@ class Tarea extends Component{
     }
 
     renderLoading() {
-        if(this.props.loading === true && this.props.tareaSeleccionada.id_tarea === this.props.id_tarea){
+        if((this.props.loading || this.props.loadingTarea) === true && this.props.tareaSeleccionada.id_tarea === this.props.id_tarea){
             return <img style={{width: '24px', height: '24px'}} src={`${Config.network.server}/img/Spinner.gif`} />
         }
 

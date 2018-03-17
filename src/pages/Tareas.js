@@ -293,7 +293,7 @@ class Tareas extends Component{
             return;
         }
 
-        if(!this.props.gapi.auth2.getAuthInstance().isSignedIn.get()){
+        if(this.props.tareaActual.isCalendarSync === 1 && !this.props.gapi.auth2.getAuthInstance().isSignedIn.get()){
             swal("Alerta", "Debe conectarse a su cuenta de google para agregar al calendario. Revise la seccion de 'Ajustes'", "warning");
             return;
         }
@@ -827,6 +827,7 @@ class Tareas extends Component{
             const me = this;
             const tmpTarea = this.props.tareaActual;
             const tmpProyecto = this.props.proyectoActual;
+            const loadingTarea = this.props.loadingTarea;
 
             let tareas = this.props.tareas.filter(tarea => tarea.txt_tarea.toLowerCase().includes(this.props.buscar));
 
@@ -846,6 +847,7 @@ class Tareas extends Component{
                         <Tarea 
                             key={tarea.id_tarea}
                             id_tarea={tarea.id_tarea}
+                            loadingTarea={loadingTarea}
                             participantes={tarea.participantes} 
                             txt_tarea={tarea.txt_tarea}
                             fec_limite={tarea.fec_limite}

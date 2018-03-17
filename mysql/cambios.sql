@@ -668,6 +668,7 @@ BEGIN
 	DECLARE _id_tarea_detalle int;
     DECLARE _ir int;
     DECLARE _cal int;
+    DECLARE _st int;
     DECLARE _notificar_responsable varchar(500);
     DECLARE _notificar_participantes varchar(500);
 
@@ -693,6 +694,7 @@ BEGIN
     SELECT id_responsable INTO _ir FROM ctrl_tareas WHERE id_tarea = _id_tarea;
 	SELECT ifnull(max(id_tarea_detalle),1) + 1 INTO _id_tarea_detalle FROM ctrl_tareas_detalle;
     SELECT isCalendarSync INTO _cal FROM ctrl_tareas WHERE id_tarea = _id_tarea;
+    SELECT id_status INTO _st FROM ctrl_tareas WHERE id_tarea = _id_tarea;
     
     #Si cambió la fecha limite
     IF(_fec_limite <> _fl)
@@ -746,6 +748,24 @@ BEGIN
 		INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
 		VALUES(_id_tarea,_id_tarea_detalle,@comentario,'',NOW(),1,_id_tarea_detalle,_id_usuario,2);    
     END IF;
+    
+    IF(_id_status <> _st)
+    THEN
+		SET @comentario = concat(getUserName(_id_usuario), ' atendio la tarea' );
+        
+        if(_id_status = 2)
+        THEN
+			SET @comentario = concat(getUserName(_id_usuario), ' concluyo la tarea ' );
+        END IF;
+        
+        if(_id_status = 1)
+        THEN
+			SET @comentario = concat(getUserName(_id_usuario), ' reactivo la tarea ' );
+        END IF;        
+                
+		INSERT INTO ctrl_tareas_detalle(id_tarea,id_tarea_detalle,txt_comentario,imagen,fec_comentario,id_status,id_tarea_depende,id_usuario,id_tipo_comentario)
+		VALUES(_id_tarea,_id_tarea_detalle,@comentario,'',NOW(),1,_id_tarea_detalle,_id_usuario,2);    
+    END IF;    
     
     
     #-----------Falta validar los cambios para el log

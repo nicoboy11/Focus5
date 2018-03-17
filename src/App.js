@@ -332,7 +332,7 @@ class App extends Component {
         this.suscribir();
       }
 
-      if(this.props.proyectos.length > 0 && this.props.events.length == 0 && window.gapi.auth2.getAuthInstance().isSignedIn.get()){
+      if(this.props.proyectos.length > 0 && this.props.events.length == 0 && window.gapi.auth2 && window.gapi.auth2.getAuthInstance().isSignedIn.get()){
         this.listEvents();
       }
  

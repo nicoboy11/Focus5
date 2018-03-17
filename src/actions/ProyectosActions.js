@@ -279,7 +279,7 @@ export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva, cal
 
             Database.request('POST', ruta, tarea, 2, (error, response) => {
                 if(error || response.status > 299){
-                    dispatch({ type: PY_FAIL, payload: error })
+                    dispatch({ type: PY_FAIL, payload: 'Hubo un problema al guardar'})
                     errorLog(response,JSON.parse(localStorage.sessionData).id_usuario);
                 } else{
                     let tareaObj = Helper.clrHtml(response[0].tarea);
@@ -394,7 +394,7 @@ export const editarComentario = (txt_comentario) => {
 
 export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comentario, callback) => {
     return (dispatch) => {
-        if(comentario.imagen.name){
+        if(comentario.imagen.name){ //Solo para saber si es un archivo
             dispatch({ type: CM_GUARDARWFILE });
         } else {
             dispatch({ type: CM_GUARDAR });
@@ -410,7 +410,7 @@ export const guardarComentario = (listaProyectos, id_proyecto, id_tarea, comenta
                 } else {
                     switch(res.type) {
                         case "progress":
-                            if(Object.keys(comentario.imagen).length > 0){
+                            if(comentario.imagen.name){ //Solo para saber si es un archivo
                                 dispatch({ type: CM_PROGRESS, payload: res.progress });
                             }
                             break;

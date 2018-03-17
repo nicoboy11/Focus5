@@ -82,9 +82,9 @@ class Avatar extends Component{
         } else {
             srcImg = `${avatar}`;
         }
-    
+
         let classColor = "_FF6D00"
-        if(color !== null){
+        if(color && color !== null){
             classColor = color.replace("#","_");
         }
         
