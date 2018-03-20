@@ -74,6 +74,7 @@ export const guardarPerfil = (perfil) => {
     return(dispatch) => {
         dispatch({ type: PERFIL_SAVE });
         try {
+            perfil.nombreCorto = perfil.txt_usuario;
             Database.requestWithFile(`Perfil/${perfil.id_usuario}`, perfil, "usuarios", (error, res) => {
                 if(error || res.status > 299) {
                     console.log("%c" + res.message, "color:orange")
@@ -87,7 +88,9 @@ export const guardarPerfil = (perfil) => {
                             dispatch({ type: PERFIL_SAVE_FAILED, payload: error })
                             break;
                         case "complete":
-                            localStorage.sessionData = JSON.stringify(res.data[0]);
+                            let session = JSON.parse(localStorage.sessionData);
+                            session = { ...session, ...res.data[0] };
+                            localStorage.sessionData = JSON.stringify(session);
                             dispatch({ 
                                 type: PERFIL_SAVE_SUCCESS, 
                                 payload: res.data[0]

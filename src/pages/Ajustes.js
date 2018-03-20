@@ -76,7 +76,7 @@ class Ajustes extends Component{
         let image = "";
         
         if(this.props.archivo.url === ''){
-            image = sessionData.sn_imagen===1?
+            image = sessionData.sn_imagen==1?
                         `${network.server}usr/thumbs/small/${sessionData.id_usuario}.jpg?v=${new Date().getTime()}`:
                         sessionData.txt_abbr
         } else {
