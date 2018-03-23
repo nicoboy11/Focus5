@@ -47,7 +47,7 @@ const SCOPES = "https://www.googleapis.com/auth/calendar";
 const OneSignal = [];
 
 
-class App extends Component {
+export class App extends Component {
 
   constructor(props){
     super(props);
@@ -60,7 +60,10 @@ class App extends Component {
   }
 
   componentWillMount(){
-    this.props.cargarPerfil();
+    if(this.props.cargarPerfil !== undefined){
+      this.props.cargarPerfil();
+    }
+
     document.title = 'Focus';
     this.loadCalApi();
   }
@@ -308,7 +311,7 @@ class App extends Component {
         // Cargar web sockets
         if(this.ws === undefined && sessionData.id_usuario !== undefined) {
           //WebSocket
-          this.ws = new WebSocket(Config.network.wsServer);
+          this.ws = new WebSocket(network.wsServer);
           const me = this;
 
           this.ws.onmessage = (e) => {
@@ -319,6 +322,10 @@ class App extends Component {
                   const id_tarea = this.props.tareaActual.id_tarea;
               }
           };
+  
+          this.ws.onerror = (e) => {
+            console.log(e);
+          }
 
           this.ws.onopen = function(){
               this.send(`{"accion":"conectar",
@@ -383,9 +390,12 @@ class App extends Component {
     }
 
     let notificaciones = 0;
-    for(let proyecto of this.props.proyectos){
-      for(let tarea of proyecto.tareas){
-        notificaciones += tarea.notificaciones;
+
+    if(this.props.proyectos){
+      for(let proyecto of this.props.proyectos){
+        for(let tarea of proyecto.tareas){
+          notificaciones += tarea.notificaciones;
+        }
       }
     }
       

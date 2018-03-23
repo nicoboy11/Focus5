@@ -18,6 +18,7 @@ class CheckList extends Component{
     }
 
     onKeyPress(e, index){
+        e.stopPropagation();
         const code = (e.keyCode ? e.keyCode : e.which);
         if(code === 13 || code === 9){
             this.props.onChange(this.props.data[index],'editar');
@@ -72,6 +73,7 @@ class CheckList extends Component{
                     <span className="checkmark"></span>
                     <i  onClick={(e) => {
                             e.stopPropagation();
+                            e.preventDefault();
                             //let newData = [...data];
                             //newData.splice(index,1);
                             this.props.onChange({ idSubtarea: item[keyProp] }, 'borrar') 

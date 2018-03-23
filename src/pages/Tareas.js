@@ -159,11 +159,13 @@ class Tareas extends Component{
                 this.props.tareaActual.subtareas !== undefined &&
                 prevProps.tareaActual.subtareas !== undefined &&
                 CheckList.refs.newCheck !== undefined && 
+                CheckList.refs.newCheck.refs.newTaskDiv !== undefined &&
                 JSON.stringify(prevProps.tareaActual) !== JSON.stringify(this.props.tareaActual)){
                     CheckList.refs.newCheck.refs.newTaskDiv.click();
             }
         } catch(err){
             this.setState({ tipoDetalle: 0 });
+            console.log(err);
         }
 
     }
@@ -243,8 +245,8 @@ class Tareas extends Component{
         this.props.marcarLeida(this.props.proyectos,this.props.proyectoActual.id_proyecto, id_tarea,sessionData.id_usuario);
 
         let y = e.clientY;
-        if(this.refs.listaTareas.scrollHeight - e.clientY < 250){
-            y = e.clientY - 80;
+        if(this.refs.listaTareas.clientHeight - e.clientY < 120){
+            y = e.clientY - 120;
         }
 
         //Mostrar menú
