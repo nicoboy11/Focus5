@@ -19,7 +19,7 @@ class UserList extends Component{
             let overlayVal = i*12;
 
             if( i > limit){
-                return <div key={`usrlst${i}` }></div>;
+                return null;
             }
 
             if (i === limit && ((participantes.length - limit + 1) > 1)) {

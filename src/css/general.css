@@ -616,7 +616,7 @@ ul{
 
 /*-- COLORS -----------------------------------------*/
     .mainColor {
-        color: #1ABC9C !important;    
+        color: #0ACB91 !important;    
     }
 
     .fadeColor {
@@ -644,7 +644,7 @@ ul{
     }
 
     .clickableColor {
-        color: #2196F3
+        color: #007aff
     }
 
     .divideLeft{
@@ -986,3 +986,44 @@ ul{
             background: rgba(100,100,100,0.61); /* Some darker color when you click it */
             -webkit-border-radius: 100px;
         }
+
+/*
+.test {
+    clickable: #007aff;
+    header: #006BAB;
+    transparent: rgba(0,0,0,0);
+    silver: #F7F7F7;
+    steel: #CCCCCC;
+    main: #0090BF;
+    mainDark: #006BAB
+    contrast: #0ACB91;
+    background: #F6F8FA;
+    snow: white;
+    fade: #a2abb2;
+    fadeLight: #ced3d9;
+    error: #e74c3c;
+    ok: #0ACB91;
+    dark: #000000;
+
+    background: #1F0808;
+    clear: rgba(0,0,0,0);
+    facebook: #3b5998;
+    error: rgba(200, 0, 0, 0.8);
+    ricePaper: rgba(255,255,255, 0.75);
+    frost: #D8D8D8;
+    cloud: rgba(200,200,200, 0.35);
+    windowTint: rgba(0, 0, 0, 0.4);
+    panther: #161616;
+    charcoal: #595959;
+    coal: #2d2d2d;
+    bloodOrange: #fb5f26;
+    
+    ember: rgba(164, 0, 48, 0.5);
+    fire: #e73536;
+    drawer: rgba(30, 30, 29, 0.95);
+    eggplant: #251a34;
+    border: #483F53;
+    banner: #5F3E63;
+    text: #E0D7E5;
+    dark: #000000;
+}        */
