@@ -422,10 +422,28 @@ class Proyectos extends Component{
             proyectos = this.props.proyectos.filter(proyecto => proyecto.id_status === 1);
         }
 
-        return proyectos.map(proyecto => {
-            return(<div key={proyecto.id_proyecto} style={{ width: '350px' }}>
-            {
-                proyecto.tareas.map(tarea => {
+        for(let proyecto of proyectos){
+            tareas.push(...proyecto.tareas);
+        }
+
+        tareas.sort((a,b) => {
+            let fec1 = Helper.toDateM(a.fec_limite);
+            let fec2 = Helper.toDateM(b.fec_limite);
+
+            if(fec1 < fec2){
+                return -1;
+            }
+
+            if (fec1 > fec2){
+                return 1;
+            }
+
+            return 0;
+
+        });
+
+
+        return <div style={{ width: '350px' }}>{tareas.map(tarea => {
 
                     let imprimir = false;
 
@@ -463,7 +481,7 @@ class Proyectos extends Component{
                                     onDragOver={(cuando === 'vencidas')?undefined:this.onDragOver.bind(this)}
                                     key={tarea.id_tarea} 
                                     data-id={tarea.id_tarea}
-                                    data-idproyecto={proyecto.id_proyecto}
+                                    data-idproyecto={tarea.id_proyecto}
                                     className='grabbable'
                                     onDragStart={this.onDragStart.bind(this)}
                                     style={{
@@ -477,7 +495,7 @@ class Proyectos extends Component{
                             >
                                 <div style={{ paddingLeft: '5px', paddingTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} >{tarea.txt_tarea}</div>
                                 <div style={{ paddingLeft: '5px', paddingBottom: '5px' }} className="chatContentStatus fadeColor">
-                                    {proyecto.txt_proyecto}
+                                    {tarea.txt_proyecto}
                                     {(roleId !== 1 && roleId !== 2)?<i className="material-icons fadeColor" style={{ fontSize: '18px' }}>lock</i>:null}
                                     {this.renderStatusActividad(tarea.id_status)}
                                 </div>
@@ -491,9 +509,7 @@ class Proyectos extends Component{
                         )
                     }
                 })
-            }
-            </div>)
-        });
+            }</div>;
 
     }
     /**
