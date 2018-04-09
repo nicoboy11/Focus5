@@ -267,7 +267,7 @@
 							'"participantes":',sc.participantes,',',
                             '"subtareas":',sc.subtareas,',',
 							'"topComments":',sc.topComments,'',
-						'}') ORDER BY SC.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
+						'}') ORDER BY sc.notificaciones desc, FIELD(sc.id_status,1,3,2) asc, sc.fec_limite desc separator ','),
 					  ']') INTO _tareas
         FROM (
         SELECT *
@@ -282,7 +282,7 @@
                     IFNULL(ct.isCalendarSync,0) as isCalendarSync,
 					ct.id_status,
 					IFNULL(ct.avance,0) as avance,
-					ct.priority_id,
+					ifnull(ct.priority_id, 1) as priority_id,
 					getCommentCount(ct.id_tarea) as commentCount,
 					case when ct.id_usuario = _id_usuario then 1 else bvt.role_id end as role_id,
 					FN_ULTIMO_COMMENT(bvt.id_tarea, IFNULL(bvt.fec_actualiza, '2000-01-01')) as notificaciones,                        
@@ -302,7 +302,7 @@
             ) as wtf,(SELECT @i:=0) foo
             WHERE (@i:=@i+1) between ifnull(_start,0) and ifnull(_start,0)+15
             ORDER BY FIELD(wtf.id_status,1,3,2) asc, ifnull(wtf.fec_limite,'1960-01-01') desc
-		) AS SC;
+		) AS sc;
 		
 		RETURN ifnull(_tareas,'[]');
 
@@ -556,7 +556,6 @@
 	END$$    
 
 
-
 DELIMITER $$
 DROP PROCEDURE IF EXISTS getContenido$$
 CREATE PROCEDURE getContenido(_id_usuario int,_id_proyecto int, _status_tareas int, _status_proyectos int)
@@ -565,7 +564,12 @@ BEGIN
 	# Status NULL: trae todas las tareas
 	# Status 1: trae tareas Activas
 	# Status 2: trae tareas Terminadas
-	SELECT 	*,
+	SELECT 	SC.id_proyecto,
+			SC.txt_proyecto,
+            SC.id_status,
+            SC.fec_inicio,
+            SC.fec_limite,
+            SC.id_usuario,
 			getTaskCount(id_proyecto, 1, _id_usuario) + getTaskCount(id_proyecto, 2, _id_usuario) + getTaskCount(id_proyecto, 3, _id_usuario) as taskCount,
             getTaskCount(id_proyecto, 2, _id_usuario) + getTaskCount(id_proyecto, 3, _id_usuario) as taskCountTerminadas,
 			getJsonTarea(id_proyecto,NULL,_id_usuario,_status_tareas,null) as tareas
@@ -810,16 +814,20 @@ BEGIN
 		WHERE id_tarea = _id_tarea and role_id = 3;        
 		
         #Borrar todos los participantes
-		DELETE FROM bit_view_tarea
-		WHERE id_tarea = _id_tarea and role_id = 3;
+		#DELETE FROM bit_view_tarea
+		#WHERE id_tarea = _id_tarea and role_id = 3;
 
 		#reinsertar
-		INSERT INTO bit_view_tarea
+		INSERT IGNORE INTO bit_view_tarea
 		SELECT _id_tarea as id_tarea, id_usuario, NULL as fec_actualiza, 3 as role_id 
 		FROM cat_usuario 
 		WHERE FIND_IN_SET(id_usuario, _participantes);
         
-        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL,NULL) as tarea, _notificar_responsable as responsable_notif, _notificar_participantes as participantes_old;
+        UPDATE bit_view_tarea
+        SET fec_actualiza = NOW()
+        WHERE id_tarea = _id_tarea and id_usuario = _id_usuario;
+        
+        SELECT getJsonTarea(NULL,_id_tarea,_id_usuario,NULL,NULL) as tarea, _notificar_responsable as responsable_notif, _notificar_participantes as participantes_old, _st as id_status_old;
         
 	COMMIT;       
 	
