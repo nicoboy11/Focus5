@@ -25,7 +25,7 @@ import {
   initGoogle, 
   googleStatus,
   setCalEvents,
-  guardarTarea
+  guardarTareaCalendar
 } from './actions'
 import { bindActionCreators } from 'redux';
 import { push } from 'react-router-redux'
@@ -193,7 +193,7 @@ export class App extends Component {
                           tareaNueva.fec_limiteCal = moment(tareaCal[0].fec_limiteCal).format('YYYY-MM-DD HH:mm');
                           tareaNueva.txt_tarea = tareaCal[0].txt_tarea;
 
-                          me.props.guardarTarea(me.props.proyectos, tareaNueva.id_proyecto, tareaNueva);
+                          me.props.guardarTareaCalendar(me.props.proyectos, tareaNueva.id_proyecto, tareaNueva);
 
                         } else if(duration.asMinutes() < 0) {
                           tareaNueva.eventId = tareaCal[0].eventId;
@@ -202,7 +202,7 @@ export class App extends Component {
                     } else {
                         if(tarea.isCalendarSync == 1){
                           tareaNueva.isCalendarSync = 0;
-                          me.props.guardarTarea(me.props.proyectos, tareaNueva.id_proyecto, tareaNueva);
+                          me.props.guardarTareaCalendar(me.props.proyectos, tareaNueva.id_proyecto, tareaNueva);
                         }
                     }
                 }
@@ -455,7 +455,7 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   initGoogle,
   googleStatus,
   setCalEvents,
-  guardarTarea,
+  guardarTareaCalendar,
   changePage: (location) => push(location)
 }, dispatch)
 

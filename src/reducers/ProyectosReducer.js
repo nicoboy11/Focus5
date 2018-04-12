@@ -9,7 +9,7 @@ import {
     TR_LEIDA,   CM_FILE_CANCEL, TR_EDIT,
     PY_MORE_SUCCESS, BSR_EDIT,  TR_SUCCESS_SUB,
     FLTR_NTF,   REFS, TR_SUCCESS_SOCKET,
-    PY_SUCCESS_INACT, CM_GUARDARWFILE
+    PY_SUCCESS_INACT, CM_GUARDARWFILE, TR_CALENDAR_SUCCESS
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -65,12 +65,14 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, error: '', fltrNtf: false, tareaNuevaTxt: action.payload }
         case TR_EDIT:
             return { ...state, error: '', fltrNtf: false, loadingChecklist: true }
+        case TR_CALENDAR_SUCCESS:
+            return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, loadingTarea: false, loadingChecklist: false, loading: false }
         case TR_SUCCESS:
             let tareaActual = {};
             if(action.payload.tareaActual.selected){
                 tareaActual = { tareaActual: action.payload.tareaActual }
             }
-            return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, ...tareaActual, tmpProyecto: action.payload.tmpProyecto, loadingTarea: false, loadingChecklist: false, loading: false/*, tmpProyecto: { tareas: []}*/ }
+            return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, ...tareaActual, tmpProyecto: action.payload.tmpProyecto, loadingTarea: false, loadingChecklist: false, loading: false }
         case TR_SUCCESS_SOCKET:
             return { ...state, proyectos: action.payload.proyectos }
         case TR_SUCCESS_SUB:

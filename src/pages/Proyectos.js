@@ -446,6 +446,7 @@ class Proyectos extends Component{
         return <div style={{ width: '350px' }}>{tareas.map(tarea => {
 
                     let imprimir = false;
+                    let txt_proyecto = proyectos.filter(proyecto => proyecto.id_proyecto == tarea.id_proyecto)[0].txt_proyecto;
 
                     if(Helper.toDateM(tarea.fec_limite) !== null){
                         switch(cuando){
@@ -495,7 +496,7 @@ class Proyectos extends Component{
                             >
                                 <div style={{ paddingLeft: '5px', paddingTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} >{tarea.txt_tarea}</div>
                                 <div style={{ paddingLeft: '5px', paddingBottom: '5px' }} className="chatContentStatus fadeColor">
-                                    {tarea.txt_proyecto}
+                                    {txt_proyecto}
                                     {(roleId !== 1 && roleId !== 2)?<i className="material-icons fadeColor" style={{ fontSize: '18px' }}>lock</i>:null}
                                     {this.renderStatusActividad(tarea.id_status)}
                                 </div>

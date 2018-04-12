@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ChatItem, Input, Avatar } from './';
+import { ChatItem, Input, Avatar, Modal } from './';
 import { Config, Helper } from '../configuracion';
 
 const { network } = Config;
@@ -21,6 +21,15 @@ class Chat extends Component{
         scrollTop: 0,
         idCampo: 'id'
     }
+
+    constructor(props){
+        super(props);
+        this.state = {
+            imgPreview: false,
+            fileType: '',
+            fileName: ''
+        }
+    }    
 
     /**
      * Cuando seleccionan la tarea mando llamar el scroll
@@ -79,6 +88,7 @@ class Chat extends Component{
                 reader.onload = function (evt) {
 
                     me.props.fileChange(files[0], evt.target.result);
+                    me.setState({ imgPreview: true, fileName: filename, fileType: filetype.replace('application/','') })
 
                 }
 
@@ -118,6 +128,7 @@ class Chat extends Component{
 
         return <div style={styles.topLog}>{`Tarea creada el ${Helper.prettyfyDate(this.props.fec_creacion).date}`}</div>;
     }
+
     /**
      * Renderizar los comentarios
      */    
@@ -227,14 +238,35 @@ class Chat extends Component{
                 </div>
                 <div className="iconContainer">
                     <div style={{height:'48px', width:'48px'}}>
-                        {(this.props.url !== null)?<img style={{height:'100%', border: '1px dashed gray'}} src={this.props.url} />:null}
+                        <Modal 
+                            type='FORM'
+                            isVisible={this.state.imgPreview}
+                            titulo='Enviar'
+                            //style: {},
+                            onCerrar={() => {
+                                this.setState({ imgPreview: false, fileType: '', fileName: '' });
+                                this.refs.fileInput.value = '';
+                            }}
+                            onGuardar={() => {
+                                this.setState({ imgPreview: false, fileType: '', fileName: '' })
+                                this.enviarComment(); 
+                            }}
+                        >
+                            {(/(gif|jpg|jpeg|tiff|png)/i).test(this.state.fileType) ?
+                            <img style={{height:'100%', width:'100%', border: '1px dashed gray'}} src={this.props.url} /> :
+                            (/(vnd|zip|rar|exe|htm|html)/i).test(this.state.fileType) ?
+                                <div style={{ fontSize: '40px', display:'flex', alignItems: 'center'}}><i style={{ fontSize: '40px'}} className="material-icons fadeColor">attach_file</i>{this.state.fileName}</div>:
+                                <embed style={{ width: '100%', minHeight: '400px' }}  src={this.props.url} /> 
+
+                            }
+                        </Modal>                        
                     </div>
                 </div>
                 <div className="iconContainer">
                     <label id="lblUp" htmlFor="up_file_even" style={{ cursor:"pointer" }}>
                         <i className="material-icons fadeColor">attach_file</i>
                     </label>
-                    <input onChange={this.mostrarImagen.bind(this)} type="file" id="up_file_even" name="up_file_even" style={{ display:'none' }} />
+                    <input ref={'fileInput'} onChange={this.mostrarImagen.bind(this)} type="file" id="up_file_even" name="up_file_even" style={{ display:'none' }} />
                 </div>
                 <div onClick={() => this.enviarComment()} className="iconContainer" style={{cursor:'pointer'}}>
                     <i className="material-icons mainColor">send</i>
