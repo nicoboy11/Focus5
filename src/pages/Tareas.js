@@ -295,7 +295,7 @@ class Tareas extends Component{
             return;
         }
 
-        if(this.props.tareaActual.isCalendarSync === 1 && !this.props.gapi.auth2.getAuthInstance().isSignedIn.get()){
+        if(this.props.tareaActual.isCalendarSync === 1 && (this.props.gapi === null || !this.props.gapi.auth2.getAuthInstance().isSignedIn.get())){
             swal("Alerta", "Debe conectarse a su cuenta de google para agregar al calendario. Revise la seccion de 'Ajustes'", "warning");
             return;
         }
@@ -851,6 +851,7 @@ class Tareas extends Component{
                             id_tarea={tarea.id_tarea}
                             loadingTarea={loadingTarea}
                             participantes={tarea.participantes} 
+                            subtareas={tarea.subtareas}
                             txt_tarea={tarea.txt_tarea}
                             fec_limite={tarea.fec_limite}
                             notificaciones={tarea.notificaciones}

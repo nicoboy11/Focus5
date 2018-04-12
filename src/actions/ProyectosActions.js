@@ -8,7 +8,7 @@ import {
     CM_FILE_CHANGE, CM_FILE_CANCEL, TR_CANCEL,    
     TR_SUCCESS,     CM_MORE,        TR_LEIDA,
     CK_SUCCESS,     PY_MORE_SUCCESS,TR_SUCCESS_SUB, 
-    REFS,           TR_SUCCESS_SOCKET,PY_SUCCESS_INACT, CM_GUARDARWFILE
+    REFS,           TR_SUCCESS_SOCKET,PY_SUCCESS_INACT, CM_GUARDARWFILE, TR_CALENDAR_SUCCESS
 
 } from './types';
 
@@ -260,6 +260,60 @@ export const actualizarGente = ({ rolId, persona, tmpProyecto, tmpTarea }) => {
     };
 }
 
+export const guardarTareaCalendar = (listaProyectos, id_proyecto, tmpTarea, snNueva, callback = () =>{}) => {
+    
+        return (dispatch) => {
+            dispatch({ type: TR_GUARDAR });
+            try {
+                let tarea = JSON.parse(JSON.stringify(tmpTarea));
+                //El usuario que edita
+                tarea.id_usuario = JSON.parse(localStorage.sessionData).id_usuario;
+    
+                //Obtengo array de participantes
+                tarea.participantes = generarArrayParticipantes(tarea);
+    
+                tarea.txt_tarea = Helper.htmlEncode(tarea.txt_tarea);
+    
+                //Selecciono la ruta
+                const ruta = snNueva?'CrearTarea':`EditarTarea/${tarea.id_tarea}`;
+    
+                Database.request('POST', ruta, tarea, 2, (error, response) => {
+                    if(error || response.status > 299){
+                        dispatch({ type: PY_FAIL, payload: 'Hubo un problema al guardar'})
+                        errorLog(response,JSON.parse(localStorage.sessionData).id_usuario);
+                    } else{
+                        let tareaObj = Helper.clrHtml(response[0].tarea);
+                        let tareaEditada = tareaObj ? JSON.parse(tareaObj)[0] : [];  
+    
+                        for(const usuario of tareaEditada.participantes) {
+                            usuario.txt_usuario = Helper.decode_utf8(Helper.htmlPaso(usuario.txt_usuario));
+                        }
+    
+                        tareaEditada.txt_tarea = Helper.decode_utf8(Helper.htmlPaso(tareaEditada.txt_tarea));
+    
+                        if(snNueva){
+                            tareaEditada.nuevo = true;
+                        }
+    
+                        const proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0];
+                        //Agregar a proyectos principales
+                        const proyectos = pyMerge(listaProyectos, proyectoActual, tareaEditada);
+                        callback(tareaEditada);
+                        dispatch({ 
+                            type: TR_CALENDAR_SUCCESS,  
+                            payload: { 
+                                proyectos
+                            }           
+                        })
+                    }
+                });          
+            }
+            catch(err) {
+                dispatch({ type: PY_FAIL, payload: err })
+            }                 
+        }    
+    }
+
 export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva, callback = () =>{}) => {
 
     return (dispatch) => {
@@ -300,7 +354,7 @@ export const guardarTarea = (listaProyectos, id_proyecto, tmpTarea, snNueva, cal
                     const proyectos = pyMerge(listaProyectos, proyectoActual, tareaEditada);
                     callback(tareaEditada);
                     dispatch({ 
-                        type: TR_SUCCESS, 
+                        type: TR_SUCCESS,  
                         payload: { 
                             proyectos, 
                             tmpProyecto: proyectos.filter(proyecto => proyecto.id_proyecto === id_proyecto)[0], 

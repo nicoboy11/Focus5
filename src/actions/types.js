@@ -103,6 +103,7 @@ export const TR_LEIDA = 'tr_leida';
 export const TR_NEW_CHK = 'tr_new_chk';
 export const TR_SUCCESS_SUB = "tr_success_sub";
 export const TR_SUCCESS_SOCKET = 'tr_success_socket';
+export const TR_CALENDAR_SUCCESS = 'tr_calendar_success';
 
 export const CM_EDIT = 'cm_edit';
 export const CM_GUARDAR = 'cm_guardar';

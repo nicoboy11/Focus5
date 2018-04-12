@@ -87,6 +87,32 @@ class Tarea extends Component{
         }
     }
 
+    renderSubtareaResumen(){
+        if(this.props.subtareas.length > 0){
+
+            let terminadas = 0;
+            for(let subtarea of this.props.subtareas){
+                if(subtarea.id_status == 2){
+                    terminadas++;
+                }
+            }
+
+            return (
+                <div 
+                    className='fadeColor'
+                    style={{
+                        margin: '0px', 
+                        marginLeft: '5px', 
+                        marginRight: '5px', 
+                        display:'flex', 
+                        alignItems: 'center',
+                        fontSize: '14px'
+                    }}>
+                        <i title="Subtareas" style={{ fontSize: '16px' }} className="material-icons fadeColor">check_box</i>{`(${terminadas}/${this.props.subtareas.length})`}</div>
+            );
+        }
+    }
+
     render(){
         const tareaActual = this.props.tareas.filter(tarea => tarea.id_tarea === this.props.id_tarea)[0];
         
@@ -121,6 +147,7 @@ class Tarea extends Component{
                             {this.renderCalendar()}
                             {this.renderNotificaciones()}
                             {this.renderLoading()}
+                            {this.renderSubtareaResumen()}
                             <i onClick={(e) => this.onMenuClick(e)} className="material-icons fadeColor">more_vert</i>
                         </div>
                         <div className="chatContentBottom">
