@@ -66,6 +66,16 @@ export class App extends Component {
 
     document.title = 'Focus';
     this.loadCalApi();
+
+    window.addEventListener('focus', function(event){
+      console.log('focused');
+    });
+
+    window.addEventListener('blur', function(event){
+      setTimeout(function(){
+        console.log('cargar todo de nuevo');
+      },3600000)
+    })    
   }
 
   /** CALENDARIO

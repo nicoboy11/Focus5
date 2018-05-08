@@ -15,7 +15,7 @@ Config.regex = {
 Config.colors = {
     mainDark: '#7B8092',
     secondText: '#D4D4DB',
-    main: '#1abc9c',
+    main: '#1ACDFF',
     error: '#e74c3c',
     background: '#F7F9FB',
     clickable: '#3498db',
