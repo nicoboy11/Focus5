@@ -6,7 +6,10 @@ import {
     USUARIOS_SUCCESS,
     USUARIOS_ACTUAL_LIMPIAR,
     USR_EDIT,
-    USR_SELECT
+    USR_SELECT,
+    INVITE,
+    INVITE_FAILED,
+    INVITE_SUCCESS
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -36,6 +39,12 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, usuarios: action.payload }     
         case USR_SELECT:
             return { ...state, usuarioActual: action.payload }
+        case INVITE:
+            return { ...state, loading: true }
+        case INVITE_SUCCESS: 
+            return { ...state, loading: false }
+        case INVITE_FAILED: 
+            return { ...state, loading: false }
         default:
             return state;
     }

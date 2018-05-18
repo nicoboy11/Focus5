@@ -82,7 +82,7 @@ class MenuTop extends Component{
 
                         }}
                     >
-                        <i className="material-icons fadeColor barBurron">print</i>
+                        <i className="material-icons fadeColor barButton">print</i>
                     </div>
                     {/*<div style={styles.buttonStyle} id="searchBar">
                         <i className="material-icons fadeColor barButton">search</i>
