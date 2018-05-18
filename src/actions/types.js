@@ -132,3 +132,7 @@ export const GOOGLE_LOGOUT = 'google_logout';
 export const GOOGLE_INIT = 'google_init';
 export const GOOGLE_STATUS = 'google_status';
 export const GOOGLE_EVENTS = 'google_events';
+
+export const INVITE = 'invite';
+export const INVITE_SUCCESS = 'invite_success';
+export const INVITE_FAILED = 'invite_failed';

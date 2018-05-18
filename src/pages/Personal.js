@@ -13,7 +13,9 @@ class Personal extends Component{
     state = {
         tipoLista: 0,
         verEdit: false,
-        mostrarModal: false
+        mostrarModal: false,
+        mostrarInvitacion: false,
+        emailInvitacion: ''
     }
 
     componentWillMount(){
@@ -59,87 +61,88 @@ class Personal extends Component{
 
             usuarios = usuarios.filter(usuario => usuario.txt_usuario.toLowerCase().includes(this.props.buscar) || usuario.txt_login.toLowerCase().includes(this.props.buscar) )
 
-                return usuarios.map(usuario => {
-                    const image = usuario.sn_imagen==1?
-                                    `${network.server}usr/thumbs/small/${usuario.id_usuario}.jpg?v=${new Date().getTime().toString().substr(0,7)}`:
-                                    usuario.txt_abbr
-                    if(this.state.tipoLista === 0){
-                        return (
-                            <div 
-                                key={usuario.id_usuario} 
-                                className="userItem" 
-                                style={{ display: 'flex', minWidth: '150px', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', position: 'relative'}}
-                                onMouseOver={() => this.setState({ verEdit: usuario.id_usuario })}
-                                onMouseLeave={() => this.setState({ verEdit: null })}
-                                onClick={(e) =>{ 
-                                            e.preventDefault; 
-                                            if(red){
-                                                this.props.seleccionarUsuario(usuario);
-                                                this.setState({ mostrarModal: true })
-                                            }
-                                        }}                                
-                            >
-                                <Avatar 
-                                    avatar={image}
-                                    size="veryBig"
-                                    color={usuario.color}
-                                />
-                                <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{usuario.txt_usuario}</div>
-                                <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#A2ABB2', fontSize: '10px'}}>{usuario.txt_email}</div>
-                                {(this.state.verEdit === usuario.id_usuario && red=== true)?<i className="material-icons" style={{ fontSize: '18px', position: 'absolute', top: '5px', right: '5px' }}>edit</i>:null}
-                            </div>
-                        );
-                    }
+            return usuarios.map(usuario => {
+                const image = usuario.sn_imagen==1?
+                                `${network.server}usr/thumbs/small/${usuario.id_usuario}.jpg?v=${new Date().getTime().toString().substr(0,7)}`:
+                                usuario.txt_abbr
 
-                    const nivelStyle = { marginLeft: `${usuario.nivel * 40}px` }
-                    const editStyle = { right: `10px` }
-                    const icon = (usuario[isOpen])?'keyboard_arrow_down':'chevron_right';
-
-                    if(usuario[isVisible]){
-                        return (
-                            <div 
-                                key={usuario.id_usuario} 
-                                className='userItem'
-                                style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'flex-start',
-                                    padding: '5px',
-                                    width:'600px',
-                                    position: 'relative',
-                                    ...nivelStyle
-                                }}
-                                onClick={() => this.renderChildren(usuarios,usuario,red)}
-                                onMouseOver={() => this.setState({ verEdit: usuario.id_usuario })}
-                                onMouseLeave={() => this.setState({ verEdit: null })}
-                            >
-                                {(usuario.sn_espadre ===1)?<i className="material-icons">{icon}</i>:null}
-                                <Avatar 
-                                    avatar={image}
-                                    size="medium"
-                                    color={usuario.color}
-                                />
-                                <div style={{ marginLeft: '10px' }}>{usuario.txt_usuario}</div>
-                                {(this.state.verEdit === usuario.id_usuario && red===true)?
-                                    <i 
-                                        style={{ ...editStyle, position: 'absolute', borderRadius: '12px' }} 
-                                        className="material-icons clickableColor"
-                                        onClick={(e) =>{ 
-                                            e.preventDefault; 
+                if(this.state.tipoLista === 0){
+                    return (
+                        <div 
+                            key={usuario.id_usuario} 
+                            className="userItem" 
+                            style={{ display: 'flex', minWidth: '150px', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', position: 'relative'}}
+                            onMouseOver={() => this.setState({ verEdit: usuario.id_usuario })}
+                            onMouseLeave={() => this.setState({ verEdit: null })}
+                            onClick={(e) =>{ 
+                                        e.preventDefault; 
+                                        if(red){
                                             this.props.seleccionarUsuario(usuario);
                                             this.setState({ mostrarModal: true })
-                                        }}
-                                    >
-                                        edit
-                                    </i>:null}
-                                
-                            </div>
-                        );
-                    }
+                                        }
+                                    }}                                
+                        >
+                            <Avatar 
+                                avatar={image}
+                                size="veryBig"
+                                color={usuario.color}
+                            />
+                            <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{usuario.txt_usuario}</div>
+                            <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#A2ABB2', fontSize: '10px'}}>{usuario.txt_email}</div>
+                            {(this.state.verEdit === usuario.id_usuario && red=== true)?<i className="material-icons" style={{ fontSize: '18px', position: 'absolute', top: '5px', right: '5px' }}>edit</i>:null}
+                        </div>
+                    );
+                }
 
-                    return null;
+                const nivelStyle = { marginLeft: `${usuario.nivel * 40}px` }
+                const editStyle = { right: `10px` }
+                const icon = (usuario[isOpen])?'keyboard_arrow_down':'chevron_right';
 
-                });
+                if(usuario[isVisible]){
+                    return (
+                        <div 
+                            key={usuario.id_usuario} 
+                            className='userItem'
+                            style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'flex-start',
+                                padding: '5px',
+                                width:'600px',
+                                position: 'relative',
+                                ...nivelStyle
+                            }}
+                            onClick={() => this.renderChildren(usuarios,usuario,red)}
+                            onMouseOver={() => this.setState({ verEdit: usuario.id_usuario })}
+                            onMouseLeave={() => this.setState({ verEdit: null })}
+                        >
+                            {(usuario.sn_espadre ===1)?<i className="material-icons">{icon}</i>:null}
+                            <Avatar 
+                                avatar={image}
+                                size="medium"
+                                color={usuario.color}
+                            />
+                            <div style={{ marginLeft: '10px' }}>{usuario.txt_usuario}</div>
+                            {(this.state.verEdit === usuario.id_usuario && red===true)?
+                                <i 
+                                    style={{ ...editStyle, position: 'absolute', borderRadius: '12px' }} 
+                                    className="material-icons clickableColor"
+                                    onClick={(e) =>{ 
+                                        e.preventDefault; 
+                                        this.props.seleccionarUsuario(usuario);
+                                        this.setState({ mostrarModal: true })
+                                    }}
+                                >
+                                    edit
+                                </i>:null}
+                            
+                        </div>
+                    );
+                }
+
+                return null;
+
+            });
             
 
 
@@ -155,6 +158,31 @@ class Personal extends Component{
     onGuardar(){
         this.props.guardarUsuario(this.props.usuarios.usuarios, this.props.usuarioActual);       
         this.setState({ mostrarModal: false }) 
+    }
+
+    renderInvitacion(){
+        return (
+            <Modal 
+                type='FORM' 
+                isVisible={this.state.mostrarInvitacion} 
+                titulo='Invitar usuario'
+                loading={this.props.loading}
+                onGuardar={() => { this.onGuardar(); }}
+                onCerrar={() => { 
+                    this.setState({ mostrarInvitacion: false }); 
+                }}
+            >
+                <FormRow titulo='EMAIL'>                    
+                    <Input 
+                        type="EMAIL"
+                        autoFocus={true}
+                        placeholder='Email del invitado' 
+                        value={this.state.emailInvitacion}
+                        onChangeText={value => this.setState({ emailInvitacion: value })}
+                    />                 
+                </FormRow>                           
+            </Modal>
+        );        
     }
 
     renderForma(){
@@ -227,9 +255,24 @@ class Personal extends Component{
     renderListaUsuarios(){
         if(this.state.tipoLista === 0){
             return (
-                <div>
+                <div style={{ paddingLeft: '15px' }}>
                     <h2 style={{ display: 'flex', margin: '20px'}}>Mi Red</h2>
                     <div style={{ display: 'flex', alignItems: 'center', flexFlow: 'row wrap', minHeight: '100px'  }}>
+                        <div 
+                            key='newUser' 
+                            className="userItem" 
+                            style={{ display: 'flex', minWidth: '150px', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', position: 'relative', border: "1px dashed #C1C1C1", borderRadius: '5px' }}
+                            onMouseOver={() => {}}
+                            onMouseLeave={() => {}}
+                            onClick={(e) =>{ 
+                                this.setState({ mostrarInvitacion: true })
+                            }}
+                        >
+                            <div className="w3-circle newItemBig">
+                                <i className="material-icons barButton">add</i>
+                            </div>
+                            <div style={{ width: '150px', textAlign: 'center' }}>Invitar Usuario</div>
+                        </div>
                         {this.renderUsuarios(true)}
                     </div>
                     <h2 style={{ margin: '20px', display: 'flex' }}>Organización</h2>
@@ -279,10 +322,21 @@ class Personal extends Component{
                     />    
                 {this.renderListaUsuarios()}
                 {this.renderForma()}
+                {this.renderInvitacion()}
             </div>
         );        
     }
 
+}
+
+const styles = {
+    buttonStyle: {
+        display: 'flex',
+        alignItems: 'center',
+        cursor: 'pointer',
+        flex: '1',
+        justifyContent: 'center'
+    }
 }
 
 const mapStateToProps = (state) => {

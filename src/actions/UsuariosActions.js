@@ -5,7 +5,10 @@ import {
     USUARIOS_SUCCESS,
     USR_EDIT,
     USR_SELECT,
-    USR_GUARDAR
+    USR_GUARDAR,
+    INVITE,
+    INVITE_FAILED,
+    INVITE_SUCCESS
 } from './types';
 
 /**
@@ -126,6 +129,20 @@ export const guardarUsuario = (listaUsuarios, usuario) => {
                 listaUsuariosSuccess(dispatch, usuarios);
             }
         });
+    }
+}
+
+export const invitarUsuario = (email) => {
+    return (dispatch) => {
+        dispatch({ type: 'INVITE' });
+
+        Database.request('POST', `InvitarUsuario/${email}`, {}, 2, (error, response) => {
+            if(error || response.status > 299){
+                dispatch({ type: 'INVITE_FAIL', payload: response.error })
+            } else {
+                dispatch({ type: 'INVITE_SUCCESS' })
+            }
+        })
     }
 }
 
