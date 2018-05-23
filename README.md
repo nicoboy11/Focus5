@@ -1,6 +1,8 @@
 ## Focus
 Focus is a collaborative Project and Task management tool. It has live chat, file and image sharing, push notifications, Google Calendar sync among many other different features.
 
+Backend was developed in php and mysql. JWT for authentication.
+
 ## Main projects page
 ![Alt text](/src/img/proyectos.PNG?raw=true "Title")
 
