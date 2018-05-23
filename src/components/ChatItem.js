@@ -235,7 +235,7 @@ const styles = {
         alignItems: 'center'
     },
     messageSelf: {
-        backgroundColor: '#1ABC9C',
+        backgroundColor: '#008FBE',
         borderRadius: '10px',   
         borderTopRightRadius: '0px',
         minWidth: '120px',
