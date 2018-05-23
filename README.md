@@ -3,6 +3,8 @@ Focus is a collaborative Project and Task management tool. It has live chat, fil
 
 Backend was developed in php and mysql. JWT for authentication.
 
+### Status of development: 85%
+
 ## Main projects page
 ![Alt text](/src/img/proyectos.PNG?raw=true "Title")
 
