@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import { Config } from '../configuracion';
 import { Avatar } from '../components'
 import swal from 'sweetalert';
+import MediaQuery from 'react-responsive';
 
 const { network } = Config;
 
@@ -64,26 +65,28 @@ class MenuTop extends Component{
                         </div>
                         {this.renderTitulo()}
                     </div>
-                    <div 
-                        style={styles.buttonStyle} 
-                        id="print"
-                        onClick={() => {
-                            try{
-                                var content = refs2print["list"];
-                                var pri = refs2print["ifmcontentstoprint"];
-                                pri.contentDocument.open();
-                                pri.contentDocument.write(content.innerHTML);
-                                pri.contentDocument.close();
-                                pri.focus();
-                                pri.contentWindow.print();
-                            } catch(err){
-                                swal("Error de Impresion", "Este elemento no está configurado para imprimirse.","warning");
-                            }
+                    <MediaQuery query="(min-width: 768px)">
+                        <div 
+                            style={styles.buttonStyle} 
+                            id="print"
+                            onClick={() => {
+                                try{
+                                    var content = refs2print["list"];
+                                    var pri = refs2print["ifmcontentstoprint"];
+                                    pri.contentDocument.open();
+                                    pri.contentDocument.write(content.innerHTML);
+                                    pri.contentDocument.close();
+                                    pri.focus();
+                                    pri.contentWindow.print();
+                                } catch(err){
+                                    swal("Error de Impresion", "Este elemento no está configurado para imprimirse.","warning");
+                                }
 
-                        }}
-                    >
-                        <i className="material-icons fadeColor barButton">print</i>
-                    </div>
+                            }}
+                        >
+                            <i className="material-icons fadeColor barButton">print</i>
+                        </div>
+                    </MediaQuery>
                     {/*<div style={styles.buttonStyle} id="searchBar">
                         <i className="material-icons fadeColor barButton">search</i>
                     </div>        */}

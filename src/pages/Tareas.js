@@ -12,6 +12,7 @@ import { bindActionCreators } from 'redux';
 import moment from 'moment';
 import 'moment/locale/es'
 import 'react-rangeslider/lib/index.css'
+import MediaQuery from 'react-responsive';
 
 import { connect } from 'react-redux';
 import { 

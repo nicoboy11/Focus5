@@ -78,6 +78,16 @@ ul{
         left: 66px;
     }
 
+    @media only screen and (max-width: 768px) {
+        #main{
+            position: absolute;
+            width: calc(100%);
+            height: calc(100% - 44px);
+            top: 44px;
+            left: 0;
+        }
+    }    
+
     #mainContainer{
         display: -webkit-flex;
         display: flex;
@@ -209,6 +219,12 @@ ul{
         filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#006BAB', endColorstr='#0092C0',GradientType=0 ); /* IE6-9 */        
     }
 
+    @media only screen and (max-width: 768px) {
+        #menuBar{
+            display: none;
+        }
+    }      
+
         #menuBarContainer{
             display: flex;
             flex-direction: column;
@@ -291,6 +307,14 @@ ul{
         border-radius: 3px;
         cursor: pointer;
     }*/
+    .projectCard{
+        max-width: 250px !important
+    }
+    @media only screen and (max-width: 768px) {
+        .projectCard{
+            max-width: unset !important
+        }
+    }
 
     .projectTop{
         display: flex;
