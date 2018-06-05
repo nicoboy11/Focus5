@@ -628,7 +628,7 @@ export const loadMore = (listaProyectos,id_proyecto, id_tarea, fecha) => {
                     tareaEditada.subtareas = response[0].subtareas ? JSON.parse(response[0].subtareas) : [];
 
                     const proyectos = pyMerge(listaProyectos, proyecto, tareaEditada);
-                    const proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === proyecto.id_proyecto)[0];
+                    const proyectoActual = proyectos.filter(py => py.id_proyecto === proyecto.id_proyecto)[0];
 
                     dispatch({
                         type: TR_SUCCESS,
