@@ -4,6 +4,7 @@ import { Modal, Input, Radio, FormRow, Segmented, UserList } from '../components
 import Tarea from '../components/Tarea';
 import { Helper} from '../configuracion';
 import DatePicker from 'react-datepicker';
+import MediaQuery from 'react-responsive';
 import swal from 'sweetalert';
 import moment from 'moment';
 import 'moment/locale/es';
@@ -651,7 +652,7 @@ class Proyectos extends Component{
         return (
             <div ref="listaProyectosDiv" id="list" style={styles.listWrap}>
                 <div 
-                    className="w3-col newProject w3-card" 
+                    className="w3-col newProject w3-card projectCard" 
                     style={{...styles.project,
                             display: 'flex',
                             flexDirection: 'column',
@@ -791,19 +792,32 @@ class Proyectos extends Component{
         return(
             <div id="mainProyectos" style={{display:'block'}}>
                 <div style={{ display: 'flex', width: '100%', justifyContent: 'center', paddingTop: '20px' }}>
-                    <Segmented 
-                        value={this.state.tipoLista} 
-                        items={[
-                                { value: 0, title: 'Proyectos', icon: 'view_module' },
-                                { value: 1, title: 'Columnas', icon: 'view_week' },
-                                { value: 2, title: 'Actividades', icon: 'date_range' }
-                        ]} 
-                        onSelect={(value) => this.setState({ tipoLista: value })}
-                    />                  
+                <MediaQuery query="(min-width: 768px)">
+                        <Segmented 
+                            value={this.state.tipoLista} 
+                            items={[
+                                    { value: 0, title: 'Proyectos', icon: 'view_module' },
+                                    { value: 1, title: 'Columnas', icon: 'view_week' },
+                                    { value: 2, title: 'Actividades', icon: 'date_range' }
+                            ]} 
+                            onSelect={(value) => this.setState({ tipoLista: value })}
+                        />  
+                </MediaQuery>                        
+                <MediaQuery query="(max-width: 768px)">
+                        <Segmented 
+                            value={this.state.tipoLista} 
+                            items={[
+                                    { value: 0, title: 'Proyectos', icon: 'view_module' }
+                            ]} 
+                            onSelect={(value) => this.setState({ tipoLista: value })}
+                        />  
+
+                </MediaQuery>                
+                
                 </div>
                 <Input 
                     placeholder="Buscar proyectos..." 
-                    style={{ lineHeight: '2em', width: '20%', alignSelf: 'center', marginTop: '10px', marginBottom:'10px' }} 
+                    style={{ lineHeight: '2em', alignSelf: 'center', marginTop: '10px', marginBottom:'10px' }} 
                     onChangeText={(value) => this.props.buscarTexto(value)}
                     value={this.props.buscar}
                 />

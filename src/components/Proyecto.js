@@ -145,7 +145,7 @@ class Proyecto extends Component{
             this.props.typing.txt_abbr
 
         //if(id_status === 1 || id_status === 3){
-            return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={{ ...inactivoStyle, ...styles.project, ...nuevoStyle }} className="w3-card w3-col">
+            return( <div onClick={(e) => this.onClick(e) } data-id={id_proyecto} style={{ ...inactivoStyle, ...styles.project, ...nuevoStyle }} className="projectCard w3-card w3-col">
                         <div className="projectTop">                     
                             <div className="cardTitle">{txt_proyecto}</div>   
                             {this.renderVencidas()}
@@ -195,7 +195,6 @@ const styles = {
         padding: '5px',
         paddingBottom: '0px',
         minWidth: '180px',
-        maxWidth: '250px',
         minHeight: '183px',
         borderRadius: '3px',
         cursor: 'pointer'     
