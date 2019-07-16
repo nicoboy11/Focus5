@@ -5,7 +5,7 @@ const { texts, regex, colors } = Config;
 
 const types = {
     NORMAL: '',
-    EMAIL: /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i ,
+    EMAIL: /^[a-z0-9!#$%&*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i ,
     TEXT: /[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s]/g ,
     EXTENDEDTEXT: /[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ(){}'`.\s]/g,
     NUMBER:  /[0-9]/g ,
@@ -20,7 +20,7 @@ class Input extends Component{
         labelText: '',
         placeholder: '',
         value: '',
-        replace: true,
+        replace: false,
         style: {},
         styleContainer:{},
         onEnter: () => {}
@@ -86,7 +86,6 @@ class Input extends Component{
             if(this.props.replace === true) {
                 this.props.onChangeText(text.target.value.replace(types[this.props.type],''));
             } else {
-
                 this.validateInput(text.target.value);
                 this.props.onChangeText(text.target.value)
             }

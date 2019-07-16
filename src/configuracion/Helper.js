@@ -155,6 +155,10 @@ class Helper {
         return !re.test(email);
     }
     
+    static isValidText(text) {
+        const re = regex.textOnly;
+        return !re.test(text);
+    }
 
 }
 

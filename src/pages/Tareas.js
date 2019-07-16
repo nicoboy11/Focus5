@@ -443,8 +443,8 @@ class Tareas extends Component{
 
         this.props.guardarComentario(this.props.proyectos,this.props.proyectoActual.id_proyecto,this.props.tareaActual.id_tarea,comentario, (id_tarea) => {
             //Cuando guarde el comentario que envíe el socket            
-            this.wsComment("typing","");
-            this.wsComment("enviar",{ id_tarea });              
+            //this.wsComment("typing","");
+            //this.wsComment("enviar",{ id_tarea });              
         });
     }
 
@@ -466,9 +466,9 @@ class Tareas extends Component{
             }
         }
 
-        if(this.props.ws.readyState === this.props.ws.OPEN) {
+        /*if(this.props.ws.readyState === this.props.ws.OPEN) {
             this.props.ws.send(JSON.stringify(obj));        
-        }
+        }*/
         
     }
 

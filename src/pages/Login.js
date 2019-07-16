@@ -24,18 +24,6 @@ class Login extends Component{
         }
     }
 
-    componentWillReceiveProps(nextProps){
-        if(nextProps.error !== ''){
-            //this.setState({ mostrarModal: true });
-            swal("Alerta", "Error de inicio de sesión", "error");
-        }        
-
-        if(nextProps.sessionData !== null && window.location.pathname === `${network.basename}/`){
-            this.props.cargarPerfil(nextProps.sessionData);
-            this.props.loginSuccess();
-        } 
-    }
-
     render(){
         return(
             <div className="limiter">
@@ -82,7 +70,17 @@ class Login extends Component{
 
                             <div className="container-login100-form-btn p-t-10">
                                 <button 
-                                    onClick={() => this.props.loginUser(this.props.email, this.props.password) }
+                                    onClick={() => {
+                                        this.props.loginUser(this.props.email, this.props.password, (success, sessionData) => {
+                                            if(success) {
+                                                this.props.cargarPerfil(sessionData);
+                                                this.props.loginSuccess();
+                                            }
+                                            else {
+                                                swal("Alerta", "Error de inicio de sesión", "error");
+                                            }
+                                        })
+                                    }}
                                     className="login100-form-btn"
                                 >
                                     Entrar

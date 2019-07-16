@@ -5,7 +5,8 @@ import {
     USUARIOS_SUCCESS,
     USR_EDIT,
     USR_SELECT,
-    USR_GUARDAR
+    USR_GUARDAR,
+    USUARIO_GUARDADO_SUCCESS
 } from './types';
 
 /**
@@ -124,6 +125,26 @@ export const guardarUsuario = (listaUsuarios, usuario) => {
                 usuarios[foundIndex] = response[0];
 
                 listaUsuariosSuccess(dispatch, usuarios);
+            }
+        });
+    }
+}
+
+export const crearUsuario = (usuario, callback = () => {}) => {
+    return (dispatch) => {
+        dispatch({ type: USR_GUARDAR});
+        usuario.txt_abbr = usuario.nombre.substring(0,1) + usuario.apellidos.substring(0,1);
+        usuario.txt_login_usuario = usuario.nombre + usuario.apellidos;
+        Database.request('POST', `CrearUsuario`, usuario, 2, (error, response) => {
+            if(error || response.status > 299){
+                listaUsuariosFailed(dispatch);
+                callback(false);
+            } else {
+                dispatch({
+                    type: USUARIO_GUARDADO_SUCCESS,
+                    payload: response[0]
+                });
+                callback(true);
             }
         });
     }

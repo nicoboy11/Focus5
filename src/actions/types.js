@@ -34,6 +34,7 @@ export const USUARIOS_ACTUAL_LIMPIAR = 'USUARIOS_ACTUAL_LIMPIAR';
 export const USR_EDIT = 'usr_edit';
 export const USR_SELECT = 'usr_select';
 export const USR_GUARDAR = 'usr_guardar';
+export const USUARIO_GUARDADO_SUCCESS = 'usuario_guardado_success';
 
 export const PROYECT_UPDATE = 'proyect_update';
 export const PROYECT_CREATE = 'proyect_create';

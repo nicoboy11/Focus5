@@ -32,11 +32,11 @@ class Avatar extends Component{
 
     render(){
         const { avatar, color, name, size, nameColor, displayName = true, flexDirection = 'row', textStyle, avatarURL, style = {} } = this.props;
-
+console.log(color);
         if (avatar === undefined) {
             return null;
         }
-    
+console.log(color);
         const sizes = {
             mini: 15,
             small: 20,

@@ -1105,6 +1105,48 @@ ORDER BY cu.id_usuario in (Ivid_usuario) desc,FN_NIVEL(id_usuario);
 END$$
 
 
+DELIMITER $$
+DROP PROCEDURE CreateUsuario$$
+CREATE PROCEDURE CreateUsuario (_txt_login varchar(100), _txt_usuario varchar(200), _txt_password varchar(500), _txt_email varchar(50),
+	_id_nivel tinyint, _id_usuario_superior smallint, _txt_abbr varchar(2), _id_empresa int, _nombre varchar(50), _apellidos varchar(100), _tel varchar(100))
+BEGIN
+DECLARE _id_usuario int;
+INSERT INTO cat_usuario(txt_login,txt_usuario,txt_password,txt_email,id_nivel,fec_Actualiza,id_usuario_superior,txt_abbr,id_empresa,id_status, nombre, apellidos, tel)
+VALUES(_txt_login,_txt_usuario,_txt_password,_txt_email,_id_nivel, now(),_id_usuario_superior,_txt_abbr,_id_empresa,1, _nombre, _apellidos, _tel);
+SET _id_usuario = LAST_INSERT_ID();
+CALL GetUsuario(_id_usuario); 
+END$$
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS EditToken$$
+CREATE PROCEDURE EditToken(IN _id_usuario INT, IN _token_chrome varchar(500))
+BEGIN
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+	
+		#GET DIAGNOSTICS CONDITION 1 @sqlstate = RETURNED_SQLSTATE, @errno = MYSQL_ERRNO, @text = MESSAGE_TEXT; 
+			SET @full_error = ifnull(CONCAT("ERROR ", @errno, " (", @sqlstate, "): ", @text), ""); 
+		ROLLBACK;
+		
+		INSERT INTO esnLog ( errorDescription, dateOfError, id_usuario )
+		VALUES (@full_error, NOW(), _id_usuario );
+		
+		SIGNAL sqlstate 'ERROR' SET message_text = @full_error;
+			
+	END;
+
+	START TRANSACTION;
+    
+		UPDATE cat_usuario
+		SET tk_chrome = _token_chrome
+		WHERE id_usuario = _id_usuario;
+		
+		SELECT 'exito' as message;
+    
+	COMMIT;  
+
+END$$
 /*
 select id_usuario from cat_usuario
 select * from ctrl_Tareas

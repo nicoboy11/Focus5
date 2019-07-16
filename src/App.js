@@ -25,7 +25,9 @@ import {
   initGoogle, 
   googleStatus,
   setCalEvents,
-  guardarTareaCalendar
+  guardarTareaCalendar,
+  getTarea,
+  editaToken,
 } from './actions'
 import { bindActionCreators } from 'redux';
 import { push } from 'react-router-redux'
@@ -65,7 +67,6 @@ export class App extends Component {
     }
 
     document.title = 'Focus';
-    this.loadCalApi();
   }
 
   /** CALENDARIO
@@ -79,11 +80,17 @@ export class App extends Component {
         window.gapi.load('client:auth2', this.initClient.bind(this));
       }
 
+      const me = this;
       const scriptOS = document.createElement("script");
       scriptOS.src = "https://cdn.onesignal.com/sdks/OneSignalSDK.js";
-      document.body.appendChild(script);
+      document.body.appendChild(scriptOS);
       scriptOS.onload = () => {
-        
+        window.OneSignal.push(function() {
+          window.OneSignal.init({
+            appId: "74944a56-7101-42b8-957e-e49cdc8a3cf6",
+          });
+          me.suscribir();
+        });
       }
     }
 
@@ -219,82 +226,22 @@ export class App extends Component {
       if(localStorage.length > 0){
         const sessionData = JSON.parse(localStorage.sessionData);
         if(sessionData.id_usuario !== undefined) {
+          const me = this;
+          window.OneSignal.push(["getUserId", function(userId) {
+            me.props.editaToken(sessionData.id_usuario, userId);  
+          }]);
+          
+          
+          window.OneSignal.push(["addListenerForNotificationOpened", function(event) {
+              //console.log(event);
+              //console.log(event.data)
+          }]);
 
-            OneSignal.push(["init", {
-                appId: "74944a56-7101-42b8-957e-e49cdc8a3cf6",
-                autoRegister: true,
-                httpPermissionRequest: {
-                    enable: true
-                },
-                subdomainName: "sistemafocus",
-                notificationClickHandlerMatch:"origin",
-                /* Your other init options here */
-            promptOptions: {
-                    showCredit: false, // Hide Powered by OneSignal
-                    actionMessage: 'quiere mostrar notificaciones:',
-                    exampleNotificationTitleDesktop: 'Este es un ejemplo de una notificación',
-                    exampleNotificationMessageDesktop: 'Las notificaciones van a aparecer en tu escritorio.',
-                    exampleNotificationTitleMobile: ' Notificación de ejemplo',
-                    exampleNotificationMessageMobile: 'Las notificaciones van a aparecer en tu dispositivo.',
-                    exampleNotificationCaption: '',
-                    acceptButtonText: 'Aceptar'.toUpperCase(),
-                    cancelButtonText: 'No Gracias'.toUpperCase()
-                },   
-                notifyButton: {
-                    /* Your other notify button settings here ... */
-                    enable: true,
-                    text: {
-                        'tip.state.unsubscribed': 'Recibir notificaciones',
-                        'tip.state.subscribed': "Notificaciones activadas",
-                        'tip.state.blocked': "Has bloqueado las notificaciones",
-                        'message.prenotify': 'Click para recibir notificaciones',
-                        'message.action.subscribed': "Ahora puedes recibir notificaciones!",
-                        'message.action.resubscribed': "Notificaciones activadas",
-                        'message.action.unsubscribed': "Ya no recibirás notificaciones",
-                        'dialog.main.title': 'Manejar notificaciones',
-                        'dialog.main.button.subscribe': 'RECIBIR NOTIFICACIONES',
-                        'dialog.main.button.unsubscribe': 'DEJAR DE RECIBIR NOTIFICACIONES',
-                        'dialog.blocked.title': 'Desbloquear notificaciones',
-                        'dialog.blocked.message': "Siga las instrucciones para recibir notificaciones:"
-                    },
-                    displayPredicate: function() {
-                        return OneSignal.isPushNotificationsEnabled()
-                            .then(function(isPushEnabled) {
-                                /* The user is subscribed, so we want to return "false" to hide the notify button */
-                                return !isPushEnabled;
-                            });
-                    },
-                }
-            }]);
-
-            OneSignal.push(["getUserId", function(userId) {
-                console.log("OneSignal User ID:", userId);
-                const idOS = userId;
-                
-                //var datos = "accion=suscribe&plataforma=web&clave=" + userId + "&id_usuario=" + sess_id_usuario;
-
-              /* $.ajax({    type:"POST",
-                            url:rutaSelect,
-                            beforeSend:function(){   },
-                            complete:function(){},
-                            data:datos,
-                            async: true,
-                            cache:false,
-                            dataType:"text",
-                            success:function(data)
-                {
-                        console.log(data);
-                }});*/
-
-            }]);
-            
-            
-            OneSignal.push(["addListenerForNotificationOpened", function(data) {
-                
-                //notificaciones();
-
-            }]);
-
+          window.OneSignal.push(function () {
+              window.OneSignal.on('notificationDisplay', function (event) {
+                me.props.getTarea(me.props.proyectos, event.data.id_tarea, sessionData.id_usuario);
+              });
+          });         
         }
       }
     }   
@@ -303,13 +250,16 @@ export class App extends Component {
     if(this.refs.ifmcontentstoprint !== undefined){
       this.props.guardaRefs(this.props.listaRef, this.refs.ifmcontentstoprint)
     }  
+
+    //Cargar push notifications
+    this.loadCalApi(); 
   }
 
   componentDidUpdate(){
       if(localStorage.length > 0 && localStorage.sessionData !== undefined){
         const sessionData = JSON.parse(localStorage.sessionData);
         // Cargar web sockets
-        if(this.ws === undefined && sessionData.id_usuario !== undefined) {
+        /*if(this.ws === undefined && sessionData.id_usuario !== undefined) {
           //WebSocket
           this.ws = new WebSocket(network.wsServer);
           const me = this;
@@ -333,10 +283,8 @@ export class App extends Component {
               "mensaje":"conectado",
               "id_usuario":${sessionData.id_usuario}}`)
           }   
-        }    
+        }    */
         
-        //Cargar push notifications
-        this.suscribir();
       }
 
       if(this.props.proyectos.length > 0 && this.props.events.length == 0 && window.gapi.auth2 && window.gapi.auth2.getAuthInstance().isSignedIn.get()){
@@ -456,6 +404,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
   googleStatus,
   setCalEvents,
   guardarTareaCalendar,
+  getTarea,
+  editaToken,
   changePage: (location) => push(location)
 }, dispatch)
 

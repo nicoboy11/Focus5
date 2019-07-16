@@ -39,10 +39,10 @@ export const loginUser = (email, password, callback = () => {}) => {
 
         Database.request('POST', 'loginUser', { email, password }, 0, (error, response) => {
             if(error || (response.status !== undefined && response.status > 299)) {
-                callback(false);
+                callback(false, response.message);
                 loginFailed(dispatch, response.message);
             } else {
-                callback(true);
+                callback(true, response[0]);
                 loginSuccess(dispatch, response[0]);
             }
         });

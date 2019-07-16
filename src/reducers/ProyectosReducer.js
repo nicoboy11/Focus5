@@ -74,7 +74,11 @@ export default (state = INITIAL_STATE, action) => {
             }
             return { ...state, error: '', fltrNtf: false, proyectos: action.payload.proyectos, ...tareaActual, tmpProyecto: action.payload.tmpProyecto, loadingTarea: false, loadingChecklist: false, loading: false }
         case TR_SUCCESS_SOCKET:
-            return { ...state, proyectos: action.payload.proyectos }
+            let tmpProyecto = { ...state.tmpProyecto };
+            if(state.tmpProyecto.id_proyecto === action.payload.tmpProyecto.id_proyecto) {
+                tmpProyecto = { ...action.payload.tmpProyecto }
+            }
+            return { ...state, proyectos: action.payload.proyectos, tmpProyecto: tmpProyecto }
         case TR_SUCCESS_SUB:
             let tareaActual_sub = {};
             if(action.payload.tareaActual.selected){

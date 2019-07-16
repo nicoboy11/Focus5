@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { listaUsuarios, mostrarHijos, seleccionarUsuario, editaUsuario, guardarUsuario, buscarTexto } from '../actions';
+import { listaUsuarios, mostrarHijos, seleccionarUsuario, editaUsuario, guardarUsuario, buscarTexto, crearUsuario } from '../actions';
 import { Avatar, Segmented, Modal, FormRow, Radio, Input } from '../components';
 import Select from 'react-select';
 import swal from 'sweetalert';
@@ -13,7 +13,8 @@ class Personal extends Component{
     state = {
         tipoLista: 0,
         verEdit: false,
-        mostrarModal: false
+        mostrarModal: false,
+        mostrarModalAlta: false,
     }
 
     componentWillMount(){
@@ -82,7 +83,7 @@ class Personal extends Component{
                                 <Avatar 
                                     avatar={image}
                                     size="veryBig"
-                                    color={usuario.color}
+                                    color={usuario.color || '#D50000'}
                                 />
                                 <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{usuario.txt_usuario}</div>
                                 <div style={{textAlign: 'center', width: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#A2ABB2', fontSize: '10px'}}>{usuario.txt_email}</div>
@@ -157,6 +158,141 @@ class Personal extends Component{
         this.setState({ mostrarModal: false }) 
     }
 
+    renderFormaAlta(){
+
+        const {
+            txt_usuario,
+            nombre,
+            apellidos,
+            tel,
+            id_usuario_superior,
+            txt_email,
+        } = this.props.usuarioActual
+
+        const usuarioActual = this.props.usuarioActual;
+
+        const sessionData = JSON.parse(localStorage.sessionData)  
+        let usuariosRed = [];
+        if(this.props.usuarios.usuarios !== undefined){
+            usuariosRed = this.props.usuarios.usuarios.filter(usuario => usuario.levelKey.includes(sessionData.levelKey));
+        } 
+        
+        
+        return (
+            <Modal 
+                type='FORM' 
+                isVisible={this.state.mostrarModalAlta} 
+                titulo='Nuevo usuario'
+                loading={this.props.loading}
+                componenteInicial="id_usuario_superior"
+                onGuardar={() => { 
+                    this.props.crearUsuario(usuarioActual, (success) => {
+                        if(success) {
+                            swal('Guardado!','Usuario guardado con éxito', 'success');
+                            this.setState({ mostrarModalAlta: false });
+                        } else {
+                            swal('Error', 'Usuario guardado con éxito', 'error');
+                        }
+                    })
+                }}
+                onCerrar={() => { 
+                    this.setState({ mostrarModalAlta: false }); 
+                    //this.props.desseleccionarUsuario(); 
+                }}
+            >
+                <FormRow titulo='JEFE INMEDIATO'>                    
+                    <Select 
+                        name='jefeInmediato'
+                        value={id_usuario_superior}
+                        placeholder='Seleccione un jefe inmediato'
+                        onChange={  value => {
+                                        this.props.editaUsuario({ 
+                                            prop: "id_usuario_superior", 
+                                            value: value.id_usuario,
+                                            usuario: usuarioActual
+                                        });
+                                    }
+                                }
+                        valueKey="id_usuario"
+                        labelKey="txt_usuario"
+                        options={usuariosRed}
+                    />                    
+                </FormRow>     
+                <FormRow titulo='Email'>
+                   <Input 
+                        placeholder="Email" 
+                        type="EMAIL"
+                        onChangeText={  value => {
+                                this.props.editaUsuario({ 
+                                    prop: "txt_email", 
+                                    value: value,
+                                    usuario: usuarioActual
+                                });
+                            }
+                        }
+                        value={txt_email}                   
+                   />
+                </FormRow>  
+                <FormRow titulo='Nombre'>
+                   <Input
+                        placeholder="Nombre" 
+                        onChangeText={  value => {
+                                this.props.editaUsuario({ 
+                                    prop: "nombre", 
+                                    value: value,
+                                    usuario: usuarioActual
+                                });
+                            }
+                        }
+                        value={nombre}                   
+                   />
+                </FormRow>  
+                <FormRow titulo='Apellidos'>
+                   <Input
+                        placeholder="Apellido" 
+                        onChangeText={  value => {
+                                this.props.editaUsuario({ 
+                                    prop: "apellidos", 
+                                    value: value,
+                                    usuario: usuarioActual
+                                });
+                            }
+                        }
+                        value={apellidos}                   
+                   />
+                </FormRow>  
+                <FormRow titulo='Telefono/Celular'>
+                   <Input
+                        placeholder="Número de teléfono ó celular" 
+                        onChangeText={  value => {
+                                this.props.editaUsuario({ 
+                                    prop: "tel", 
+                                    value: value,
+                                    usuario: usuarioActual
+                                });
+                            }
+                        }
+                        value={tel}                   
+                   />
+                </FormRow>
+                <FormRow titulo='Nombre corto'>
+                   <Input
+                        placeholder="Nombre corto" 
+                        onChangeText={  value => {
+                                this.props.editaUsuario({ 
+                                    prop: "txt_usuario", 
+                                    value: value,
+                                    usuario: usuarioActual
+                                });
+                            }
+                        }
+                        value={txt_usuario}                   
+                   />
+                </FormRow>                                                                                    
+            </Modal>
+        );
+    }    
+
     renderForma(){
 
         const {
@@ -224,32 +360,46 @@ class Personal extends Component{
         );
     }
 
+    renderAddButton() {
+        return (
+            <div style={{ cursor: 'pointer' }} onClick={() => this.setState({ mostrarModalAlta: true })}>
+                <i className="material-icons clickableColor" style={{ fontSize: '24px', marginLeft: '15px' }}>add</i>
+            </div>            
+        )
+    }
+
     renderListaUsuarios(){
         if(this.state.tipoLista === 0){
             return (
                 <div>
-                    <h2 style={{ display: 'flex', margin: '20px'}}>Mi Red</h2>
+                    <h2 style={{ display: 'flex', margin: '20px'}}>
+                        Mi Red 
+                        {this.renderAddButton()}
+                    </h2>
                     <div style={{ display: 'flex', alignItems: 'center', flexFlow: 'row wrap', minHeight: '100px'  }}>
                         {this.renderUsuarios(true)}
                     </div>
-                    <h2 style={{ margin: '20px', display: 'flex' }}>Organización</h2>
+{/*                     <h2 style={{ margin: '20px', display: 'flex' }}>Organización</h2>
                     <div style={{ display: 'flex', alignItems: 'center', flexFlow: 'row wrap', height: '0px'  }}>
                         {this.renderUsuarios()}
-                    </div>
+                    </div> */}
                 </div>
             );
         }
 
         return (
             <div>
-                <h2 style={{ display: 'flex', margin: '20px'}}>Mi Red</h2>
+                <h2 style={{ display: 'flex', margin: '20px'}}>
+                    Mi Red
+                    {this.renderAddButton()}                 
+                </h2>
                 <div style={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column' }}>
                     {this.renderUsuarios(true)}
                 </div>
-                <h2 style={{ margin: '20px', display: 'flex' }}>Organización</h2>
+{/*                 <h2 style={{ margin: '20px', display: 'flex' }}>Organización</h2>
                 <div style={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column'  }}>
                     {this.renderUsuarios()}
-                </div>
+                </div> */}
             </div>
         );        
 
@@ -279,6 +429,7 @@ class Personal extends Component{
                     />    
                 {this.renderListaUsuarios()}
                 {this.renderForma()}
+                {this.renderFormaAlta()}
             </div>
         );        
     }
@@ -299,7 +450,8 @@ const mapDispatchToProps = dispatch => bindActionCreators({
     seleccionarUsuario,
     editaUsuario,
     guardarUsuario,
-    buscarTexto
+    buscarTexto,
+    crearUsuario,
 }, dispatch)
 
 export default connect(mapStateToProps,mapDispatchToProps)(Personal);

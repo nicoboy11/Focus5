@@ -6,7 +6,9 @@ import {
     USUARIOS_SUCCESS,
     USUARIOS_ACTUAL_LIMPIAR,
     USR_EDIT,
-    USR_SELECT
+    USR_SELECT,
+    USUARIO_GUARDADO_SUCCESS,
+    USR_GUARDAR,
 } from '../actions/types';
 
 const INITIAL_STATE = { 
@@ -34,8 +36,14 @@ export default (state = INITIAL_STATE, action) => {
             return { ...state, usuario_reponsable: [], USUARIOS_PARTICIPANTES: [] }
         case USR_EDIT:
             return { ...state, usuarios: action.payload }     
+        case USR_GUARDAR:
+            return { ...state, error: '', loading: true }
         case USR_SELECT:
             return { ...state, usuarioActual: action.payload }
+        case USUARIO_GUARDADO_SUCCESS:
+            const listaUsuarios = [...state.usuarios];
+            listaUsuarios.push(action.payload);
+            return { ...state, usuarioActual: {}, usuarios: listaUsuarios, error: '', loading: false }
         default:
             return state;
     }

@@ -70,6 +70,18 @@ export const guardarPassword = (id_usuario, password, callback) => {
     }
  }
 
+ export const editaToken = (id_usuario, tk_chrome, callback = () => {}) => {
+     return (dispatch) => {
+         Database.request('POST', `EditarTokens/${id_usuario}`, { tk_chrome }, 2, (error, response) => {
+            if(error || response.status > 299) {
+                console.log('token fail');
+            } else {
+                console.log('token saved');
+            }
+         });
+     }
+ }
+
 export const guardarPerfil = (perfil) => {
     return(dispatch) => {
         dispatch({ type: PERFIL_SAVE });

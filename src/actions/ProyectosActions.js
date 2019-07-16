@@ -415,6 +415,7 @@ export const getTarea = (listaProyectos, id_tarea, id_usuario, selected = false)
 
                     let proyectoActual = listaProyectos.filter(proyecto => proyecto.id_proyecto === tareaSocket.id_proyecto)[0];
                     const proyectos = pyMerge(listaProyectos, proyectoActual, tareaSocket);
+                    
                     //Vuelvo a sacar proyecto y tarea ya con datos actualizados
                     proyectoActual = proyectos.filter(proyecto => proyecto.id_proyecto === tareaSocket.id_proyecto)[0];
                     dispatch({ 
@@ -422,7 +423,7 @@ export const getTarea = (listaProyectos, id_tarea, id_usuario, selected = false)
                         payload: { 
                             proyectos, 
                             tmpProyecto: proyectoActual, 
-                            tareaActual: { id_tarea: id_tarea, editing: false, selected }
+                            tareaActual: { id_tarea: id_tarea, editing: false, selected },
                         } 
                     });
                 }

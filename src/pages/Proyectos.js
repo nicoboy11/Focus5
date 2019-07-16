@@ -49,6 +49,7 @@ class Proyectos extends Component{
      * Al abrir esta pantalla por primera vez se cargan todos los proyectos y las tareas
      */
     componentWillMount(){
+        console.log('aqui estamos');
         if(localStorage.length > 0 && localStorage.sessionData !== undefined) {
             if(this.props.proyectos.length === 0){
                 const sessionData = JSON.parse(localStorage.sessionData);
