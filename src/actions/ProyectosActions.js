@@ -182,7 +182,7 @@ export const desseleccionarTarea = (listaProyectos, proyecto) => {
 export const editarTarea = ({ prop, value, tmpProyecto, tmpTarea }, callback = () =>{}) => {
     let proyecto = { ...tmpProyecto };
     const foundIndex = proyecto.tareas.findIndex(x=>x.id_tarea === tmpTarea.id_tarea);
-    
+
     let tarea = { ...tmpTarea };
     tarea[prop] = value;
 

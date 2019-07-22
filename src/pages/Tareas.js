@@ -10,6 +10,7 @@ import DatePicker from 'react-datepicker';
 import { push } from 'react-router-redux';
 import { bindActionCreators } from 'redux';
 import moment from 'moment';
+import get from 'lodash/get';
 import 'moment/locale/es'
 import 'react-rangeslider/lib/index.css'
 
@@ -360,8 +361,11 @@ class Tareas extends Component{
                     ]*/
                 }
             };
-
-            var request = this.props.gapi.client.calendar.events.insert({
+            const calEvents = get(this.props,'gapi.client.calendar.events', null)
+            if(!calEvents) {
+                return;
+            }
+            var request = calEvents.insert({
                 'calendarId': 'primary',
                 'resource': event
             });
@@ -375,7 +379,11 @@ class Tareas extends Component{
 
     borrarCalendario({ id_tarea }) {
         const me = this;
-        this.props.gapi.client.calendar.events.list({
+        const calEvents = get(this.props,'gapi.client.calendar.events', null);
+        if(!calEvents) {
+            return;
+        }
+        calEvents.list({
             'calendarId': 'primary',
             'showDeleted': false,
             'singleEvents': true,
@@ -392,7 +400,11 @@ class Tareas extends Component{
                         var id_tareaCal = event.description.split("-")[1];
     
                         if(id_tareaCal == id_tarea) {
-                            var request = me.props.gapi.client.calendar.events.delete({
+                            const calEvents = get(me.props,'gapi.client.calendar.events', { insert: () => {} });
+                            if(!calEvents) {
+                                return;
+                            }
+                            var request = calEvents.delete({
                                 'calendarId': 'primary',
                                 'eventId': event.id
                             });                        
@@ -1005,6 +1017,12 @@ class Tareas extends Component{
             this.props.clearTareaSocket();            
         }       
 
+
+        let clas = ""
+        if(!this.props.borderless){
+            clas = "divideBottom"
+        } 
+
         return(
             <div className="detallesContainer divideTop">
                 <div 
@@ -1064,7 +1082,21 @@ class Tareas extends Component{
                     <div>
                     <NewTask 
                         onEnter={(txt_tarea) => this.onGuardar(txt_tarea)}
-                    />
+                    />                         
+{/*                     <div ref="newTaskDiv" id="newTask" onClick={() => {
+                            this.props.desseleccionarTarea(this.props.proyectos, this.props.proyectoActual); 
+                            this.setState({ mostrarModal: true });
+                        }} 
+                        className={clas} 
+                        style={{ ...styles.containerStyle }}
+                    >
+                        <div className="w3-circle newItemNormal">
+                            <i className="material-icons fNormal">add</i>
+                        </div>
+                        <div style={{ marginLeft: '10px'}}>
+                            Agregar Tarea
+                        </div>
+                    </div> */}
                     </div>
                     {this.renderTareas()}
                     {(this.props.loading)?
@@ -1174,7 +1206,14 @@ const styles = {
         backgroundColor: '#F6F6F6',
         border: '1px solid #E2E2E2',
         borderRadius: '5px'
-    }
+    },
+    containerStyle: {
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        padding: '12px',
+        cursor: 'pointer'
+    }    
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Tareas)
